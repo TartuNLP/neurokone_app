@@ -81,13 +81,15 @@ class TtsPlayer {
     Int16List intList = Int16List.fromList(intBytes);
     Uint8List playableBytes = intList.buffer
         .asUint8List(intList.offsetInBytes, intList.lengthInBytes);
-
+    
+    
     while (DateTime.now().isBefore(lastStart
         .add(Duration(milliseconds: previusDurationInMs + delayInMs)))) {
       continue;
     }
     previusDurationInMs = (intList.length * 1000 / sampleRate).ceil();
     lastStart = DateTime.now();
+    
     int result = await player.playBytes(playableBytes);
     //log("Audio playing.");
   }

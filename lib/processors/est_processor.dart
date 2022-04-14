@@ -107,15 +107,15 @@ class EstProcessor implements mProcessor {
   ];
   static List<String> SYMBOLS = [
     'pad',
-    '-',	//
+    '-', //
     ' ',
     '!',
     '\"',
-    "'",	//
+    "'", //
     ',',
     '.',
-    ':',	//
-    ';',	//
+    ':', //
+    ';', //
     '?',
     'a',
     'b',
@@ -136,23 +136,23 @@ class EstProcessor implements mProcessor {
     'q',
     'r',
     's',
-    'š',  //
+    'š', //
     't',
     'u',
     'v',
     'w',
-    'õ',  //
-    'ä',  //
-    'ö',  //
-    'ü',  //
+    'õ', //
+    'ä', //
+    'ö', //
+    'ü', //
     'x',
     'y',
     'z',
-  //  'ä',
-  //  'õ',
-  //  'ö',
-  //  'ü',
-  //  'š',
+    //  'ä',
+    //  'õ',
+    //  'ö',
+    //  'ü',
+    //  'š',
     'ž',
     'eos'
   ];
@@ -183,6 +183,7 @@ class EstProcessor implements mProcessor {
     'ca': 'tsirka',
     'Ca': 'CA',
     'CA': 'CA',
+    'cA': 'CA',
     'cl': 'sentiliiter',
     'cm': 'sentimeeter',
     'dB': 'detsibell',
@@ -220,6 +221,7 @@ class EstProcessor implements mProcessor {
     'klh': 'kolhoos',
     'km': 'kilomeeter',
     'KM': 'KM',
+    'kM': 'KM',
     'km/h': 'kilomeetrit tunnis',
     'km²': 'ruutkilomeeter',
     'kod': 'kodanik',
@@ -244,12 +246,16 @@ class EstProcessor implements mProcessor {
     'mln': 'miljon',
     'mm': 'millimeeter',
     'MM': 'MM',
+    'mM': 'MM',
     'mnt': 'maantee',
     'm²': 'ruutmeeter',
     'm³': 'kuupmeeter',
     'Mr': 'mister',
+    'mr': 'mister',
     'Ms': 'miss',
+    'ms': 'miss',
     'Mrs': 'missis',
+    'mrs': 'missis',
     'n-ö': 'nii-öelda',
     'nim': 'nimeline',
     'nn': 'niinimetatud',
@@ -257,6 +263,7 @@ class EstProcessor implements mProcessor {
     'nr': 'number',
     'nt': 'näiteks',
     'NT': 'NT',
+    'nT': 'NT',
     'okt': 'oktoober',
     'p.o': 'peab olema',
     'pKr': 'pärast Kristuse sündi',
@@ -268,6 +275,7 @@ class EstProcessor implements mProcessor {
     'prof': 'professor',
     'ps': 'poolsaar',
     'PS': 'PS',
+    'pS': 'PS',
     'pst': 'puiestee',
     'ptk': 'peatükk',
     'raj': 'rajoon',
@@ -288,9 +296,11 @@ class EstProcessor implements mProcessor {
     'sh': 'sealhulgas',
     'skp': 'selle kuu päeval',
     'SKP': 'SKP',
+    'sKP': 'SKP',
     'sl': 'supilusikatäis',
     'sm': 'seltsimees',
     'SM': 'SM',
+    'sM': 'SM',
     'snd': 'sündinud',
     'spl': 'supilusikatäis',
     'srn': 'surnud',
@@ -319,6 +329,7 @@ class EstProcessor implements mProcessor {
     'õpil': 'õpilane',
     'V': 'volt',
     'Hz': 'herts',
+    'hz': 'herts',
     'W': 'vatt',
     'kW': 'kilovatt',
     'kWh': 'kilovatttund',
@@ -436,18 +447,23 @@ class EstProcessor implements mProcessor {
     String endingWord = "";
     RegExp pattern = RegExp(r'-?[a-z]+$');
     RegExpMatch? m = pattern.firstMatch(word);
+    String newword = word;
     if (m != null) {
       endingWord = " " +
-          (word.substring(m.start, m.end).startsWith("-")
-              ? word.substring(m.start + 1, m.end)
-              : word.substring(m.start, m.end));
+          (word.substring(m.start).startsWith("-")
+              ? word.substring(m.start + 1)
+              : word.substring(m.start));
+      newword = word.substring(0, m.start);
     }
-    if (RegExp(r'[IXC]{4}').hasMatch(word)) {
-      return word;
-    } else if (RegExp(r'[VLD]{2}').hasMatch(word)) {
+    if (RegExp(r'I{4}').hasMatch(word) ||
+        RegExp(r'X{4}').hasMatch(word) ||
+        RegExp(r'C{4}').hasMatch(word) ||
+        RegExp(r'V{2}').hasMatch(word) ||
+        RegExp(r'L{2}').hasMatch(word) ||
+        RegExp(r'D{2}').hasMatch(word)) {
       return word;
     }
-    String newword = word.replaceAll("IV", "IIII").replaceAll("IX", "VIIII");
+    newword = newword.replaceAll("IV", "IIII").replaceAll("IX", "VIIII");
     newword = newword.replaceAll("XL", "XXXX").replaceAll("XC", "LXXXX");
     newword = newword.replaceAll("CD", "CCCC").replaceAll("CM", "DCCCC");
     if (RegExp(r'[IXC]{5}').hasMatch(newword)) {
@@ -595,7 +611,7 @@ class EstProcessor implements mProcessor {
         }
         continue;
       }
-      if (RegExp(r'^[IVXLCDM]+-?\w*$').hasMatch(word)) {
+      if (RegExp(r'^[IVXLCDM]+(-\w*)?$').hasMatch(word)) {
         word = _romanToArabic(word);
         if (word.split(' ').length > 1) {
           newTextParts.add(_processByWord(word.split(' ')));
@@ -656,6 +672,7 @@ class EstProcessor implements mProcessor {
     text += '.';
     text = _collapseWhitespace(text);
     text = _expandAbbreviations(text);
+    text = text.toLowerCase();
 
     log('Text preprocessed:' + text);
     return text;

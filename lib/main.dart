@@ -241,7 +241,6 @@ class _MyHomePageState extends State<MyHomePage> {
     List<String> sentences = [];
     while (sentenceSplit.hasMatch(remainingText)) {
       RegExpMatch match = sentenceSplit.firstMatch(remainingText)!;
-      String sf = remainingText.substring(match.start, match.end);
       if (match.group(1) != null &&
           match.group(1)!.contains(',') &&
           leadingText.length + match.start < 15 &&
@@ -283,6 +282,9 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       } else {
         audioBytes = output[0][0];
+      }
+      while (_audioPlayer.isPlaying()) {
+        continue;
       }
       _audioPlayer.playAudio(sentence, audioBytes, _speed);
     }
