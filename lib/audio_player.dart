@@ -45,7 +45,7 @@ class TtsPlayer {
       1, //Number of Channels
       sampleRate, 0, //Sample Rate - 32 byte integer
       -21436, 0, // - 65536 + ((Sample Rate * BitsPerSample * Channels)/8)
-      2, //(BitsPerSample * Channels)/8 - 1 - 8 bit mono; 2 - 8 bit stereo/16 bit mono; 4 - 16 bit stereo
+      2, //(BitsPerSample * Channels)/8: 1 - 8 bit mono; 2 - 8 bit stereo/16 bit mono; 4 - 16 bit stereo
       16, //Bits per sample
       24932,
       24948, //“data” - “data” chunk header. Marks the beginning of the data section.
