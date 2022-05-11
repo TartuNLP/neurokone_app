@@ -1,16 +1,37 @@
 import 'dart:developer';
 import 'dart:typed_data';
-import 'package:audioplayers/audioplayers.dart';
+//import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
 
+/*
 class AudioData {
   final String text;
   final Uint8List data;
 
   AudioData({required this.text, required this.data});
 }
+*/
+
+class MyByteSource extends StreamAudioSource {
+  final Uint8List _buffer;
+
+  MyByteSource(this._buffer) : super(tag: 'MyAudioSource');
+
+  @override
+  Future<StreamAudioResponse> request([int? start, int? end]) async {
+    return StreamAudioResponse(
+      sourceLength: _buffer.length,
+      contentLength: (start ?? 0) - (end ?? _buffer.length),
+      offset: start ?? 0,
+      stream: Stream.fromIterable([_buffer.sublist(start ?? 0, end)]),
+      contentType: 'audio/wav',
+    );
+  }
+}
 
 class TtsPlayer {
-  AudioPlayer player = AudioPlayer(mode: PlayerMode.MEDIA_PLAYER);
+  //AudioPlayer player = AudioPlayer(mode: PlayerMode.MEDIA_PLAYER);
+  AudioPlayer player = AudioPlayer();
   DateTime lastStart = DateTime.now();
   int previusDurationInMs = 0;
   int delayInMs = 100;
@@ -76,30 +97,34 @@ class TtsPlayer {
 }*/
 
   playAudio(String sentence, List<double> bytes, double speed) async {
+    player.pause();
     log('Playing audio for sentence "' + sentence + '"');
     List<int> intBytes = _convertFloatTo16BitSigned(bytes);
     Int16List intList = Int16List.fromList(intBytes);
     Uint8List playableBytes = intList.buffer
         .asUint8List(intList.offsetInBytes, intList.lengthInBytes);
-    
-    
+
     while (DateTime.now().isBefore(lastStart
         .add(Duration(milliseconds: previusDurationInMs + delayInMs)))) {
       continue;
     }
     previusDurationInMs = (intList.length * 1000 / sampleRate).ceil();
     lastStart = DateTime.now();
-    
-    int result = await player.playBytes(playableBytes);
+
+    player.setAudioSource(MyByteSource(playableBytes));
+    player.play();
+    //int result = await player.playBytes(playableBytes);
     //log("Audio playing.");
   }
 
   bool isPlaying() {
-    return player.state == PlayerState.PLAYING;
+    return player.playing;
+    //return player.state == PlayerState.PLAYING;
   }
 
   stopAudio() async {
-    int result = await player.stop();
+    player.stop();
+    //int result = await player.stop();
     //_player.stopPlayer();
   }
 }

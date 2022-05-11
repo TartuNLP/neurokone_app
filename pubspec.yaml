@@ -35,9 +35,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   tflite_flutter: ^0.9.0
-  pytorch_mobile: ^0.2.1
+  #pytorch_mobile: ^0.2.1
   unorm_dart: ^0.2.0
   audioplayers:
+  just_audio: ^0.9.21
   #tflite_tts:
     #git:
     #  url: git@github.com:nmfisher/flutter_tflite_tts_plugin.git
