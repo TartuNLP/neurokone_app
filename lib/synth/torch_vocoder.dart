@@ -1,13 +1,13 @@
-import 'dart:developer';
+//import 'dart:developer';
 
-import 'package:pytorch_mobile/pytorch_mobile.dart';
-import 'package:pytorch_mobile/model.dart';
-import 'package:pytorch_mobile/enums/dtype.dart';
+//import 'package:pytorch_mobile/pytorch_mobile.dart';
+//import 'package:pytorch_mobile/model.dart';
+//import 'package:pytorch_mobile/enums/dtype.dart';
 
 class TorchVocoder {
   static late String TAG;
   late String modulePath;
-  late Model vocModule;
+  //late Model vocModule;
 
   TorchVocoder(String vocName) {
     TAG = vocName;
@@ -16,7 +16,7 @@ class TorchVocoder {
   }
 
   loadModel() async {
-    vocModule = await PyTorchMobile.loadModel(modulePath);
+    //vocModule = await PyTorchMobile.loadModel(modulePath);
     /*
     for (var tensor in vocModule.getInputTensors()) {
       log('$TAG (in): ' +
@@ -44,15 +44,15 @@ class TorchVocoder {
     //List<int> shape = [1, bins, spectrogram[0].length];
     List<int> shape = [1, spectrogram[0].length, bins];
     List<double> input = _transposeToFlatArray(spectrogram[0], shape);
-    Future _prediction = _invokeModel(vocModule, input, shape);
-    var out = _prediction.then((value) => log(value));
-    return out;
+    //Future _prediction = _invokeModel(vocModule, input, shape);
+    //var out = _prediction.then((value) => log(value));
+    //return out;
   }
 
-  _invokeModel(Model model, List<double> input, List<int> shape) async {
-    List? out = await model.getPrediction(input, shape, DType.float32);
-    return out;
-  }
+  //_invokeModel(Model model, List<double> input, List<int> shape) async {
+  //  List? out = await model.getPrediction(input, shape, DType.float32);
+  //  return out;
+  //}
 
   List<double> _transposeToFlatArray(List spectrogram, List<int> channels) {
     List<double> out = [];

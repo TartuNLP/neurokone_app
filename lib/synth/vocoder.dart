@@ -41,7 +41,8 @@ class Vocoder {
     //List<List<Float32List>> inputArray = List<List<Float32List>>.filled(length, fill)
 
     //TensorBuffer output = TensorBuffer.createDynamic(TfLiteType.float32);
-    var out = List<double>.filled(2, 0);
+    //var out = List<double>.filled(2, 0);
+    var out = [List.generate(43264, (_) => List<double>.filled(1, 0))];
     //var input = spectrogram.getBuffer();
     vocModule.run(spectrogram, out);
 

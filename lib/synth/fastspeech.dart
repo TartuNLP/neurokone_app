@@ -59,15 +59,14 @@ class FastSpeech implements AbstractModule {
     }
     //TensorBuffer out = TensorBuffer.createDynamic(TfLiteType.float32);
     //out.resize([1, 1, 80]);
-    var out = List<double>.filled(2, 0);
-
-    Map<int, Object> outputMap = {
-      0: out,
-      1: out,
-      2: out,
-      3: out,
-      4: out,
-    };
+    //var out = List<double>.filled(1, 0);
+    var out = [List.generate(169, (_) => List<double>.filled(80, 0))];
+    Map<int, Object> outputMap = {0: out};
+    int counter = 0;
+    for (var out in mModule.getOutputTensors()) {
+      outputMap[counter] = out;
+      counter++;
+    }
 
     mModule.runForMultipleInputs(inputList, outputMap);
     //var tensors = mModule.getOutputTensors();
