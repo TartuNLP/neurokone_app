@@ -49,10 +49,12 @@ class TorchVocoder {
     //return out;
   }
 
-  //_invokeModel(Model model, List<double> input, List<int> shape) async {
-  //  List? out = await model.getPrediction(input, shape, DType.float32);
-  //  return out;
-  //}
+  /*
+  _invokeModel(Model model, List<double> input, List<int> shape) async {
+    List? out = await model.getPrediction(input, shape, DType.float32);
+    return out;
+  }
+  */
 
   List<double> _transposeToFlatArray(List spectrogram, List<int> channels) {
     List<double> out = [];
