@@ -158,7 +158,7 @@ class TtsPlayer {
   playAudio(String sentence, List<double> bytes, double speed) async {
     //player.pause();
     log('Playing audio for sentence "' + sentence + '"');
-    String filePath = (await getTemporaryDirectory()).toString().split('\'')[1] + 'tempAudio.wav';
+    String filePath = (await getTemporaryDirectory()).toString().split('\'')[1] + '/tempAudio.wav';
     List<int> intBytes = _convertFloatTo16BitSigned(bytes);
     Int16List intList = Int16List.fromList(intBytes);
     Uint8List playableBytes = intList.buffer

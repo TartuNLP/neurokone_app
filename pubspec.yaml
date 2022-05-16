@@ -38,17 +38,7 @@ dependencies:
   #pytorch_mobile: ^0.2.1
   unorm_dart: ^0.2.0
   audioplayers: ^0.20.1
-  
-  #just_audio: ^0.9.21
-  #tflite_tts:
-    #git:
-    #  url: git@github.com:nmfisher/flutter_tflite_tts_plugin.git
-    #path: ../flutter_tflite_tts_plugin
-  #flutter_tflite:
-    #git:
-    #  url: git@github.com:nmfisher/flutter_tflite.git
-    #path: ../flutter_tflite
-  #flutter_sound: ^8.5.0
+  path_provider: ^2.0.10
 
 dev_dependencies:
   flutter_test:
