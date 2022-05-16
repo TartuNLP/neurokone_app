@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 //import 'package:just_audio/just_audio.dart';
+import 'package:path_provider/path_provider.dart';
 
 /*
 class AudioData {
@@ -92,7 +93,6 @@ class TtsPlayer {
   int previusDurationInMs = 0;
   int delayInMs = 100;
   int sampleRate = 22050;
-  String filePath = "/storage/emulated/0/Download/recordedFile.wav";
 
   List<int> _convertFloatTo16BitSigned(List<double> pcmDouble) {
     int coeff = 32768;
@@ -158,6 +158,7 @@ class TtsPlayer {
   playAudio(String sentence, List<double> bytes, double speed) async {
     //player.pause();
     log('Playing audio for sentence "' + sentence + '"');
+    String filePath = (await getTemporaryDirectory()).toString().split('\'')[1] + 'tempAudio.wav';
     List<int> intBytes = _convertFloatTo16BitSigned(bytes);
     Int16List intList = Int16List.fromList(intBytes);
     Uint8List playableBytes = intList.buffer
