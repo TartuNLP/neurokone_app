@@ -1,7 +1,8 @@
 import 'dart:developer';
+import 'dart:io';
 import 'dart:typed_data';
-//import 'package:audioplayers/audioplayers.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:audioplayers/audioplayers.dart';
+//import 'package:just_audio/just_audio.dart';
 
 /*
 class AudioData {
@@ -12,6 +13,60 @@ class AudioData {
 }
 */
 
+Future<void> save(Uint8List header, String path, int sampleRate) async {
+  File recordedFile = File(path);
+  /*
+  var channels = 1;
+
+  int byteRate = ((16 * sampleRate * channels) / 8).round();
+
+  var size = data.length;
+
+  var fileSize = size + 36;
+
+  Uint8List header = Uint8List.fromList([
+    // "RIFF"
+    82, 73, 70, 70,
+    fileSize & 0xff,
+    (fileSize >> 8) & 0xff,
+    (fileSize >> 16) & 0xff,
+    (fileSize >> 24) & 0xff,
+    // WAVE
+    87, 65, 86, 69,
+    // fmt
+    102, 109, 116, 32,
+    // fmt chunk size 16
+    16, 0, 0, 0,
+    // Type of format
+    1, 0,
+    // One channel
+    channels, 0,
+    // Sample rate
+    sampleRate & 0xff,
+    (sampleRate >> 8) & 0xff,
+    (sampleRate >> 16) & 0xff,
+    (sampleRate >> 24) & 0xff,
+    // Byte rate
+    byteRate & 0xff,
+    (byteRate >> 8) & 0xff,
+    (byteRate >> 16) & 0xff,
+    (byteRate >> 24) & 0xff,
+    // Uhm
+    ((16 * channels) / 8).round(), 0,
+    // bitsize
+    16, 0,
+    // "data"
+    100, 97, 116, 97,
+    size & 0xff,
+    (size >> 8) & 0xff,
+    (size >> 16) & 0xff,
+    (size >> 24) & 0xff,
+    ...data
+  ]);
+  */
+  return recordedFile.writeAsBytesSync(header, flush: true);
+}
+/*
 class MyByteSource extends StreamAudioSource {
   final Uint8List _buffer;
 
@@ -28,6 +83,7 @@ class MyByteSource extends StreamAudioSource {
     );
   }
 }
+*/
 
 class TtsPlayer {
   //AudioPlayer player = AudioPlayer(mode: PlayerMode.MEDIA_PLAYER);
@@ -36,6 +92,7 @@ class TtsPlayer {
   int previusDurationInMs = 0;
   int delayInMs = 100;
   int sampleRate = 22050;
+  String filePath = "/storage/emulated/0/Download/recordedFile.wav";
 
   List<int> _convertFloatTo16BitSigned(List<double> pcmDouble) {
     int coeff = 32768;
@@ -53,6 +110,8 @@ class TtsPlayer {
     }
     int file1 = int.parse(fileLen.substring(16), radix: 2);
     int file2 = int.parse(fileLen.substring(0, 16), radix: 2);
+
+    //List<int> out = [];
 
     List<int> out = [
       18770,
@@ -97,7 +156,7 @@ class TtsPlayer {
 }*/
 
   playAudio(String sentence, List<double> bytes, double speed) async {
-    player.pause();
+    //player.pause();
     log('Playing audio for sentence "' + sentence + '"');
     List<int> intBytes = _convertFloatTo16BitSigned(bytes);
     Int16List intList = Int16List.fromList(intBytes);
@@ -108,23 +167,29 @@ class TtsPlayer {
         .add(Duration(milliseconds: previusDurationInMs + delayInMs)))) {
       continue;
     }
+    await save(playableBytes, filePath, 22050);
     previusDurationInMs = (intList.length * 1000 / sampleRate).ceil();
     lastStart = DateTime.now();
 
-    player.setAudioSource(MyByteSource(playableBytes));
-    player.play();
+    int result = await player.play(filePath, isLocal: true);
+    //await player.setAudioSource(MyByteSource(playableBytes));
+    //await player.setAudioSource(
+    //    AudioSource.uri(Uri.parse('file://assets/audio/lause00007.wav')));
+    //"https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3"
+    //player.play();
+    //player.pause();
     //int result = await player.playBytes(playableBytes);
     //log("Audio playing.");
   }
 
   bool isPlaying() {
-    return player.playing;
-    //return player.state == PlayerState.PLAYING;
+    //return player.playing;
+    return player.state == PlayerState.PLAYING;
   }
 
   stopAudio() async {
-    player.stop();
-    //int result = await player.stop();
+    //player.stop();
+    int result = await player.stop();
     //_player.stopPlayer();
   }
 }

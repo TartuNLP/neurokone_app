@@ -283,9 +283,11 @@ class _MyHomePageState extends State<MyHomePage> {
       } else {
         audioBytes = output[0][0];
       }
+      /*
       while (_audioPlayer.isPlaying()) {
         continue;
       }
+      */
       _audioPlayer.playAudio(sentence, audioBytes, _speed);
     }
     while (_audioPlayer.isPlaying()) {
