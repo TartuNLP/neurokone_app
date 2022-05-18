@@ -38,6 +38,7 @@ class FastSpeech implements AbstractModule {
     }
   }
 
+  /*
   @override
   List getMelSpectrogram(List<int> inputIds, int voiceId, double speed) {
     log('input id length: ' + inputIds.length.toString());
@@ -51,7 +52,6 @@ class FastSpeech implements AbstractModule {
       [1.0], //f0_ratios
       [1.0], //energy_ratios
     ];
-
     if (mModule.getInputTensors().length == 6) {
       inputList.insert(1, [
         [0] //attention_mask
@@ -71,6 +71,7 @@ class FastSpeech implements AbstractModule {
     }
 
     mModule.runForMultipleInputs(inputList, outputMap);
+
     //var tensors = mModule.getOutputTensors();
     Tensor outputTensor = mModule.getOutputTensor(1);
     var output = List<double>.filled(outputTensor.numElements(), 0)
@@ -83,6 +84,46 @@ class FastSpeech implements AbstractModule {
     //Float32List outData = outputTensor.data.buffer.asFloat32List();
 
     //spectrogram.loadList(outData, shape: outShape);
+
+    return output;
+  }*/
+
+  @override
+  List getMelSpectrogram(List<int> inputIds, int voiceId, double speed) {
+    log('input id length: ' + inputIds.length.toString());
+    List<Object> inputList = [
+      [inputIds], //input_ids
+      [voiceId], //speaker_ids
+      [speed], //speed_ratio
+      [1.0], //f0_ratios
+      [1.0], //energy_ratios
+    ];
+    if (mModule.getInputTensors().length == 6) {
+      inputList.insert(1, [
+        [0] //attention_mask
+      ]);
+    }
+    var inputTensors = mModule.getInputTensors();
+
+    for (int i = 0; i < inputList.length; i++) {
+      var tensor = inputTensors.elementAt(i);
+      final newShape = tensor.getInputShapeIfDifferent(inputList[i]);
+      if (newShape != null) {
+        mModule.resizeInputTensor(i, newShape);
+      }
+    }
+    mModule.allocateTensors();
+
+    inputTensors = mModule.getInputTensors();
+    for (int i = 0; i < inputList.length; i++) {
+      inputTensors.elementAt(i).setTo(inputList[i]);
+    }
+
+    mModule.invoke();
+    Tensor outputTensor = mModule.getOutputTensor(1);
+    var output = List<double>.filled(outputTensor.numElements(), 0)
+        .reshape(outputTensor.shape);
+    outputTensor.copyTo(output);
 
     return output;
   }

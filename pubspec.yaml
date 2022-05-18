@@ -65,7 +65,6 @@ flutter:
   assets:
     - assets/synth_models/
     - assets/voc_models/
-    - assets/torch_models/
     
   # To add assets to your application, add an assets section, like this:
   # assets:

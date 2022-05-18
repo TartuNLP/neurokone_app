@@ -155,10 +155,15 @@ class TtsPlayer {
   return completer.future;
 }*/
 
-  playAudio(String sentence, List<double> bytes, double speed) async {
+  playAudio(
+      String sentence, List<double> bytes, double speed, int index) async {
     //player.pause();
     log('Playing audio for sentence "' + sentence + '"');
-    String filePath = (await getTemporaryDirectory()).toString().split('\'')[1] + '/tempAudio.wav';
+    String filePath =
+        (await getTemporaryDirectory()).toString().split('\'')[1] +
+            '/tempAudio' +
+            index.toString() +
+            '.wav';
     List<int> intBytes = _convertFloatTo16BitSigned(bytes);
     Int16List intList = Int16List.fromList(intBytes);
     Uint8List playableBytes = intList.buffer
@@ -169,9 +174,17 @@ class TtsPlayer {
       continue;
     }
     await save(playableBytes, filePath, 22050);
+    while (player.state != PlayerState.COMPLETED) {
+      if (lastStart
+              .add(Duration(milliseconds: previusDurationInMs + 200))
+              .compareTo(DateTime.now()) <=
+          0) {
+        player.state = PlayerState.COMPLETED;
+      }
+      continue;
+    }
     previusDurationInMs = (intList.length * 1000 / sampleRate).ceil();
     lastStart = DateTime.now();
-
     int result = await player.play(filePath, isLocal: true);
     //await player.setAudioSource(MyByteSource(playableBytes));
     //await player.setAudioSource(

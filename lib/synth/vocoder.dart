@@ -34,6 +34,7 @@ class Vocoder {
     }
   }
 
+  /*
   List getAudio(List spectrogram) {
     vocModule.resizeInputTensor(0, spectrogram.shape);
     vocModule.allocateTensors();
@@ -59,6 +60,33 @@ class Vocoder {
     //    outputTensor.data.offsetInBytes, outputTensor.data.lengthInBytes);
     //audioArray.loadList(outData, shape: outShape);
 
+    return output;
+  }*/
+
+  List getAudio(List spectrogram) {
+    List<Object> inputList = [spectrogram];
+    var inputTensors = vocModule.getInputTensors();
+
+    for (int i = 0; i < inputList.length; i++) {
+      var tensor = inputTensors.elementAt(i);
+      final newShape = tensor.getInputShapeIfDifferent(inputList[i]);
+      if (newShape != null) {
+        vocModule.resizeInputTensor(i, newShape);
+      }
+    }
+
+    vocModule.allocateTensors();
+
+    inputTensors = vocModule.getInputTensors();
+    for (int i = 0; i < inputList.length; i++) {
+      inputTensors.elementAt(i).setTo(inputList[i]);
+    }
+
+    vocModule.invoke();
+    Tensor outputTensor = vocModule.getOutputTensor(0);
+    List output = List<double>.filled(outputTensor.numElements(), 0)
+        .reshape(outputTensor.shape);
+    outputTensor.copyTo(output);
     return output;
   }
 }

@@ -92,7 +92,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String _lang = 'Eesti';
-  String fieldText = 'Kõik tekkisid sinna ühe suve jooksul.';
+  String fieldText =
+      'Peremehe sõnul oli tal sauna räästa alla üks laud löödud ja need pesad tekkisid sinna kõik ühe suve jooksul.';
   final TtsPlayer _audioPlayer = TtsPlayer();
   double _speed = 1.0;
   int _synthvoice = 0;
@@ -267,7 +268,7 @@ class _MyHomePageState extends State<MyHomePage> {
     //int result = await _player.playBytes(soundbytes);
 
     //var fileName = await getTemporaryDirectory();
-
+    int id = 0;
     for (String sentence in _splitSentences()) {
       List<int> inputIds =
           widget.processing[_lang]!['processor'].textToIds(sentence);
@@ -288,10 +289,12 @@ class _MyHomePageState extends State<MyHomePage> {
         continue;
       }
       */
-      _audioPlayer.playAudio(sentence, audioBytes, _speed);
-    }
-    while (_audioPlayer.isPlaying()) {
-      continue;
+      await _audioPlayer.playAudio(sentence, audioBytes, _speed, id);
+      if (id >= 3) {
+        id = 0;
+      } else {
+        id++;
+      }
     }
   }
 }
