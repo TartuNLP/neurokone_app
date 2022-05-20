@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:tflite_app/audio_player.dart';
 import 'package:tflite_app/processors/eng_processor.dart';
 import 'package:tflite_app/processors/est_processor.dart';
+import 'package:tflite_app/processors/processor.dart';
+import 'package:tflite_app/synth/abstract_module.dart';
 import 'package:tflite_app/synth/fastspeech.dart';
 //import 'package:tflite_app/synth/torch_vocoder.dart';
 //import 'package:tflite_app/synth/transformer_tts.dart';
@@ -35,6 +37,7 @@ class MyApp extends StatelessWidget {
       'vocoder': Vocoder('MBMelGan'),
       'voices': ['English'],
     },
+    /*
     'Eesti': {
       'processor': EstProcessor(),
       'synth': FastSpeech(
@@ -54,6 +57,7 @@ class MyApp extends StatelessWidget {
         'Peeter',
       ],
     }
+    */
   };
 
   @override
@@ -93,10 +97,36 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String _lang = 'Eesti';
   String fieldText =
-      'Peremehe sõnul oli tal sauna räästa alla üks laud löödud ja need pesad tekkisid sinna kõik ühe suve jooksul.';
+      /*
+      'I, I will be king. And you, you will be queen. '
+      'Though nothing will drive them away. '
+      'We can beat them just for one day. '
+      'We can be heroes just for one day.';
+      */
+      'Vesi ojakeses vaikselt vuliseb. '
+      'Ta endal laulu laulab laulab uniselt. '
+      'Ta vahtu tekitab on külm. '
+      'Ta päikest peegeldab on külm.';
   final TtsPlayer _audioPlayer = TtsPlayer();
   double _speed = 1.0;
   int _synthvoice = 0;
+  mProcessor processor = EstProcessor();
+  AbstractModule synth =
+      FastSpeech('fastspeech2-10voice-400k_quant'); //TransformerTTS('albert'),
+  Vocoder vocoder = Vocoder(
+      'mbmelgan-generator-2200k'); //Vocoder('MBMelGan')  TorchVocoder('own_1265k_generator_v1.ptl')
+  List<String> voices = [
+    'Mari',
+    'Tambet',
+    'Liivika',
+    'Kalev',
+    'Külli',
+    'Meelis',
+    'Albert',
+    'Indrek',
+    'Vesta',
+    'Peeter',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -140,6 +170,30 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _lang = value!;
           fieldText = widget.defaultText[value]!;
+          if (value == 'English') {
+            processor = EngProcessor();
+            synth = FastSpeech('fastspeech2_quant');
+            vocoder = Vocoder('MBMelGan');
+            voices = ['English'];
+          } else if (value == 'Eesti') {
+            processor = EstProcessor();
+            synth = FastSpeech(
+                'fastspeech2-10voice-400k_quant'); //TransformerTTS('albert'),
+            vocoder = Vocoder(
+                'mbmelgan-generator-2200k'); //Vocoder('MBMelGan')  TorchVocoder('own_1265k_generator_v1.ptl')
+            voices = [
+              'Mari',
+              'Tambet',
+              'Liivika',
+              'Kalev',
+              'Külli',
+              'Meelis',
+              'Albert',
+              'Indrek',
+              'Vesta',
+              'Peeter',
+            ];
+          }
         });
       },
       value: _lang,
@@ -147,7 +201,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _dropDownVoiceOrLabel() {
-    List<String> voices = widget.processing[_lang]!['voices'];
     if (voices.length == 1) {
       setState(() {
         _synthvoice = 0;
@@ -270,11 +323,9 @@ class _MyHomePageState extends State<MyHomePage> {
     //var fileName = await getTemporaryDirectory();
     int id = 0;
     for (String sentence in _splitSentences()) {
-      List<int> inputIds =
-          widget.processing[_lang]!['processor'].textToIds(sentence);
-      List output = widget.processing[_lang]!['synth']
-          .getMelSpectrogram(inputIds, _synthvoice, _speed);
-      output = widget.processing[_lang]!['vocoder'].getAudio(output);
+      List<int> inputIds = processor.textToIds(sentence);
+      List output = synth.getMelSpectrogram(inputIds, _synthvoice, _speed);
+      output = vocoder.getAudio(output);
 
       List<double> audioBytes = [];
       if (output[0].length > 1) {
@@ -290,7 +341,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
       */
       await _audioPlayer.playAudio(sentence, audioBytes, _speed, id);
-      if (id >= 3) {
+      if (id >= 2) {
         id = 0;
       } else {
         id++;
