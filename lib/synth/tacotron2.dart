@@ -57,11 +57,6 @@ class Tacotron2 implements AbstractModule {
     var output = List<double>.filled(outputTensor.numElements(), 0)
         .reshape(outputTensor.shape);
     outputTensor.copyTo(output);
-
-    //TensorBuffer spectrogram =
-    //    TensorBuffer.createFixedSize(outShape, TfLiteType.float32);
-    //Float32List outData = outputTensor.data.buffer.asFloat32List();
-    //spectrogram.loadList(outData, shape: outShape);
     return output;
   }
 }

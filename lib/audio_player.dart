@@ -2,21 +2,11 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
-//import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
-/*
-class AudioData {
-  final String text;
-  final Uint8List data;
-
-  AudioData({required this.text, required this.data});
-}
-*/
-
-Future<void> save(Uint8List header, String path, int sampleRate) async {
+Future<void> save(Uint8List data, String path, int sampleRate) async {
   File recordedFile = File(path);
-  /*
+
   var channels = 1;
 
   int byteRate = ((16 * sampleRate * channels) / 8).round();
@@ -64,27 +54,8 @@ Future<void> save(Uint8List header, String path, int sampleRate) async {
     (size >> 24) & 0xff,
     ...data
   ]);
-  */
   return recordedFile.writeAsBytesSync(header, flush: true);
 }
-/*
-class MyByteSource extends StreamAudioSource {
-  final Uint8List _buffer;
-
-  MyByteSource(this._buffer) : super(tag: 'MyAudioSource');
-
-  @override
-  Future<StreamAudioResponse> request([int? start, int? end]) async {
-    return StreamAudioResponse(
-      sourceLength: _buffer.length,
-      contentLength: (start ?? 0) - (end ?? _buffer.length),
-      offset: start ?? 0,
-      stream: Stream.fromIterable([_buffer.sublist(start ?? 0, end)]),
-      contentType: 'audio/wav',
-    );
-  }
-}
-*/
 
 class TtsPlayer {
   //AudioPlayer player = AudioPlayer(mode: PlayerMode.MEDIA_PLAYER);
@@ -111,8 +82,8 @@ class TtsPlayer {
     int file1 = int.parse(fileLen.substring(16), radix: 2);
     int file2 = int.parse(fileLen.substring(0, 16), radix: 2);
 
-    //List<int> out = [];
-
+    List<int> out = [];
+    /*
     List<int> out = [
       18770,
       17990, //“RIFF” - Marks the file as a riff file. Characters are each 1 byte long.
@@ -132,6 +103,7 @@ class TtsPlayer {
       data1,
       data2 //Size of the data section.
     ];
+    */
     for (double value in pcmDouble) {
       double newValue = (value * coeff);
       //int newInt = newValue.toInt();
@@ -141,23 +113,8 @@ class TtsPlayer {
     return out;
   }
 
-  /*
-  Future waitWhile(bool isTrue, [Duration pollInterval = Duration.zero]) {
-  var completer = Completer();
-  check() {
-    if (!isTrue) {
-      completer.complete();
-    } else {
-      Timer(pollInterval, check);
-    }
-  }
-  check();
-  return completer.future;
-}*/
-
   playAudio(
       String sentence, List<double> bytes, double speed, int index) async {
-    //player.pause();
     log('Playing audio for sentence "' + sentence + '"');
     String filePath =
         (await getTemporaryDirectory()).toString().split('\'')[1] +
@@ -186,24 +143,14 @@ class TtsPlayer {
     previusDurationInMs = (intList.length * 1000 / sampleRate).ceil();
     lastStart = DateTime.now();
     int result = await player.play(filePath, isLocal: true);
-    //await player.setAudioSource(MyByteSource(playableBytes));
-    //await player.setAudioSource(
-    //    AudioSource.uri(Uri.parse('file://assets/audio/lause00007.wav')));
-    //"https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3"
-    //player.play();
-    //player.pause();
-    //int result = await player.playBytes(playableBytes);
-    //log("Audio playing.");
+    log("Audio playing.");
   }
 
   bool isPlaying() {
-    //return player.playing;
     return player.state == PlayerState.PLAYING;
   }
 
   stopAudio() async {
-    //player.stop();
     int result = await player.stop();
-    //_player.stopPlayer();
   }
 }

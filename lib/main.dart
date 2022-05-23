@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
             'Tundub, et üks poolik pesa oli neil seal veel." Andrus lindude käitumises erilist elevust ega saginat ei märganud. "Tundub, et oli suur ja sõbralik pereõrs."',
   };
 
+  /*
   static final Map<String, Map<String, dynamic>> processing = {
     'English': {
       'processor': EngProcessor(),
@@ -37,7 +38,6 @@ class MyApp extends StatelessWidget {
       'vocoder': Vocoder('MBMelGan'),
       'voices': ['English'],
     },
-    /*
     'Eesti': {
       'processor': EstProcessor(),
       'synth': FastSpeech(
@@ -45,6 +45,7 @@ class MyApp extends StatelessWidget {
       'vocoder': Vocoder(
           'mbmelgan-generator-2200k'), //Vocoder('MBMelGan')  TorchVocoder('own_1265k_generator_v1.ptl')
       'voices': [
+        //'Vesta
         'Mari',
         'Tambet',
         'Liivika',
@@ -53,12 +54,12 @@ class MyApp extends StatelessWidget {
         'Meelis',
         'Albert',
         'Indrek',
-        'Vesta',
+        'Vesta', //
         'Peeter',
       ],
     }
-    */
   };
+  */
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +71,7 @@ class MyApp extends StatelessWidget {
       home: MyHomePage(
           title: 'Text to Speech',
           langs: langs,
-          processing: processing,
+          //processing: processing,
           defaultText: defaultText),
     );
   }
@@ -81,13 +82,13 @@ class MyHomePage extends StatefulWidget {
       {Key? key,
       required this.title,
       required this.langs,
-      required this.processing,
+      //required this.processing,
       required this.defaultText})
       : super(key: key);
 
   final String title;
   final List<String> langs;
-  final Map<String, Map<String, dynamic>> processing;
+  //final Map<String, Map<String, dynamic>> processing;
   final Map<String, String> defaultText;
 
   @override
@@ -104,9 +105,9 @@ class _MyHomePageState extends State<MyHomePage> {
       'We can be heroes just for one day.';
       */
       'Vesi ojakeses vaikselt vuliseb. '
-      'Ta endal laulu laulab laulab uniselt. '
-      'Ta vahtu tekitab on külm. '
-      'Ta päikest peegeldab on külm.';
+      'Ta endal laulu laulab, laulab uniselt. '
+      'Ta vahtu tekitab, on külm. '
+      'Ta päikest peegeldab, on külm.';
   final TtsPlayer _audioPlayer = TtsPlayer();
   double _speed = 1.0;
   int _synthvoice = 0;
@@ -116,6 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Vocoder vocoder = Vocoder(
       'mbmelgan-generator-2200k'); //Vocoder('MBMelGan')  TorchVocoder('own_1265k_generator_v1.ptl')
   List<String> voices = [
+    //'Vesta',
     'Mari',
     'Tambet',
     'Liivika',
@@ -124,7 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
     'Meelis',
     'Albert',
     'Indrek',
-    'Vesta',
+    'Vesta', //
     'Peeter',
   ];
 
@@ -182,6 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
             vocoder = Vocoder(
                 'mbmelgan-generator-2200k'); //Vocoder('MBMelGan')  TorchVocoder('own_1265k_generator_v1.ptl')
             voices = [
+              //'Vesta',
               'Mari',
               'Tambet',
               'Liivika',
@@ -190,7 +193,7 @@ class _MyHomePageState extends State<MyHomePage> {
               'Meelis',
               'Albert',
               'Indrek',
-              'Vesta',
+              'Vesta', //
               'Peeter',
             ];
           }
@@ -297,7 +300,8 @@ class _MyHomePageState extends State<MyHomePage> {
       RegExpMatch match = sentenceSplit.firstMatch(remainingText)!;
       if (match.group(1) != null &&
           match.group(1)!.contains(',') &&
-          leadingText.length + match.start < 15 &&
+          (leadingText.length + match.start < 15 ||
+              match.end - match.start < 15) &&
           match.end < remainingText.length) {
         leadingText += remainingText.substring(0, match.end);
         remainingText = remainingText.substring(match.end);
@@ -315,12 +319,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   _textToSpeech() async {
-    //ByteData bytes = await rootBundle.load("assets/lause00011.wav");
-    //Uint8List soundbytes =
-    //    bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes);
-    //int result = await _player.playBytes(soundbytes);
-
-    //var fileName = await getTemporaryDirectory();
     int id = 0;
     for (String sentence in _splitSentences()) {
       List<int> inputIds = processor.textToIds(sentence);
