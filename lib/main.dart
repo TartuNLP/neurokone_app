@@ -104,10 +104,10 @@ class _MyHomePageState extends State<MyHomePage> {
       'We can beat them just for one day. '
       'We can be heroes just for one day.';
       */
-      'Vesi ojakeses vaikselt vuliseb.';
-  //'Ta endal laulu laulab, laulab uniselt. '
-  //'Ta vahtu tekitab, on külm. '
-  //'Ta päikest peegeldab, on külm.';
+      'Vesi ojakeses vaikselt vuliseb. '
+      'Ta endal laulu laulab, laulab uniselt. '
+      'Ta vahtu tekitab, on külm. '
+      'Ta päikest peegeldab, on külm.';
   final TtsPlayer _audioPlayer = TtsPlayer();
   double _speed = 1.0;
   int _synthvoice = 0;
@@ -291,55 +291,16 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  /*
+/*
   List<String> _splitSentences() {
     String remainingText = fieldText;
     RegExp sentenceSplit = RegExp(
-        r'([,;!?]"? )|([.!?] "?(?![a-zäöüõšž]))|( ((ja)|(ning)|(ega)|(ehk)|(või)) )');
+        r'([,;!?]"? )|([.!?]((" )| |( "))(?![a-zäöüõšž]))|((?<!^) ((ja)|(ning)|(ega)|(ehk)|(või)) )');
     String leadingText = '';
     List<String> sentences = [];
     while (sentenceSplit.hasMatch(remainingText)) {
-      RegExpMatch match = sentenceSplit.firstMatch(remainingText)!;
-
-      if (match.group(1) != null &&
-          match
-              .group(1)!
-              .contains(RegExp(',|;|(ja)|(ning)|(ega)|(ehk)|(või)')) &&
-              (leadingText.length + match.start < 20 ||
-              match.end - match.start < 20) &&
-          match.end < remainingText.length) {
-        leadingText += remainingText.substring(0, match.end);
-        remainingText = remainingText
-                .substring(match.start, match.end)
-                .contains(RegExp('(ja)|(ning)|(ega)|(ehk)|(või)'))
-            ? remainingText.substring(match.start)
-            : remainingText.substring(match.end);
-        continue;
-      }
-      sentences.add(leadingText + remainingText.substring(0, match.start));
-      leadingText = '';
-      remainingText = remainingText
-              .substring(match.start, match.end)
-              .contains(RegExp('(ja)|(ning)|(ega)|(ehk)|(või)'))
-          ? remainingText.substring(match.start)
-          : remainingText.substring(match.end);
-    }
-    sentences
-        .add(leadingText + remainingText.replaceAll(RegExp(r'[.!?]"?$'), '.'));
-    log('Split sentences:' + sentences.toString());
-    //sentences.add(' ');
-    return sentences;
-  }
-  */
-
-  List<String> _splitSentences() {
-    String remainingText = fieldText;
-    RegExp sentenceSplit = RegExp(
-        r'([,;!?]"? )|([.!?] "?(?![a-zäöüõšž]))|( ((ja)|(ning)|(ega)|(ehk)|(või)) )');
-    String leadingText = '';
-    List<String> sentences = [];
-    while (sentenceSplit.hasMatch(remainingText)) {
-      RegExpMatch match = sentenceSplit.firstMatch(remainingText)!;
+      Iterable<RegExpMatch> matches = sentenceSplit.allMatches(remainingText);
+      RegExpMatch match = matches.first;
       if (match.group(1) != null && match.group(1)!.contains(RegExp('[.!?]')) ||
           (leadingText.length + match.start > 20 &&
                   remainingText.substring(match.start).length > 20) &&
@@ -353,13 +314,42 @@ class _MyHomePageState extends State<MyHomePage> {
             : remainingText.substring(match.end).trim();
         continue;
       }
-      leadingText += remainingText.substring(0, match.start);
-      remainingText = remainingText.substring(match.start).trim();
+      leadingText += remainingText.substring(0, match.end);
+      remainingText = remainingText.substring(match.end).trim();
     }
     sentences
         .add(leadingText + remainingText.replaceAll(RegExp(r'[.!?]"?$'), '.'));
     log('Split sentences:' + sentences.toString());
     //sentences.add(' ');
+    return sentences;
+  }
+*/
+
+  List<String> _splitSentences() {
+    String remainingText = fieldText;
+    RegExp sentencesSplit =
+        RegExp(r'[.!?]((((" )| |( "))(?![a-zäöüõšž]))|("?$))');
+    RegExp sentenceSplit =
+        RegExp(r'(?<!^)([,;!?]"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )');
+    RegExp strip = RegExp(r'^[,;!?]?"? ?');
+    List<String> sentences = [];
+    int currentSentId = 0;
+    for (RegExpMatch match in sentencesSplit.allMatches(remainingText)) {
+      String sentence = remainingText.substring(currentSentId, match.start);
+      currentSentId = match.end;
+      int currentCharId = 0;
+      for (RegExpMatch split in sentenceSplit.allMatches(sentence)) {
+        if (split.start > 20 + currentCharId &&
+            split.end < sentence.length - 20) {
+          sentences.add(sentence
+              .substring(currentCharId, split.start)
+              .replaceAll(strip, '') + '.');
+          currentCharId = split.start;
+        }
+      }
+      sentences.add(sentence.substring(currentCharId).replaceAll(strip, '') + '.');
+    }
+    log('Split sentences:' + sentences.toString());
     return sentences;
   }
 
