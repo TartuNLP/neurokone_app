@@ -36,7 +36,7 @@ class Tacotron2 implements AbstractModule {
   }
 
   @override
-  List getMelSpectrogram(List<int> inputIds, int voiceId, double speed) {
+  List getMelSpectrogram(List inputIds, int voiceId, double speed) {
     log('input id length: ' + inputIds.length.toString());
     mModule.resizeInputTensor(0, [1, inputIds.length]);
     mModule.allocateTensors();

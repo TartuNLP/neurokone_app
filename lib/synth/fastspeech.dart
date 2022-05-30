@@ -89,7 +89,7 @@ class FastSpeech implements AbstractModule {
   }*/
 
   @override
-  List getMelSpectrogram(List<int> inputIds, int voiceId, double speed) {
+  List getMelSpectrogram(List inputIds, int voiceId, double speed) {
     log('input id length: ' + inputIds.length.toString());
     List<Object> inputList = [
       [inputIds], //input_ids
@@ -120,7 +120,7 @@ class FastSpeech implements AbstractModule {
     }
 
     mModule.invoke();
-    Tensor outputTensor = mModule.getOutputTensor(1);
+    Tensor outputTensor = mModule.getOutputTensor(0);
     var output = List<double>.filled(outputTensor.numElements(), 0)
         .reshape(outputTensor.shape);
     outputTensor.copyTo(output);

@@ -19,6 +19,34 @@ class MyApp extends StatelessWidget {
 
   static final List<String> langs = ['Eesti', 'English'];
 
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: MyHomePage(title: 'Text to Speech', langs: langs),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({
+    Key? key,
+    required this.title,
+    required this.langs,
+  }) : super(key: key);
+
+  final String title;
+  final List<String> langs;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  String _lang = 'Eesti';
   static final Map<String, String> defaultText = {
     'English': 'Working on a ship is cumbersome.',
     //'Unless you work on a ship, it\'s unlikely that you use the word boatswain in everyday conversation, ' +
@@ -29,74 +57,7 @@ class MyApp extends StatelessWidget {
             '"Kuna saun paikneb tagaseinaga vastu metsa, siis ei käinud suve jooksul sealt keegi läbi ja nii said linnud segamatult ehitada. '
             'Tundub, et üks poolik pesa oli neil seal veel." Andrus lindude käitumises erilist elevust ega saginat ei märganud. "Tundub, et oli suur ja sõbralik pereõrs."',
   };
-
-  /*
-  static final Map<String, Map<String, dynamic>> processing = {
-    'English': {
-      'processor': EngProcessor(),
-      'synth': FastSpeech('fastspeech2_quant'),
-      'vocoder': Vocoder('MBMelGan'),
-      'voices': ['English'],
-    },
-    'Eesti': {
-      'processor': EstProcessor(),
-      'synth': FastSpeech(
-          'fastspeech2-10voice-400k_quant'), //TransformerTTS('albert'),
-      'vocoder': Vocoder(
-          'mbmelgan-generator-2200k'), //Vocoder('MBMelGan')  TorchVocoder('own_1265k_generator_v1.ptl')
-      'voices': [
-        //'Vesta
-        'Mari',
-        'Tambet',
-        'Liivika',
-        'Kalev',
-        'Külli',
-        'Meelis',
-        'Albert',
-        'Indrek',
-        'Vesta', //
-        'Peeter',
-      ],
-    }
-  };
-  */
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: MyHomePage(
-          title: 'Text to Speech',
-          langs: langs,
-          //processing: processing,
-          defaultText: defaultText),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage(
-      {Key? key,
-      required this.title,
-      required this.langs,
-      //required this.processing,
-      required this.defaultText})
-      : super(key: key);
-
-  final String title;
-  final List<String> langs;
-  //final Map<String, Map<String, dynamic>> processing;
-  final Map<String, String> defaultText;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  String _lang = 'Eesti';
+  TextEditingController textEditingController = TextEditingController();
   String fieldText =
       /*
       'I, I will be king. And you, you will be queen. '
@@ -169,9 +130,10 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       }).toList(),
       onChanged: (value) {
+        textEditingController.clear();
         setState(() {
           _lang = value!;
-          fieldText = widget.defaultText[value]!;
+          fieldText = defaultText[value]!;
           if (value == 'English') {
             processor = EngProcessor();
             synth = FastSpeech('fastspeech2_quant');
@@ -254,10 +216,13 @@ class _MyHomePageState extends State<MyHomePage> {
           groupValue: _speed,
           onChanged: (double? value) {
             setState(() {
-              _speed = value!;
+              _speed = speed;
             });
           },
         ),
+        onTap: () => setState(() {
+          _speed = speed;
+        }),
         contentPadding: const EdgeInsets.symmetric(horizontal: 0),
       ),
     );
@@ -265,11 +230,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _inputTextField() {
     return TextField(
-        decoration: InputDecoration(
-          hintText: fieldText,
-        ),
+        decoration: InputDecoration(hintText: fieldText),
         minLines: 1,
         maxLines: 10,
+        controller: textEditingController,
         onChanged: (text) => setState(() {
               fieldText = text;
             }));
@@ -342,12 +306,14 @@ class _MyHomePageState extends State<MyHomePage> {
         if (split.start > 20 + currentCharId &&
             split.end < sentence.length - 20) {
           sentences.add(sentence
-              .substring(currentCharId, split.start)
-              .replaceAll(strip, '') + '.');
+                  .substring(currentCharId, split.start)
+                  .replaceAll(strip, '') +
+              '.');
           currentCharId = split.start;
         }
       }
-      sentences.add(sentence.substring(currentCharId).replaceAll(strip, '') + '.');
+      sentences
+          .add(sentence.substring(currentCharId).replaceAll(strip, '') + '.');
     }
     log('Split sentences:' + sentences.toString());
     return sentences;
@@ -356,8 +322,8 @@ class _MyHomePageState extends State<MyHomePage> {
   _textToSpeech() async {
     int id = 0;
     for (String sentence in _splitSentences()) {
-      List<int> inputIds = processor.textToIds(sentence);
-      List output = synth.getMelSpectrogram(inputIds, _synthvoice, _speed);
+      List output = processor.textToIds(sentence);
+      output = synth.getMelSpectrogram(output, _synthvoice, _speed);
       output = vocoder.getAudio(output);
 
       List<double> audioBytes = [];
@@ -368,11 +334,6 @@ class _MyHomePageState extends State<MyHomePage> {
       } else {
         audioBytes = output[0][0];
       }
-      /*
-      while (_audioPlayer.isPlaying()) {
-        continue;
-      }
-      */
       await _audioPlayer.playAudio(sentence, audioBytes, _speed, id);
       if (id >= 2) {
         id = 0;
