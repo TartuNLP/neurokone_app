@@ -4,6 +4,7 @@
 //import 'package:pytorch_mobile/model.dart';
 //import 'package:pytorch_mobile/enums/dtype.dart';
 
+//DEPRECATED
 class TorchVocoder {
   static late String TAG;
   late String modulePath;

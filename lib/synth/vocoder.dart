@@ -34,35 +34,7 @@ class Vocoder {
     }
   }
 
-  /*
-  List getAudio(List spectrogram) {
-    vocModule.resizeInputTensor(0, spectrogram.shape);
-    vocModule.allocateTensors();
-
-    //List<List<Float32List>> inputArray = List<List<Float32List>>.filled(length, fill)
-
-    //TensorBuffer output = TensorBuffer.createDynamic(TfLiteType.float32);
-    //var out = List<double>.filled(2, 0);
-    List<List<List<double>>> out = [];
-    //var out = [List.generate(43264, (_) => List<double>.filled(1, 0))];
-    //var input = spectrogram.getBuffer();
-    vocModule.run(spectrogram, out);
-
-    //var tensors = vocModule.getOutputTensors();
-    Tensor outputTensor = vocModule.getOutputTensor(0);
-    List output = List<double>.filled(outputTensor.numElements(), 0)
-        .reshape(outputTensor.shape);
-    outputTensor.copyTo(output);
-
-    //TensorBuffer audioArray =
-    //    TensorBuffer.createFixedSize(outShape, TfLiteType.float32);
-    //Uint8List outData = outputTensor.data.buffer.asUint8List(
-    //    outputTensor.data.offsetInBytes, outputTensor.data.lengthInBytes);
-    //audioArray.loadList(outData, shape: outShape);
-
-    return output;
-  }*/
-
+  //Prepares the input dimensions for vocoder model, runs the model on the input, returns output float array
   List getAudio(List spectrogram) {
     List<Object> inputList = [spectrogram];
     var inputTensors = vocModule.getInputTensors();

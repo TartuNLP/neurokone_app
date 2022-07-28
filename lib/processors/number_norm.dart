@@ -1,5 +1,6 @@
 import 'dart:math';
 
+//Processing of numbers into English
 class NumberNormEn {
   static final Map<String, String> ordinalMap = {
     'one': 'first',
@@ -123,6 +124,7 @@ class NumberNormEn {
   }
 }
 
+//Processing of numbers into Estonian
 class NumberNormEt {
   static final Map<String, String> ordinalMap = {
     'null': 'nullis',

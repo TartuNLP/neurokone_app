@@ -1,14 +1,17 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:tflite_app/audio_player.dart';
-import 'package:tflite_app/processors/eng_processor.dart';
+//import 'package:tflite_app/processors/eng_processor.dart';
 import 'package:tflite_app/processors/est_processor.dart';
 import 'package:tflite_app/processors/processor.dart';
 import 'package:tflite_app/synth/abstract_module.dart';
 import 'package:tflite_app/synth/fastspeech.dart';
-//import 'package:tflite_app/synth/torch_vocoder.dart';
 //import 'package:tflite_app/synth/transformer_tts.dart';
 import 'package:tflite_app/synth/vocoder.dart';
+//import 'package:tflite_app/synth/torch_vocoder.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'voice.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,16 +20,28 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  static final List<String> langs = ['Eesti', 'English'];
+  //Voice data: speakers, their background colors and decoration icon file names
+  static final List<Voice> voices = [
+    const Voice('Mari', Color.fromARGB(255, 239, 102, 80), '1'),
+    const Voice('Tambet', Color.fromARGB(255, 114, 104, 216), '2'),
+    const Voice('Liivika', Color.fromARGB(255, 224, 177, 43), '3'),
+    const Voice('Kalev', Color.fromARGB(255, 77, 182, 172), '4'),
+    const Voice('Külli', Color.fromARGB(255, 239, 102, 80), '3'),
+    const Voice('Meelis', Color.fromARGB(255, 114, 104, 216), '2'),
+    const Voice('Albert', Color.fromARGB(255, 224, 177, 43), '1'),
+    const Voice('Indrek', Color.fromARGB(255, 77, 182, 172), '3'),
+    const Voice('Vesta', Color.fromARGB(255, 239, 102, 80), '2'),
+    const Voice('Peeter', Color.fromARGB(255, 114, 104, 216), '4'),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'TartuNLP',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Text to Speech', langs: langs),
+      home: MyHomePage(title: 'Neurokõne', voices: voices),
     );
   }
 }
@@ -35,262 +50,293 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({
     Key? key,
     required this.title,
-    required this.langs,
+    required this.voices,
   }) : super(key: key);
 
   final String title;
-  final List<String> langs;
+  final List<Voice> voices;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage> createState() => MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class MyHomePageState extends State<MyHomePage> {
+  //Initial voice data
+  Voice _currentVoice = const Voice('Mari', Colors.red, '1');
   String _lang = 'Eesti';
-  static final Map<String, String> defaultText = {
-    'English': 'Working on a ship is cumbersome.',
-    //'Unless you work on a ship, it\'s unlikely that you use the word boatswain in everyday conversation, ' +
-    //    'so it\'s understandably a tricky one. The word - which refers to a petty officer in charge of hull maintenance is not pronounced boats-wain Rather, ' +
-    //    'it\'s bo-sun to reflect the salty pronunciation of sailors, as The Free Dictionary explains. Blue opinion poll conducted for the National Post.',
-    'Eesti': //'Kõik tekkisid sinna ühe suve jooksul.',
-        'Peremehe sõnul oli tal sauna räästa alla üks laud löödud ja need pesad tekkisid sinna kõik ühe suve jooksul. '
-            '"Kuna saun paikneb tagaseinaga vastu metsa, siis ei käinud suve jooksul sealt keegi läbi ja nii said linnud segamatult ehitada. '
-            'Tundub, et üks poolik pesa oli neil seal veel." Andrus lindude käitumises erilist elevust ega saginat ei märganud. "Tundub, et oli suur ja sõbralik pereõrs."',
-  };
-  TextEditingController textEditingController = TextEditingController();
-  String fieldText =
-      /*
-      'I, I will be king. And you, you will be queen. '
-      'Though nothing will drive them away. '
-      'We can beat them just for one day. '
-      'We can be heroes just for one day.';
-      */
-      'Vesi ojakeses vaikselt vuliseb. '
-      'Ta endal laulu laulab, laulab uniselt. '
-      'Ta vahtu tekitab, on külm. '
-      'Ta päikest peegeldab, on külm.';
-  final TtsPlayer _audioPlayer = TtsPlayer();
-  double _speed = 1.0;
-  int _synthvoice = 0;
-  mProcessor processor = EstProcessor();
-  AbstractModule synth =
-      FastSpeech('fastspeech2-10voice-400k_quant'); //TransformerTTS('albert'),
-  Vocoder vocoder = Vocoder(
-      'mbmelgan-generator-2200k'); //Vocoder('MBMelGan')  TorchVocoder('own_1265k_generator_v1.ptl')
-  List<String> voices = [
-    //'Vesta',
-    'Mari',
-    'Tambet',
-    'Liivika',
-    'Kalev',
-    'Külli',
-    'Meelis',
-    'Albert',
-    'Indrek',
-    'Vesta', //
-    'Peeter',
-  ];
 
+  //Defaults for Estonian and English UI
+  static final Map<String, Map<String, String>> _langs = {
+    'Eesti': {
+      'Speak': 'Räägi',
+      'Stop': 'Peata',
+      'Slow': 'Aeglane',
+      'Fast': 'Kiire',
+      'Dropdown': 'Vali hääl',
+      'Hint': 'Kirjuta siia...',
+      'Tempo': 'Tempo',
+    },
+    'English': {
+      'Speak': 'Speak',
+      'Stop': 'Stop',
+      'Slow': 'Slow',
+      'Fast': 'Fast',
+      'Dropdown': 'Choose voice',
+      'Hint': 'Write here...',
+      'Tempo': 'Tempo',
+    }
+  };
+
+  //Speed of the synthetic voice
+  double _speed = 1.0;
+
+  //Controller for the text in Textfield
+  late TextEditingController _textEditingController;
+  String _fieldText = '';
+
+  //For preprocessing text and numbers before synthesis
+  final mProcessor _processor = EstProcessor();
+  //Synthesis model
+  final AbstractModule _synth = FastSpeech('fs2.v2_0-8k-bs10-200k_quant');
+  //Vocoder model
+  final Vocoder _vocoder = Vocoder(
+      'hifigan-generator-0-8k-1320k-finetuned-380k'); //Vocoder('MBMelGan')
+  //Player of the predicted audio
+  final TtsPlayer _audioPlayer = TtsPlayer();
+
+  //Every time the controller detects a change, the updated text is saved to _fieldText
+  @override
+  void initState() {
+    super.initState();
+    _textEditingController = TextEditingController();
+    _textEditingController.addListener(() {
+      setState(() {
+        _fieldText = _textEditingController.text;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    super.dispose();
+  }
+
+  //Creates a scrollable screen in case content doesn't fit
+  //Upmost component is dropdown list of voices on the left and two language toggle buttons on the right
+  //Next is a slider for the speed parameter.
+  //Next is textfield for input text
+  //Lastly, speak/predict and play button
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 238, 238, 238),
       appBar: AppBar(
-        title: Text(widget.title),
+        backgroundColor: Colors.white,
+        shadowColor: Colors.white,
+        title: SvgPicture.asset('assets/icons_logos/neurokone-logo-clean.svg'),
       ),
       body: SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _dropDownLanguage(),
-                  _dropDownVoiceOrLabel(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _dropDownVoices(),
+                      const Spacer(),
+                      _langRadioButtons(),
+                    ],
+                  ),
+                  _speedControl(),
+                  _inputTextField(),
+                  _speakStopButtons(),
                 ],
               ),
-              //const Spacer(),
-              _speedControl(),
-              _inputTextField(),
-              _speakStopButtons(),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  _dropDownLanguage() {
-    return DropdownButton<String>(
-      items: widget.langs.map((String dropDownItem) {
-        return DropdownMenuItem<String>(
-          value: dropDownItem,
-          child: Text(dropDownItem),
-        );
-      }).toList(),
-      onChanged: (value) {
-        textEditingController.clear();
-        setState(() {
-          _lang = value!;
-          fieldText = defaultText[value]!;
-          if (value == 'English') {
-            processor = EngProcessor();
-            synth = FastSpeech('fastspeech2_quant');
-            vocoder = Vocoder('MBMelGan');
-            voices = ['English'];
-          } else if (value == 'Eesti') {
-            processor = EstProcessor();
-            synth = FastSpeech(
-                'fastspeech2-10voice-400k_quant'); //TransformerTTS('albert'),
-            vocoder = Vocoder(
-                'mbmelgan-generator-2200k'); //Vocoder('MBMelGan')  TorchVocoder('own_1265k_generator_v1.ptl')
-            voices = [
-              //'Vesta',
-              'Mari',
-              'Tambet',
-              'Liivika',
-              'Kalev',
-              'Külli',
-              'Meelis',
-              'Albert',
-              'Indrek',
-              'Vesta', //
-              'Peeter',
-            ];
-          }
-        });
-      },
-      value: _lang,
-    );
-  }
-
-  _dropDownVoiceOrLabel() {
-    if (voices.length == 1) {
-      setState(() {
-        _synthvoice = 0;
-      });
-      return Text(voices[0]);
-    } else {
-      //List<DropdownMenuItem<String>> dropDownList =
-      return DropdownButton<String>(
-        items: voices
-            .map((String voice) => DropdownMenuItem<String>(
-                  child: Text(voice),
-                  value: voice,
-                ))
-            .toList(),
-        onChanged: (chosen) {
-          setState(() {
-            _synthvoice = voices.indexOf(chosen!);
-          });
-        },
-        value: voices[_synthvoice],
-      );
-    }
-  }
-
-  _speedControl() {
-    return Column(
-      children: [
-        Text(_lang == 'English' ? 'Speed:' : 'Kiirus:'),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _radioButton('Slow', 'Aeglane', 1.2),
-            _radioButton('Normal', 'Tavaline', 1.0),
-            _radioButton('Fast', 'Kiire', 0.8),
-          ],
+  //Dropdown list of voices
+  _dropDownVoices() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(
+          Radius.circular(10),
         ),
-      ],
-    );
-  }
-
-  _radioButton(String engText, String estText, double speed) {
-    return Expanded(
-      child: ListTile(
-        title: Text(_lang == 'English' ? engText : estText),
-        leading: Radio(
-          value: speed,
-          groupValue: _speed,
-          onChanged: (double? value) {
-            setState(() {
-              _speed = speed;
-            });
-          },
-        ),
-        onTap: () => setState(() {
-          _speed = speed;
+        color: _currentVoice.getColor(),
+      ),
+      child: DropdownButton(
+        dropdownColor: Colors.transparent,
+        hint: Text(_langs[_lang]!['Dropdown']!),
+        value: _currentVoice,
+        items: widget.voices.map((Voice voice) {
+          return DropdownMenuItem<Voice>(
+            value: voice,
+            child: voice,
+          );
+        }).toList(),
+        onChanged: (value) => setState(() {
+          _currentVoice = value as Voice;
         }),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 0),
       ),
     );
   }
 
-  _inputTextField() {
-    return TextField(
-        decoration: InputDecoration(hintText: fieldText),
-        minLines: 1,
-        maxLines: 10,
-        controller: textEditingController,
-        onChanged: (text) => setState(() {
-              fieldText = text;
-            }));
+  //Toggle buttons for UI language
+  _langRadioButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _radioButton('ET', 'Eesti'),
+        _radioButton('EN', 'English'),
+      ],
+    );
   }
 
-  _speakStopButtons() {
+  //Button has a blueish background and is disabled if it is selected
+  _radioButton(String langCode, String language) {
+    return TextButton(
+        style: _lang == language
+            ? ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(
+                    const Color.fromARGB(255, 228, 251, 255)))
+            : null,
+        onPressed: _lang == language
+            ? null
+            : () => setState(() {
+                  _lang = language;
+                }),
+        child: Text(langCode));
+  }
+
+  //A slider for voice speaking speed with minimum 0.5 and maximum 2.0 value
+  _speedControl() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        TextButton(
-          onPressed: _textToSpeech,
-          child: Text(_lang == 'English' ? 'Speak' : 'Kõnele'),
+        Text(
+          _langs[_lang]!['Tempo']!,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        TextButton(
-          onPressed: _audioPlayer.stopAudio,
-          child: Text(_lang == 'English' ? 'Stop' : 'Peata'),
+        SizedBox(
+          width: 55,
+          child: Container(
+            alignment: Alignment.centerRight,
+            child: SvgPicture.asset(
+                'assets/icons_logos/snail-clean.svg'), //Text(_langs[_lang]!['Slow']!),
+          ),
+        ),
+        Expanded(
+          child: Slider(
+            thumbColor: const Color.fromARGB(255, 49, 133, 255),
+            min: 0.5,
+            max: 2.0,
+            value: _speed,
+            onChanged: (value) => setState(() {
+              _speed = value;
+            }),
+          ),
+        ),
+        SizedBox(
+          width: 55,
+          child: Container(
+            alignment: Alignment.centerLeft,
+            child: SvgPicture.asset(
+                'assets/icons_logos/horse-clean.svg'), //Text(_langs[_lang]!['Fast']!),
+          ),
         ),
       ],
     );
   }
 
-/*
-  List<String> _splitSentences() {
-    String remainingText = fieldText;
-    RegExp sentenceSplit = RegExp(
-        r'([,;!?]"? )|([.!?]((" )| |( "))(?![a-zäöüõšž]))|((?<!^) ((ja)|(ning)|(ega)|(ehk)|(või)) )');
-    String leadingText = '';
-    List<String> sentences = [];
-    while (sentenceSplit.hasMatch(remainingText)) {
-      Iterable<RegExpMatch> matches = sentenceSplit.allMatches(remainingText);
-      RegExpMatch match = matches.first;
-      if (match.group(1) != null && match.group(1)!.contains(RegExp('[.!?]')) ||
-          (leadingText.length + match.start > 20 &&
-                  remainingText.substring(match.start).length > 20) &&
-              match.end < remainingText.length) {
-        sentences.add(leadingText + remainingText.substring(0, match.start));
-        leadingText = '';
-        remainingText = remainingText
-                .substring(match.start, match.end)
-                .contains(RegExp(' ((ja)|(ning)|(ega)|(ehk)|(või)) '))
-            ? remainingText.substring(match.start).trim()
-            : remainingText.substring(match.end).trim();
-        continue;
-      }
-      leadingText += remainingText.substring(0, match.end);
-      remainingText = remainingText.substring(match.end).trim();
-    }
-    sentences
-        .add(leadingText + remainingText.replaceAll(RegExp(r'[.!?]"?$'), '.'));
-    log('Split sentences:' + sentences.toString());
-    //sentences.add(' ');
-    return sentences;
+  //Textfield for input text, with copy and clear buttons
+  _inputTextField() {
+    return Center(
+      child: SizedBox(
+        //width: MediaQuery.of(context).size.width * 0.9,
+        child: TextField(
+          minLines: 4,
+          maxLines: 25,
+          controller: _textEditingController,
+          decoration: InputDecoration(
+              hintText: _langs[_lang]!['Hint'],
+              suffixIcon: _fieldText.isNotEmpty
+                  ? Column(
+                      children: [
+                        IconButton(
+                          padding: const EdgeInsets.all(0),
+                          onPressed: () => setState(() {
+                            _textEditingController.clear();
+                          }),
+                          icon: const Icon(Icons.clear),
+                        ),
+                        IconButton(
+                          onPressed: () => Clipboard.setData(
+                            ClipboardData(text: _fieldText),
+                          ),
+                          icon: const Icon(Icons.copy),
+                        )
+                      ],
+                    )
+                  : null),
+        ),
+      ),
+    );
   }
-*/
 
+  //Speak button that triggers the models to synthesize audio from the input text
+  //Button is enabled only when there is text in the textfield
+  //Button is the same color as the selected voice from dropdown
+  _speakStopButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextButton(
+          style: ButtonStyle(
+            foregroundColor: MaterialStateProperty.all(
+                _fieldText.isNotEmpty ? Colors.white : Colors.grey),
+            backgroundColor:
+                MaterialStateProperty.all<Color>(_currentVoice.getColor()),
+            fixedSize:
+                MaterialStateProperty.all<Size>(const Size.fromWidth(100.0)),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0),
+                //side: const BorderSide(color: Colors.black12),
+              ),
+            ),
+          ),
+          onPressed: _fieldText.isNotEmpty ? _textToSpeech : null,
+          child: Text(
+            _langs[_lang]!['Speak']!,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+        /*
+        TextButton(
+          onPressed:
+              _fieldText.isNotEmpty && _speaking ? _stopTextToSpeech : null,
+          child: Text(_langs[_lang]!['Stop']!),
+        ),
+        */
+      ],
+    );
+  }
+
+  //Splits the input text into sentences, if the sentence is too long then tries to split where there are pauses
   List<String> _splitSentences() {
-    String remainingText = fieldText;
+    String remainingText = _fieldText;
     RegExp sentencesSplit =
         RegExp(r'[.!?]((((" )| |( "))(?![a-zäöüõšž]))|("?$))');
     RegExp sentenceSplit =
@@ -319,12 +365,16 @@ class _MyHomePageState extends State<MyHomePage> {
     return sentences;
   }
 
+  //Text preprocessing, models' inference and playing of the resulting audio
+  //Saves maximum of 3 audio files to memory.
   _textToSpeech() async {
     int id = 0;
+    int voiceId = widget.voices.indexOf(_currentVoice);
+    double speed = 1.0 / _speed;
     for (String sentence in _splitSentences()) {
-      List output = processor.textToIds(sentence);
-      output = synth.getMelSpectrogram(output, _synthvoice, _speed);
-      output = vocoder.getAudio(output);
+      List output = _processor.textToIds(sentence);
+      output = _synth.getMelSpectrogram(output, voiceId, speed);
+      output = _vocoder.getAudio(output);
 
       List<double> audioBytes = [];
       if (output[0].length > 1) {
@@ -334,7 +384,7 @@ class _MyHomePageState extends State<MyHomePage> {
       } else {
         audioBytes = output[0][0];
       }
-      await _audioPlayer.playAudio(sentence, audioBytes, _speed, id);
+      await _audioPlayer.playAudio(sentence, audioBytes, id);
       if (id >= 2) {
         id = 0;
       } else {

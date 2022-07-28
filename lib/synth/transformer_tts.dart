@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'abstract_module.dart';
 
+
 class TransformerTTS implements AbstractModule {
   static const String TAG = 'TransformerTTS';
   late String modulePath;

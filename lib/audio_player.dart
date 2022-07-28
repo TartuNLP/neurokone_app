@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path_provider/path_provider.dart';
 
+//Adds WAVE file header and saves the audio to memory
 Future<void> save(Uint8List data, String path, int sampleRate) async {
   File recordedFile = File(path);
 
@@ -65,6 +66,7 @@ class TtsPlayer {
   int delayInMs = 100;
   int sampleRate = 22050;
 
+  //Converts all float values to the int16 range
   List<int> _convertFloatTo16BitSigned(List<double> pcmDouble) {
     int coeff = 32768;
 
@@ -106,26 +108,28 @@ class TtsPlayer {
     */
     for (double value in pcmDouble) {
       double newValue = (value * coeff);
-      //int newInt = newValue.toInt();
       int newInt = newValue.round();
       out.add(newInt);
     }
     return out;
   }
 
+  //Converts the predicted bytesm adds these to buffer, saves the audio file,
+  //waits until the last audio has finished playing and the plays the current audio from memory
   playAudio(
-      String sentence, List<double> bytes, double speed, int index) async {
+      String sentence, List<double> bytes, int index) async {
     log('Playing audio for sentence "' + sentence + '"');
     String filePath =
         (await getTemporaryDirectory()).toString().split('\'')[1] +
             '/tempAudio' +
             index.toString() +
             '.wav';
+    //log('bytes: ' + bytes.toString());
     List<int> intBytes = _convertFloatTo16BitSigned(bytes);
     Int16List intList = Int16List.fromList(intBytes);
     Uint8List playableBytes = intList.buffer
         .asUint8List(intList.offsetInBytes, intList.lengthInBytes);
-
+    //log('playableBytes: ' + playableBytes.toString());
     while (DateTime.now().isBefore(lastStart
         .add(Duration(milliseconds: previusDurationInMs + delayInMs)))) {
       continue;

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'abstract_module.dart';
 
+//Deprecated
 class Tacotron2 implements AbstractModule {
   static const String TAG = 'Tacotron2';
   late String modulePath;
