@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.tflite_app.KonesunteesSeadedActivity">
+
+    <RadioGroup
+        android:id="@+id/tts_voices"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:orientation="vertical">
+
+        <!--Selection of synthesis voices-->
+        <RadioButton
+            android:id="@+id/mari"d
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/label_mari" />
+
+        <RadioButton
+            android:id="@+id/tambet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/label_tambet" />
+
+        <RadioButton
+            android:id="@+id/liivika"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/label_liivika" />
+
+        <RadioButton
+            android:id="@+id/kalev"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/label_kalev" />
+
+        <RadioButton
+            android:id="@+id/kylli"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/label_kylli" />
+
+        <RadioButton
+            android:id="@+id/meelis"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/label_meelis" />
+
+        <RadioButton
+            android:id="@+id/albert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/label_albert" />
+
+        <RadioButton
+            android:id="@+id/indrek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/label_indrek" />
+
+        <RadioButton
+            android:id="@+id/vesta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/label_vesta" />
+
+        <RadioButton
+            android:id="@+id/peeter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/label_peeter" />
+
+
+    </RadioGroup>
+
+    <FrameLayout
+        android:id="@+id/progress_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#7a000000"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center" />
+    </FrameLayout>
+</FrameLayout>

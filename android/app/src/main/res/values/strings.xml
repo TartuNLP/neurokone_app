@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name" translatable="false">Estonian TTS TFLite</string>
+    <string name="service_name" translatable="false">Eesti TTS</string>
+
+    <string name="sample_text" translatable="false">Kui Arno isaga koolimajja jõudis.</string>
+    <string name="voice_title" translatable="false">Sünteesi kõne</string>
+    <string name="voice_summary" translatable="false">Sünteesi eestikeelset kõne 10 erineva häälega.</string>
+    <string name="tts_settings_label">Kõnelejad</string>
+
+    <string name="label_mari" translatable="false">Mari</string>
+    <string name="label_tambet" translatable="false">Tambet</string>
+    <string name="label_liivika" translatable="false">Liivika</string>
+    <string name="label_kalev" translatable="false">Kalev</string>
+    <string name="label_kylli" translatable="false">Külli</string>
+    <string name="label_meelis" translatable="false">Meelis</string>
+    <string name="label_albert" translatable="false">Albert</string>
+    <string name="label_indrek" translatable="false">Indrek</string>
+    <string name="label_vesta" translatable="false">Vesta</string>
+    <string name="label_peeter" translatable="false">Peeter</string>
+
+</resources>
