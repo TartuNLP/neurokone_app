@@ -14,7 +14,7 @@
 
         <!--Selection of synthesis voices-->
         <RadioButton
-            android:id="@+id/mari"d
+            android:id="@+id/mari"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="12dp"

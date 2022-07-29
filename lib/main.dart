@@ -11,6 +11,7 @@ import 'package:tflite_app/synth/vocoder.dart';
 //import 'package:tflite_app/synth/torch_vocoder.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
 import 'voice.dart';
 
 void main() {
@@ -182,12 +183,38 @@ class MyHomePageState extends State<MyHomePage> {
         items: widget.voices.map((Voice voice) {
           return DropdownMenuItem<Voice>(
             value: voice,
-            child: voice,
+            child: _voiceBox(voice),
           );
         }).toList(),
-        onChanged: (value) => setState(() {
-          _currentVoice = value as Voice;
-        }),
+        onChanged: (value) {
+          setState(() {
+            _currentVoice = value as Voice;
+          });
+        },
+      ),
+    );
+  }
+
+  _voiceBox(Voice voice) {
+    return Container(
+      decoration: BoxDecoration(
+        color: voice.getColor(),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(10),
+        ),
+      ),
+      child: Row(
+        children: [
+          Lottie.asset('assets/icons_logos/${voice.getIcon()}.json',
+              animate: true),
+          const SizedBox(
+            width: 20,
+          ),
+          Text(voice.getName()),
+          const SizedBox(
+            width: 20,
+          ),
+        ],
       ),
     );
   }
