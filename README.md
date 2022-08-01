@@ -1,14 +1,9 @@
 <h2 align="center">
 <p>Demo app and service for Estonian speech synthesis
-
-<p align="center">
-    <a href="https://colab.research.google.com/drive/1K6ZRVmBPdAG7bU7ohKEmVtM_6kFjSbP8?usp=sharing">
-        <img alt="Colab" src="https://colab.research.google.com/assets/colab-badge.svg">
-</p>
 </h2>
-<h2 align="center">
+<h3 align="center">
 Synthesize speech from text in Estonian using FastSpeech2 with Multiband MelGAN or HiFi-GAN.
-</h2>
+</h3>
 
 ## Mobile App
 - Adjustable speech rate.
