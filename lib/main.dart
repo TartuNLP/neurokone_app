@@ -1,18 +1,10 @@
-import 'dart:developer';
+import 'dart:io' show Platform;
+import 'package:eesti_tts/tts.dart';
 import 'package:flutter/material.dart';
-import 'package:tflite_app/audio_player.dart';
-//import 'package:tflite_app/processors/eng_processor.dart';
-import 'package:tflite_app/processors/est_processor.dart';
-import 'package:tflite_app/processors/processor.dart';
-import 'package:tflite_app/synth/abstract_module.dart';
-import 'package:tflite_app/synth/fastspeech.dart';
-//import 'package:tflite_app/synth/transformer_tts.dart';
-import 'package:tflite_app/synth/vocoder.dart';
-//import 'package:tflite_app/synth/torch_vocoder.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
-import 'voice.dart';
+import 'package:android_intent_plus/android_intent.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,7 +13,31 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  //Voice data: speakers, their background colors and decoration icon file names
+  //Defaults for Estonian and English UI.
+  static final Map<String, Map<String, String>> langs = {
+    'Eesti': {
+      'Choose': 'Süsteemiseadete hääl',
+      'Speak': 'Räägi',
+      'Stop': 'Peata',
+      'Slow': 'Aeglane',
+      'Fast': 'Kiire',
+      'Dropdown': 'Vali hääl',
+      'Hint': 'Kirjuta siia...',
+      'Tempo': 'Tempo',
+    },
+    'English': {
+      'Choose': 'Default system voice',
+      'Speak': 'Speak',
+      'Stop': 'Stop',
+      'Slow': 'Slow',
+      'Fast': 'Fast',
+      'Dropdown': 'Choose voice',
+      'Hint': 'Write here...',
+      'Tempo': 'Tempo',
+    }
+  };
+
+  //Voice data: speakers, their background colors and decoration icon file names.
   static final List<Voice> voices = [
     const Voice('Mari', Color.fromARGB(255, 239, 102, 80), '1'),
     const Voice('Tambet', Color.fromARGB(255, 114, 104, 216), '2'),
@@ -42,7 +58,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Neurokõne', voices: voices),
+      home: MyHomePage(title: 'Neurokõne', langs: langs, voices: voices),
     );
   }
 }
@@ -51,10 +67,12 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({
     Key? key,
     required this.title,
+    required this.langs,
     required this.voices,
   }) : super(key: key);
 
   final String title;
+  final Map<String, Map<String, String>> langs;
   final List<Voice> voices;
 
   @override
@@ -62,50 +80,28 @@ class MyHomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<MyHomePage> {
-  //Initial voice data
+  //Initial voice data.
   Voice _currentVoice = const Voice('Mari', Colors.red, '1');
   String _lang = 'Eesti';
 
-  //Defaults for Estonian and English UI
-  static final Map<String, Map<String, String>> _langs = {
-    'Eesti': {
-      'Speak': 'Räägi',
-      'Stop': 'Peata',
-      'Slow': 'Aeglane',
-      'Fast': 'Kiire',
-      'Dropdown': 'Vali hääl',
-      'Hint': 'Kirjuta siia...',
-      'Tempo': 'Tempo',
-    },
-    'English': {
-      'Speak': 'Speak',
-      'Stop': 'Stop',
-      'Slow': 'Slow',
-      'Fast': 'Fast',
-      'Dropdown': 'Choose voice',
-      'Hint': 'Write here...',
-      'Tempo': 'Tempo',
-    }
-  };
-
-  //Speed of the synthetic voice
+  //Speed of the synthetic voice.
   double _speed = 1.0;
 
-  //Controller for the text in Textfield
+  //Controller for the text in Textfield.
   late TextEditingController _textEditingController;
   String _fieldText = '';
 
-  //For preprocessing text and numbers before synthesis
-  final mProcessor _processor = EstProcessor();
-  //Synthesis model
-  final AbstractModule _synth = FastSpeech('fs2.v2_0-8k-bs10-200k_quant');
-  //Vocoder model
-  final Vocoder _vocoder = Vocoder(
-      'hifigan-generator-0-8k-1320k-finetuned-380k'); //Vocoder('MBMelGan')
-  //Player of the predicted audio
-  final TtsPlayer _audioPlayer = TtsPlayer();
+  bool isSystemPlaying = false;
 
-  //Every time the controller detects a change, the updated text is saved to _fieldText
+  bool get isIOS => Platform.isIOS;
+  bool get isAndroid => Platform.isAndroid;
+
+  bool isAndroidSystemVoice = false;
+
+  late Tts tts;
+
+  //Every time the controller detects a change, the updated text is saved to _fieldText.
+  //Also loads up the selected text to speech engine.
   @override
   void initState() {
     super.initState();
@@ -115,19 +111,64 @@ class MyHomePageState extends State<MyHomePage> {
         _fieldText = _textEditingController.text;
       });
     });
+    _initTts();
+  }
+
+  //Loads tts engine
+  void _initTts() {
+    tts = Tts();
+    if (isAndroidSystemVoice) {
+      //initVoice();
+      tts.initTtsAndroid();
+      _setHandlers();
+    } else {
+      tts.initTtsNative(isIOS);
+    }
+  }
+
+  //Sets the handlers for the system's engine
+  _setHandlers() {
+    tts.systemTts.setStartHandler(() {
+      setState(() {
+        print("Playing");
+        isSystemPlaying = true;
+      });
+    });
+
+    tts.systemTts.setCompletionHandler(() {
+      setState(() {
+        print("Complete");
+        isSystemPlaying = false;
+      });
+    });
+
+    tts.systemTts.setCancelHandler(() {
+      setState(() {
+        print("Cancel");
+        isSystemPlaying = false;
+      });
+    });
+
+    tts.systemTts.setErrorHandler((msg) {
+      setState(() {
+        print("error: $msg");
+        isSystemPlaying = false;
+      });
+    });
   }
 
   @override
   void dispose() {
     _textEditingController.dispose();
     super.dispose();
+    if (isAndroidSystemVoice) tts.systemTts.stop();
   }
 
-  //Creates a scrollable screen in case content doesn't fit
-  //Upmost component is dropdown list of voices on the left and two language toggle buttons on the right
+  //Creates a scrollable screen in case content doesn't fit.
+  //Upmost component is dropdown list of voices on the left and two language toggle buttons on the right.
   //Next is a slider for the speed parameter.
-  //Next is textfield for input text
-  //Lastly, speak/predict and play button
+  //Next is textfield for input text.
+  //Lastly, speak/predict and play button.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,7 +176,7 @@ class MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         shadowColor: Colors.white,
-        title: SvgPicture.asset('assets/icons_logos/neurokone-logo-clean.svg'),
+        title: _appBar(),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -147,14 +188,7 @@ class MyHomePageState extends State<MyHomePage> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _dropDownVoices(),
-                      const Spacer(),
-                      _langRadioButtons(),
-                    ],
-                  ),
+                  isIOS ? _dropDownVoices() : _radioEngines(),
                   _speedControl(),
                   _inputTextField(),
                   _speakStopButtons(),
@@ -167,7 +201,59 @@ class MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  //Dropdown list of voices
+  //Appbar consisting of logo and UI language toggle switch.
+  _appBar() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        SvgPicture.asset('assets/icons_logos/neurokone-logo-clean.svg'),
+        Spacer(),
+        _langRadioButtons(),
+      ],
+    );
+  }
+
+  //Toggle switch between the native and system's tts engine.
+  _radioEngines() {
+    return Column(
+      children: [
+        ListTile(
+          title: _dropDownVoices(),
+          leading: Radio<bool>(
+            fillColor: MaterialStateColor.resolveWith((states) => Colors.green),
+            focusColor:
+                MaterialStateColor.resolveWith((states) => Colors.green),
+            value: false,
+            groupValue: isAndroidSystemVoice,
+            onChanged: (bool? value) {
+              setState(() {
+                isAndroidSystemVoice = value!;
+              });
+              _initTts();
+            },
+          ),
+        ),
+        ListTile(
+          title: _ttsSettingsButton(),
+          leading: Radio<bool>(
+            fillColor: MaterialStateColor.resolveWith((states) => Colors.green),
+            focusColor:
+                MaterialStateColor.resolveWith((states) => Colors.green),
+            value: true,
+            groupValue: isAndroidSystemVoice,
+            onChanged: (bool? value) {
+              setState(() {
+                isAndroidSystemVoice = value!;
+              });
+              _initTts();
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  //Dropdown list of tts engine's voices.
   _dropDownVoices() {
     return Container(
       decoration: BoxDecoration(
@@ -178,7 +264,7 @@ class MyHomePageState extends State<MyHomePage> {
       ),
       child: DropdownButton(
         dropdownColor: Colors.transparent,
-        hint: Text(_langs[_lang]!['Dropdown']!),
+        hint: Text(widget.langs[_lang]!['Dropdown']!),
         value: _currentVoice,
         items: widget.voices.map((Voice voice) {
           return DropdownMenuItem<Voice>(
@@ -195,6 +281,7 @@ class MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  //Component that represents a voice in the dropdown list.
   _voiceBox(Voice voice) {
     return Container(
       decoration: BoxDecoration(
@@ -203,6 +290,8 @@ class MyHomePageState extends State<MyHomePage> {
           Radius.circular(10),
         ),
       ),
+      height: 40,
+      width: 120,
       child: Row(
         children: [
           Lottie.asset('assets/icons_logos/${voice.getIcon()}.json',
@@ -219,19 +308,29 @@ class MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  //Toggle buttons for UI language
+  //Takes the user to Android 'Text-to-speech output' settings.
+  _ttsSettingsButton() {
+    return TextButton(
+      child: Text(widget.langs[_lang]!['Choose']!),
+      onPressed: () async =>
+          await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS')
+              .launch(),
+    );
+  }
+
+  //Toggle buttons for UI language.
   _langRadioButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         _radioButton('ET', 'Eesti'),
         _radioButton('EN', 'English'),
       ],
     );
   }
 
-  //Button has a blueish background and is disabled if it is selected
+  //Button that, when selected, has a blueish background and is disabled.
   _radioButton(String langCode, String language) {
     return TextButton(
         style: _lang == language
@@ -247,13 +346,13 @@ class MyHomePageState extends State<MyHomePage> {
         child: Text(langCode));
   }
 
-  //A slider for voice speaking speed with minimum 0.5 and maximum 2.0 value
+  //A slider for voice speaking speed with minimum 0.5 and maximum 2.0 value.
   _speedControl() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         Text(
-          _langs[_lang]!['Tempo']!,
+          widget.langs[_lang]!['Tempo']!,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         SizedBox(
@@ -287,7 +386,7 @@ class MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  //Textfield for input text, with copy and clear buttons
+  //Textfield for input text, with copy and clear buttons.
   _inputTextField() {
     return Center(
       child: SizedBox(
@@ -297,7 +396,7 @@ class MyHomePageState extends State<MyHomePage> {
           maxLines: 25,
           controller: _textEditingController,
           decoration: InputDecoration(
-              hintText: _langs[_lang]!['Hint'],
+              hintText: widget.langs[_lang]!['Hint'],
               suffixIcon: _fieldText.isNotEmpty
                   ? Column(
                       children: [
@@ -322,9 +421,9 @@ class MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  //Speak button that triggers the models to synthesize audio from the input text
-  //Button is enabled only when there is text in the textfield
-  //Button is the same color as the selected voice from dropdown
+  //Speak button that triggers the models to synthesize audio from the input text.
+  //Button is enabled only when there is text in the textfield.
+  //Button is the same color as the selected voice from dropdown.
   _speakStopButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -333,8 +432,8 @@ class MyHomePageState extends State<MyHomePage> {
           style: ButtonStyle(
             foregroundColor: MaterialStateProperty.all(
                 _fieldText.isNotEmpty ? Colors.white : Colors.grey),
-            backgroundColor:
-                MaterialStateProperty.all<Color>(_currentVoice.getColor()),
+            backgroundColor: MaterialStateProperty.all<Color>(
+                isAndroidSystemVoice ? Colors.black : _currentVoice.getColor()),
             fixedSize:
                 MaterialStateProperty.all<Size>(const Size.fromWidth(100.0)),
             shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -344,79 +443,56 @@ class MyHomePageState extends State<MyHomePage> {
               ),
             ),
           ),
-          onPressed: _fieldText.isNotEmpty ? _textToSpeech : null,
+          onPressed: _fieldText.isNotEmpty ? _speak : null,
           child: Text(
-            _langs[_lang]!['Speak']!,
+            widget.langs[_lang]!['Speak']!,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        /*
-        TextButton(
-          onPressed:
-              _fieldText.isNotEmpty && _speaking ? _stopTextToSpeech : null,
-          child: Text(_langs[_lang]!['Stop']!),
-        ),
-        */
+        if (isAndroid)
+          TextButton(
+            onPressed: _fieldText.isNotEmpty || isSystemPlaying ? _stop : null,
+            child: Text(widget.langs[_lang]!['Stop']!),
+          ),
       ],
     );
   }
 
-  //Splits the input text into sentences, if the sentence is too long then tries to split where there are pauses
-  List<String> _splitSentences() {
-    String remainingText = _fieldText;
-    RegExp sentencesSplit =
-        RegExp(r'[.!?]((((" )| |( "))(?![a-zäöüõšž]))|("?$))');
-    RegExp sentenceSplit =
-        RegExp(r'(?<!^)([,;!?]"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )');
-    RegExp strip = RegExp(r'^[,;!?]?"? ?');
-    List<String> sentences = [];
-    int currentSentId = 0;
-    for (RegExpMatch match in sentencesSplit.allMatches(remainingText)) {
-      String sentence = remainingText.substring(currentSentId, match.start);
-      currentSentId = match.end;
-      int currentCharId = 0;
-      for (RegExpMatch split in sentenceSplit.allMatches(sentence)) {
-        if (split.start > 20 + currentCharId &&
-            split.end < sentence.length - 20) {
-          sentences.add(sentence
-                  .substring(currentCharId, split.start)
-                  .replaceAll(strip, '') +
-              '.');
-          currentCharId = split.start;
-        }
-      }
-      sentences
-          .add(sentence.substring(currentCharId).replaceAll(strip, '') + '.');
-    }
-    log('Split sentences:' + sentences.toString());
-    return sentences;
+  //Executes the text-to-speech.
+  Future _speak() async {
+    tts.speak(_fieldText, _speed,
+        isAndroidSystemVoice ? null : widget.voices.indexOf(_currentVoice));
   }
 
-  //Text preprocessing, models' inference and playing of the resulting audio
-  //Saves maximum of 3 audio files to memory.
-  _textToSpeech() async {
-    int id = 0;
-    int voiceId = widget.voices.indexOf(_currentVoice);
-    double speed = 1.0 / _speed;
-    for (String sentence in _splitSentences()) {
-      List output = _processor.textToIds(sentence);
-      output = _synth.getMelSpectrogram(output, voiceId, speed);
-      output = _vocoder.getAudio(output);
-
-      List<double> audioBytes = [];
-      if (output[0].length > 1) {
-        for (int i = 0; i < output[0].length; i++) {
-          audioBytes.add(output[0][i][0]);
-        }
-      } else {
-        audioBytes = output[0][0];
-      }
-      await _audioPlayer.playAudio(sentence, audioBytes, id);
-      if (id >= 2) {
-        id = 0;
-      } else {
-        id++;
-      }
-    }
+  //Stops the synthesis.
+  Future _stop() async {
+    var result = await tts.systemTts.stop();
+    if (result == 1) setState(() => isSystemPlaying = false);
   }
+}
+
+class Voice {
+  final String _name;
+  final Color _color;
+  final String _icon;
+
+  String getName() {
+    return _name;
+  }
+
+  Color getColor() {
+    return _color;
+  }
+
+  String getIcon() {
+    return _icon;
+  }
+
+  const Voice(this._name, this._color, this._icon);
+
+  @override
+  bool operator ==(Object other) => other is Voice && other._name == _name;
+
+  @override
+  int get hashCode => super.hashCode;
 }
