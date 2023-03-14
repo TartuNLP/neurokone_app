@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.tflite_app"
+    package="com.tartunlp.eesti_tts"
     android:installLocation="preferExternal">
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
    <application
         android:label="@string/app_name"
@@ -45,7 +46,7 @@
             />
         </service>
 
-        <!--Voice, pitch and speed data-->
+        <!--Language, pitch and speed data-->
         <activity android:name=".CheckVoiceData"
             android:theme="@android:style/Theme.NoDisplay">
             <intent-filter>
@@ -54,8 +55,9 @@
             </intent-filter>
         </activity>
 
+       <!--Engine configuration (set voice)-->
         <activity
-            android:name=".KonesunteesSeadedActivity"
+            android:name=".KonesunteesSeaded"
             android:label="@string/tts_settings_label"
             android:enabled="true"
             android:exported="true" >

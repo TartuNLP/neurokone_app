@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.tflite_app.KonesunteesSeadedActivity">
+    tools:context="com.tartunlp.eesti_tts.KonesunteesSeaded">
 
     <RadioGroup
         android:id="@+id/tts_voices"
