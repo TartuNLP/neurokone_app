@@ -11,7 +11,7 @@ class NativeTts {
   //Model that predicts audio waves from mel spectrogram.
   late final Vocoder _vocoder;
   //Plays the predicted audio.
-  final TtsPlayer _audioPlayer = TtsPlayer();
+  final TtsPlayer audioPlayer = TtsPlayer();
 
   int fileId = 0;
 
@@ -25,7 +25,7 @@ class NativeTts {
   nativeTextToSpeech(String sentence, int voiceId, double invertedSpeed) async {
     double speed = 1.0 / invertedSpeed;
     List output = encoder.textToIds(sentence);
-    output = _synth.getMelSpectrogram(output, voiceId, speed);
+    output = await _synth.getMelSpectrogram(output, voiceId, speed);
     output = _vocoder.getAudio(output);
 
     List<double> audioBytes = [];
@@ -36,7 +36,7 @@ class NativeTts {
     } else {
       audioBytes = output[0][0];
     }
-    await _audioPlayer.playAudio(sentence, audioBytes, fileId);
+    await audioPlayer.playAudio(sentence, audioBytes, fileId);
     if (fileId >= 2) {
       fileId = 0;
     } else {

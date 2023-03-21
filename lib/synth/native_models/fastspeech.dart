@@ -39,7 +39,7 @@ class FastSpeech {
   }
 
   //Prepares the input dimensions, runs the model and returns the model's output mel spectrogram
-  List getMelSpectrogram(List inputIds, int voiceId, double speed) {
+  Future<List> getMelSpectrogram(List inputIds, int voiceId, double speed) async {
     log('input id length: ' + inputIds.length.toString());
     List<Object> inputList = [
       [inputIds], //input_ids

@@ -79,7 +79,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => MyHomePageState();
 }
 
-class MyHomePageState extends State<MyHomePage> {
+class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   //Initial voice data.
   Voice _currentVoice = const Voice('Mari', Colors.red, '1');
   String _lang = 'Eesti';
@@ -92,6 +92,7 @@ class MyHomePageState extends State<MyHomePage> {
   String _fieldText = '';
 
   bool isSystemPlaying = false;
+  bool isNativePlaying = false;
 
   bool get isIOS => Platform.isIOS;
   bool get isAndroid => Platform.isAndroid;
@@ -112,6 +113,7 @@ class MyHomePageState extends State<MyHomePage> {
       });
     });
     _initTts();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   //Loads tts engine
@@ -120,6 +122,7 @@ class MyHomePageState extends State<MyHomePage> {
     if (isAndroidSystemVoice) {
       //initVoice();
       tts.initTtsAndroid();
+      tts.setDefaultEngine();
       _setHandlers();
     } else {
       tts.initTtsNative(isIOS);
@@ -158,8 +161,28 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        tts.setDefaultEngine();
+        print("app in resumed");
+        break;
+      case AppLifecycleState.inactive:
+        print("app in inactive");
+        break;
+      case AppLifecycleState.paused:
+        print("app in paused");
+        break;
+      case AppLifecycleState.detached:
+        print("app in detached");
+        break;
+    }
+  }
+
+  @override
   void dispose() {
     _textEditingController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
     if (isAndroidSystemVoice) tts.systemTts.stop();
   }
@@ -451,7 +474,7 @@ class MyHomePageState extends State<MyHomePage> {
         ),
         if (isAndroid)
           TextButton(
-            onPressed: _fieldText.isNotEmpty || isSystemPlaying ? _stop : null,
+            onPressed: _stop,
             child: Text(widget.langs[_lang]!['Stop']!),
           ),
       ],
@@ -460,14 +483,23 @@ class MyHomePageState extends State<MyHomePage> {
 
   //Executes the text-to-speech.
   Future _speak() async {
+    if (!isAndroidSystemVoice) isNativePlaying = true;
     tts.speak(_fieldText, _speed,
         isAndroidSystemVoice ? null : widget.voices.indexOf(_currentVoice));
   }
 
   //Stops the synthesis.
   Future _stop() async {
-    var result = await tts.systemTts.stop();
-    if (result == 1) setState(() => isSystemPlaying = false);
+    if (isAndroidSystemVoice) {
+      var result = await tts.systemTts.stop();
+      if (result == 1) setState(() => isSystemPlaying = false);
+    } else {
+      tts.nativeTts.audioPlayer.stopAudio();
+      if (isNativePlaying) tts.stopNative = true;
+      setState(() {
+        isNativePlaying = false;
+      });
+    }
   }
 }
 

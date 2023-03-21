@@ -13,15 +13,14 @@ class Tts {
   /////////////////////////////////////////////////////////
   late FlutterTts systemTts;
   late NativeTts nativeTts;
+  bool stopNative = false;
+  String engine = '';
 
   //Loads Android system's tts engine.
   //Currently always sets the engine to eesti_tts.
   void initTtsAndroid() {
     systemTts = FlutterTts();
-    systemTts.setEngine('com.tartunlp.eesti_tts');
-
     _setAwaitOptions();
-    _getDefaultEngine();
   }
 
   //Loads the application's tts engine.
@@ -35,20 +34,26 @@ class Tts {
     await systemTts.awaitSpeakCompletion(true);
   }
 
-  Future _getDefaultEngine() async {
-    var engine = await systemTts.getDefaultEngine;
-    if (engine != null) print('TtsEngine:' + engine.toString());
+  Future setDefaultEngine() async {
+    String newEngine = await systemTts.getDefaultEngine;
+    if (this.engine != newEngine) {
+      this.engine = newEngine;
+      print('TtsEngine:' + this.engine.toString());
+      systemTts.setEngine(this.engine);
+    }
   }
 
   //Processes the text before input to the model.
   final EstProcessor _processor = EstProcessor();
 
   speak(String text, double speed, int? voice) async {
-    List<String> sentences = _processor.preprocess(text);
+    List<String> sentences = await _processor.preprocess(text);
     if (voice != null) {
       for (String sentence in sentences) {
+        if (stopNative) break;
         await nativeTts.nativeTextToSpeech(sentence, voice, speed);
       }
+      stopNative = false;
     } else {
       //await systemTts.setVolume(volume);
       await systemTts.setSpeechRate(speed / 2);

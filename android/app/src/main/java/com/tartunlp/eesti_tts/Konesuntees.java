@@ -147,7 +147,7 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
         }
         if (!isInit) {
             String modulePath = copyFile("fastspeech2-" + lang + ".tflite");
-            String vocoderPath = copyFile("hifigan-" + lang + ".tflite");
+            String vocoderPath = copyFile("hifigan-" + lang + ".v2.tflite");
             try {
                 mModule = new FastSpeechModel(modulePath);
                 isInit = true;
@@ -214,13 +214,11 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
         mModule.setSpeed(speed);
         float pitch = (float) request.getPitch() / 100;
         mModule.setPitch(pitch);
-        Log.i(TAG, "Prefs: text " + text + ", voice " + speakerId + ", speed " + speed + ", pitch " + pitch);
+        Log.i(TAG, "Prefs: Text(" + text + "), Voice(" + speakerId + "), Speed(" + speed + "), Pitch(" + pitch + ")");
 
         final String[] sentences = text.split(" . ");
-        for (int i = 0; i < sentences.length; ++i) {
-            List<Integer> idsList = mEncoder.textToIds(sentences[i]);
-            Integer[] integerList = idsList.toArray(new Integer[idsList.size()]);
-            int[] ids = Arrays.stream(integerList).mapToInt(Integer::intValue).toArray();
+        for (String sentence : sentences) {
+            int[] ids = mEncoder.textToIds(sentence);
             // It is crucial to call either of callback.error() or callback.done() to ensure
             // that audio / other resources are released as soon as possible.
             if (!generateOneSentenceOfAudio(ids, callback)) {

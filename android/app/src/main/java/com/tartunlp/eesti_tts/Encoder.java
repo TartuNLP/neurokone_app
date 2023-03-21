@@ -76,7 +76,38 @@ class Encoder {
             SYMBOL_TO_ID.put(SYMBOLS.get(i), i);
         }
     }
+    /*
+    public int[][] textsToIds(String[] texts) {
+        int[][] arr = new int[texts.length][];
+        for (int i = 0; i < texts.length; i++) {
+            int[] sequence = new int[texts[i].length()];
+            for (int j = 0; j < texts[i].length(); j++) {
+                Integer id = SYMBOL_TO_ID.get(String.valueOf(texts[i].charAt(j)));
+                if (id == null) {
+                    Log.e(TAG, "symbolsToSequence: id is not found for " + texts[i].charAt(i));
+                } else {
+                    sequence[i] = (int) id;
+                }
+            }
+            arr[i] = sequence.clone();
+        }
+        return arr;
+    }*/
 
+    public int[] textToIds(String text) {
+        int[] sequence = new int[text.length()];
+        for (int i = 0; i < text.length(); i++) {
+            Integer id = SYMBOL_TO_ID.get(String.valueOf(text.charAt(i)));
+            if (id == null) {
+                Log.e(TAG, "symbolsToSequence: id is not found for " + text.charAt(i));
+            } else {
+                sequence[i] = (int) id;
+            }
+        }
+        return sequence;
+    }
+
+    /*
     public List<Integer> textToIds(String symbols) {
         List<Integer> sequence = new ArrayList<>();
         for (int i = 0; i < symbols.length(); ++i) {
@@ -88,5 +119,5 @@ class Encoder {
             }
         }
         return sequence;
-    }
+    }*/
 }

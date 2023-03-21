@@ -647,7 +647,7 @@ class EstProcessor {
   }
 
 
-  List<String> preprocess(String text) {
+  Future<List<String>> preprocess(String text) async {
     List<String> splitText = _splitSentences(text);
     List<String> newSentences = [];
     for (String sentence in splitText) {
