@@ -95,23 +95,24 @@ class TtsPlayer {
       continue;
     }
     await save(playableBytes, filePath, 22050);
-    while (player.state != PlayerState.COMPLETED) {
+    while (player.state != PlayerState.completed) {
       if (lastStart
               .add(Duration(milliseconds: previusDurationInMs + 200))
               .compareTo(DateTime.now()) <=
           0) {
-        player.state = PlayerState.COMPLETED;
+        player.state = PlayerState.completed;
       }
       continue;
     }
     previusDurationInMs = (intList.length * 1000 / sampleRate).ceil();
     lastStart = DateTime.now();
-    await player.play(filePath, isLocal: true);
+    await player.play(DeviceFileSource(filePath));
+    //await player.play(filePath, isLocal: true);
     log("Audio playing.");
   }
 
   bool isPlaying() {
-    return player.state == PlayerState.PLAYING;
+    return player.state == PlayerState.playing;
   }
 
   stopAudio() async {

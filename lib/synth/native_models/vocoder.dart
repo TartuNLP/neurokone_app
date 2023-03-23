@@ -2,15 +2,13 @@ import 'dart:developer';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class Vocoder {
-  static late String TAG;
+  final String TAG;
+  final bool isIOS;
   late String modulePath;
   late Interpreter vocModule;
-  late bool isIOS;
 
-  Vocoder(String vocName, bool isIOS) {
-    TAG = vocName;
-    this.isIOS = isIOS;
-    modulePath = '../android/app/src/main/assets/' + vocName + '.tflite';
+  Vocoder(this.TAG, this.isIOS) {
+    modulePath = '../android/app/src/main/assets/' + this.TAG + '.tflite';
     //modulePath = 'voc_models/' + vocName + '.tflite';
     loadModel();
   }

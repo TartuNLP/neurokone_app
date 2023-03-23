@@ -11,35 +11,41 @@ class Tts {
   // NativeTts uses application's native text-to-speech
   // implementation, supports both Android and iOS.
   /////////////////////////////////////////////////////////
+  final bool isIOS;
+  String lang = 'et';
   late FlutterTts systemTts;
   late NativeTts nativeTts;
   bool stopNative = false;
   String engine = '';
 
+  Tts(this.isIOS);
+
   //Loads Android system's tts engine.
-  //Currently always sets the engine to eesti_tts.
-  void initTtsAndroid() {
+  void initSystemTts() async {
     systemTts = FlutterTts();
-    _setAwaitOptions();
-  }
-
-  //Loads the application's tts engine.
-  void initTtsNative(bool isIOS) {
-    nativeTts = NativeTts('fastspeech2-est', 'hifigan-est.v2', isIOS);
-    log('TtsEngine: native');
-  }
-
-  //Synchronizes the tts output so that an audio clip is not played until the previous one has finished.
-  Future _setAwaitOptions() async {
+    //Synchronizes the tts output so that an audio clip is not played until the previous one has finished.
     await systemTts.awaitSpeakCompletion(true);
   }
 
+  //Loads the application's tts engine.
+  void initTtsNative() {
+    nativeTts = NativeTts('fastspeech2-est', 'hifigan-est.v2', this.isIOS);
+    log('TtsEngine: native');
+  }
+
   Future setDefaultEngine() async {
-    String newEngine = await systemTts.getDefaultEngine;
-    if (this.engine != newEngine) {
-      this.engine = newEngine;
-      print('TtsEngine:' + this.engine.toString());
-      systemTts.setEngine(this.engine);
+    if (isIOS) {
+      if (await systemTts.isLanguageAvailable(this.lang)) {
+        systemTts.setLanguage(this.lang);
+        //systemTts.setVoice({lang: (await systemTts.getVoices)[0]});
+      }
+    } else {
+      String newEngine = await systemTts.getDefaultEngine;
+      if (this.engine != newEngine) {
+        this.engine = newEngine;
+        print('TtsEngine:' + this.engine.toString());
+        systemTts.setEngine(this.engine);
+      }
     }
   }
 

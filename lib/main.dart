@@ -95,9 +95,8 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   bool isNativePlaying = false;
 
   bool get isIOS => Platform.isIOS;
-  bool get isAndroid => Platform.isAndroid;
 
-  bool isAndroidSystemVoice = false;
+  bool isSystemVoice = false;
 
   late Tts tts;
 
@@ -118,14 +117,14 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   //Loads tts engine
   void _initTts() {
-    tts = Tts();
-    if (isAndroidSystemVoice) {
+    tts = Tts(isIOS);
+    if (isSystemVoice) {
       //initVoice();
-      tts.initTtsAndroid();
+      tts.initSystemTts();
       tts.setDefaultEngine();
       _setHandlers();
     } else {
-      tts.initTtsNative(isIOS);
+      tts.initTtsNative();
     }
   }
 
@@ -184,7 +183,7 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     _textEditingController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-    if (isAndroidSystemVoice) tts.systemTts.stop();
+    if (isSystemVoice) tts.systemTts.stop();
   }
 
   //Creates a scrollable screen in case content doesn't fit.
@@ -211,7 +210,8 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  isIOS ? _dropDownVoices() : _radioEngines(),
+                  //isIOS ? _dropDownVoices() : _radioEngines(),
+                  _radioEngines(),
                   _speedControl(),
                   _inputTextField(),
                   _speakStopButtons(),
@@ -247,10 +247,10 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             focusColor:
                 MaterialStateColor.resolveWith((states) => Colors.green),
             value: false,
-            groupValue: isAndroidSystemVoice,
+            groupValue: isSystemVoice,
             onChanged: (bool? value) {
               setState(() {
-                isAndroidSystemVoice = value!;
+                isSystemVoice = value!;
               });
               _initTts();
             },
@@ -263,10 +263,10 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             focusColor:
                 MaterialStateColor.resolveWith((states) => Colors.green),
             value: true,
-            groupValue: isAndroidSystemVoice,
+            groupValue: isSystemVoice,
             onChanged: (bool? value) {
               setState(() {
-                isAndroidSystemVoice = value!;
+                isSystemVoice = value!;
               });
               _initTts();
             },
@@ -456,7 +456,7 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             foregroundColor: MaterialStateProperty.all(
                 _fieldText.isNotEmpty ? Colors.white : Colors.grey),
             backgroundColor: MaterialStateProperty.all<Color>(
-                isAndroidSystemVoice ? Colors.black : _currentVoice.getColor()),
+                isSystemVoice ? Colors.black : _currentVoice.getColor()),
             fixedSize:
                 MaterialStateProperty.all<Size>(const Size.fromWidth(100.0)),
             shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -472,25 +472,25 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
-        if (isAndroid)
-          TextButton(
-            onPressed: _stop,
-            child: Text(widget.langs[_lang]!['Stop']!),
-          ),
+        //if (!isIOS)
+        TextButton(
+          onPressed: _stop,
+          child: Text(widget.langs[_lang]!['Stop']!),
+        ),
       ],
     );
   }
 
   //Executes the text-to-speech.
   Future _speak() async {
-    if (!isAndroidSystemVoice) isNativePlaying = true;
+    if (!isSystemVoice) isNativePlaying = true;
     tts.speak(_fieldText, _speed,
-        isAndroidSystemVoice ? null : widget.voices.indexOf(_currentVoice));
+        isSystemVoice ? null : widget.voices.indexOf(_currentVoice));
   }
 
   //Stops the synthesis.
   Future _stop() async {
-    if (isAndroidSystemVoice) {
+    if (isSystemVoice) {
       var result = await tts.systemTts.stop();
       if (result == 1) setState(() => isSystemPlaying = false);
     } else {

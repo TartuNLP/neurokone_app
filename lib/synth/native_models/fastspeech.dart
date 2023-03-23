@@ -2,15 +2,13 @@ import 'dart:developer';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class FastSpeech {
-  static late String TAG;
+  final String TAG;
+  final bool isIOS;
   late String modulePath;
   late Interpreter mModule;
-  late bool isIOS;
 
-  FastSpeech(String modelName, bool isIOS) {
-    TAG = modelName;
-    this.isIOS = isIOS;
-    modulePath = '../android/app/src/main/assets/' + modelName + '.tflite';
+  FastSpeech(this.TAG, this.isIOS) {
+    modulePath = '../android/app/src/main/assets/' + this.TAG + '.tflite';
     //modulePath = 'synth_models/' + modelName + '.tflite';
     loadModel();
   }
