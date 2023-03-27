@@ -8,6 +8,8 @@ import android.speech.tts.TextToSpeechService;
 import android.text.TextUtils;
 import android.util.Log;
 
+import android.content.res.AssetManager;
+
 import androidx.annotation.Nullable;
 
 import java.nio.ByteBuffer;
@@ -96,18 +98,30 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
     }
 
     private String copyFile(String strOutFileName) {
-        Log.d(TAG, "start copy file " + strOutFileName);
+        Log.d(TAG, "Searching for model file...");
         File file = getFilesDir();
 
         String tmpFile = file.getAbsolutePath() + "/" + strOutFileName;
         File f = new File(tmpFile);
         if (f.exists()) {
-            Log.d(TAG, "file exists " + strOutFileName);
+            Log.d(TAG, "File exists: " + f.getAbsolutePath());
             return f.getAbsolutePath();
         }
 
+        Log.d(TAG, strOutFileName + " not found. Copying model from app assets...");
+
+        //FlutterLoader loader = FlutterInjector.instance().flutterLoader();
+        //loader.startInitialization(getApplicationContext());
+        //loader.ensureInitializationComplete(getApplicationContext(), new String[] {});
+        //String key = loader.getLookupKeyForAsset("assets/mobilenetv3.ptl");
+        
+        //AssetManager assetManager = registrar.context().getAssets();
+        //String key = registrar.lookupKeyForAsset("assets/" + strOutFileName);
+        //AssetFileDescriptor fd = assetManager.openFd(key);
+
         try (OutputStream myOutput = new FileOutputStream(f);
-             InputStream myInput = getAssets().open(strOutFileName)) {
+             InputStream myInput = getAssets().open(strOutFileName)
+             /*InputStream myInput = fd.createInputStream()*/) {
             byte[] buffer = new byte[1024];
             int length = myInput.read(buffer);
             while (length > 0) {
@@ -115,11 +129,9 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
                 length = myInput.read(buffer);
             }
             myOutput.flush();
-            Log.d(TAG, "Copy task successful");
+            Log.d(TAG, "Copy task successful.");
         } catch (Exception e) {
-            Log.e(TAG, "copyFile: Failed to copy", e);
-        } finally {
-            Log.d(TAG, "end copy file " + strOutFileName);
+            Log.e(TAG, "Failed to copy file " + strOutFileName, e);
         }
         return f.getAbsolutePath();
     }

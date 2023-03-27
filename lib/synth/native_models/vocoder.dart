@@ -8,8 +8,7 @@ class Vocoder {
   late Interpreter vocModule;
 
   Vocoder(this.TAG, this.isIOS) {
-    modulePath = '../android/app/src/main/assets/' + this.TAG + '.tflite';
-    //modulePath = 'voc_models/' + vocName + '.tflite';
+    modulePath = this.TAG + '.tflite';
     loadModel();
   }
 

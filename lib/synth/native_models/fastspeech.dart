@@ -8,8 +8,7 @@ class FastSpeech {
   late Interpreter mModule;
 
   FastSpeech(this.TAG, this.isIOS) {
-    modulePath = '../android/app/src/main/assets/' + this.TAG + '.tflite';
-    //modulePath = 'synth_models/' + modelName + '.tflite';
+    modulePath = this.TAG + '.tflite';
     loadModel();
   }
 
