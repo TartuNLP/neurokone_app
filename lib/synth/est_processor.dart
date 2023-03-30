@@ -3,7 +3,7 @@ import 'dart:math' as Math;
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 class EstProcessor {
-    //For splitting the whole text into sentences.
+  //For splitting the whole text into sentences.
   RegExp sentencesSplit =
       RegExp(r'[.!?]((((" )| |( "))(?=[a-zõäöüšžA-ZÕÄÖÜŠŽ0-9]))|("?$))');
   //For splitting long sentences into parts
@@ -645,7 +645,6 @@ class EstProcessor {
     log('Text preprocessed:' + text);
     return text;
   }
-
 
   Future<List<String>> preprocess(String text) async {
     List<String> splitText = _splitSentences(text);

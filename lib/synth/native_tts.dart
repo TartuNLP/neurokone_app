@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:eesti_tts/synth/text_encoder.dart';
 import 'package:eesti_tts/synth/native_models/fastspeech.dart';
 import 'package:eesti_tts/synth/native_models/vocoder.dart';
@@ -16,8 +17,8 @@ class NativeTts {
   int fileId = 0;
 
   NativeTts(String modelName, String vocName, bool isIOS) {
-    _synth = FastSpeech(modelName, isIOS);
-    _vocoder = Vocoder(vocName, isIOS);
+    _synth = FastSpeech(modelName);
+    _vocoder = Vocoder(vocName);
   }
 
   //Text preprocessing, models' inference and playing of the resulting audio
@@ -25,8 +26,11 @@ class NativeTts {
   nativeTextToSpeech(String sentence, int voiceId, double invertedSpeed) async {
     double speed = 1.0 / invertedSpeed;
     List output = encoder.textToIds(sentence);
+    log('Input ids length: ' + output.length.toString());
     output = await _synth.getMelSpectrogram(output, voiceId, speed);
+    log('Spectrogram shape: (' + (output.length / 80).toString() + ', 80)');
     output = _vocoder.getAudio(output);
+    log('Audio length: (' + output.length.toString());
 
     List<double> audioBytes = [];
     if (output[0].length > 1) {

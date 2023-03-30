@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
-import 'package:eesti_tts/tts.dart';
+import 'voice.dart';
+import 'package:eesti_tts/synth/tts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -163,7 +164,7 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        tts.setDefaultEngine();
+        if (isSystemVoice) tts.setDefaultEngine();
         print("app in resumed");
         break;
       case AppLifecycleState.inactive:
@@ -210,7 +211,6 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  //isIOS ? _dropDownVoices() : _radioEngines(),
                   _radioEngines(),
                   _speedControl(),
                   _inputTextField(),
@@ -313,8 +313,9 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           Radius.circular(10),
         ),
       ),
-      height: 40,
-      width: 120,
+      //height: 40,
+      //width: 120,
+      constraints: BoxConstraints.expand(width: 120, height: 40),
       child: Row(
         children: [
           Lottie.asset('assets/icons_logos/${voice.getIcon()}.json',
@@ -335,10 +336,18 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   _ttsSettingsButton() {
     return TextButton(
       child: Text(widget.langs[_lang]!['Choose']!),
-      onPressed: () async =>
-          await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS')
-              .launch(),
+      onPressed: isIOS ? _openCustomTtsSelect : _openAndroidTtsSettings,
     );
+  }
+
+  //Opens a new tab on iOS where custom speech synthesis engines can be enabled.
+  _openCustomTtsSelect() {
+    return null;
+  }
+
+  //Opens Android Text-to-Speech output settings screen.
+  _openAndroidTtsSettings() async {
+    await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS').launch();
   }
 
   //Toggle buttons for UI language.
@@ -501,30 +510,4 @@ class MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       });
     }
   }
-}
-
-class Voice {
-  final String _name;
-  final Color _color;
-  final String _icon;
-
-  String getName() {
-    return _name;
-  }
-
-  Color getColor() {
-    return _color;
-  }
-
-  String getIcon() {
-    return _icon;
-  }
-
-  const Voice(this._name, this._color, this._icon);
-
-  @override
-  bool operator ==(Object other) => other is Voice && other._name == _name;
-
-  @override
-  int get hashCode => super.hashCode;
 }
