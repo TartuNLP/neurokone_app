@@ -10,15 +10,15 @@
 			<array>
 				<dict>
 					<key>description</key>
-					<string>Speech syntherizer extension</string>
+					<string>Synth</string>
 					<key>manufacturer</key>
-					<string>TartuNLP</string>
+					<string>ESPK</string>
 					<key>name</key>
-					<string>iOSSpeechSynthesizerExtension</string>
+					<string>eSpeak-NG</string>
 					<key>sandboxSafe</key>
 					<true/>
 					<key>subtype</key>
-					<string>ttsextension</string>
+					<string>espk</string>
 					<key>tags</key>
 					<array>
 						<string>Speech Synthesizer</string>

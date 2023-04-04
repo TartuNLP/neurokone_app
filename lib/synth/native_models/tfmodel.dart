@@ -34,6 +34,8 @@ class TfModel {
     }
   }
 
+  //Performs inference on the model and returns model's output as Tensor.
+  //Input should already formatted to to model's input shape.
   Tensor invokeModel(List<Object> inputList) {
     var inputTensors = mModule.getInputTensors();
 

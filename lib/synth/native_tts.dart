@@ -28,9 +28,10 @@ class NativeTts {
     List output = encoder.textToIds(sentence);
     log('Input ids length: ' + output.length.toString());
     output = await _synth.getMelSpectrogram(output, voiceId, speed);
-    log('Spectrogram shape: (' + (output.length / 80).toString() + ', 80)');
+    log('Spectrogram shape: ' +
+        [output[0].length, output[0][0].length].toString());
     output = _vocoder.getAudio(output);
-    log('Audio length: (' + output.length.toString());
+    log('Audio length: ' + output[0].length.toString());
 
     List<double> audioBytes = [];
     if (output[0].length > 1) {

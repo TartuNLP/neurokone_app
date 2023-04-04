@@ -14,7 +14,7 @@ class Tts {
   final bool isIOS;
   String lang = 'et';
   late FlutterTts systemTts;
-  late NativeTts nativeTts;
+  NativeTts? nativeTts;
   bool stopNative = false;
   String engine = '';
 
@@ -29,7 +29,8 @@ class Tts {
 
   //Loads the application's tts engine.
   void initTtsNative() {
-    nativeTts = NativeTts('fastspeech2-est', 'hifigan-est.v2', this.isIOS);
+    if (nativeTts == null)
+      nativeTts = NativeTts('fastspeech2-est', 'hifigan-est.v2', this.isIOS);
     log('TtsEngine: native');
   }
 
@@ -57,7 +58,7 @@ class Tts {
     if (voice != null) {
       for (String sentence in sentences) {
         if (stopNative) break;
-        await nativeTts.nativeTextToSpeech(sentence, voice, speed);
+        await nativeTts!.nativeTextToSpeech(sentence, voice, speed);
       }
       stopNative = false;
     } else {

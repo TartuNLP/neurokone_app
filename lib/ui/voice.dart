@@ -1,15 +1,15 @@
-import 'dart:ui';
+import 'package:flutter/material.dart';
 
 class Voice {
   final String _name;
-  final Color _color;
+  final MaterialColor _color;
   final String _icon;
 
   String getName() {
     return _name;
   }
 
-  Color getColor() {
+  MaterialColor getColor() {
     return _color;
   }
 

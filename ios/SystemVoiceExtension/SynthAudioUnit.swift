@@ -19,10 +19,10 @@ import Accelerate
 import libespeak_ng
 import OSLog
 
-fileprivate let log = Logger(subsystem: "eesti_tts", category: "SynthAudioUnit")
+fileprivate let log = Logger(subsystem: "espeak-ng", category: "SynthAudioUnit")
 
 enum EspeakParameter: AUParameterAddress {
-  case rate, volume, pitch, wordGap, range
+  case rate, volume, pitch, energy
 }
 
 extension espeak_ng_STATUS {
@@ -47,25 +47,29 @@ fileprivate func synthCallback(samples: UnsafeMutablePointer<Int16>?, num_sample
   let holder = events?.pointee.user_data.assumingMemoryBound(to: SynthHolder.self).pointee
   let buf = UnsafeBufferPointer(start: samples, count: Int(num_samples))
   holder?.samples.append(contentsOf: buf)
-//  log.trace("samples: count=\(num_samples, privacy: .public) max=\(buf.reduce(0, { max($0, abs($1)) }), privacy: .public)")
+  #if DEBUG
+  log.trace("samples: count=\(num_samples, privacy: .public) max=\(buf.reduce(0, { max($0, abs($1)) }), privacy: .public)")
+  #endif
   var evt = events
   while let e = evt?.pointee, e.type != espeakEVENT_LIST_TERMINATED {
     holder?.events.append(e)
     evt = evt?.advanced(by: 1)
-//    switch e.type {
-//    case espeakEVENT_SAMPLERATE:
-//      log.trace("samplerate: \(e.id.number, privacy: .public)")
-//    case espeakEVENT_SENTENCE:
-//      log.trace("sentence: \(e.id.number, privacy: .public) (smp=\(e.sample, privacy: .public))")
-//    case espeakEVENT_WORD:
-//      log.trace("word: \(e.id.number, privacy: .public) (smp=\(e.sample, privacy: .public))")
-//    case espeakEVENT_PHONEME:
-//      log.trace("phoneme: '\(withUnsafeBytes(of: e.id.string, { String(cString: $0.bindMemory(to: CChar.self).baseAddress!) }), privacy: .private(mask: .hash))' (smp=\(e.sample, privacy: .public))")
-//    case espeakEVENT_END:
-//      log.trace("end: (smp=\(e.sample, privacy: .public))")
-//    default:
-//      log.trace("event: \(e.type.rawValue, privacy: .public)")
-//    }
+    #if DEBUG
+    switch e.type {
+    case espeakEVENT_SAMPLERATE:
+      log.trace("samplerate: \(e.id.number, privacy: .public)")
+    case espeakEVENT_SENTENCE:
+      log.trace("sentence: \(e.id.number, privacy: .public) (smp=\(e.sample, privacy: .public))")
+    case espeakEVENT_WORD:
+      log.trace("word: \(e.id.number, privacy: .public) (smp=\(e.sample, privacy: .public))")
+    case espeakEVENT_PHONEME:
+      log.trace("phoneme: '\(withUnsafeBytes(of: e.id.string, { String(cString: $0.bindMemory(to: CChar.self).baseAddress!) }), privacy: .private(mask: .hash))' (smp=\(e.sample, privacy: .public))")
+    case espeakEVENT_END:
+      log.trace("end: (smp=\(e.sample, privacy: .public))")
+    default:
+      log.trace("event: \(e.type.rawValue, privacy: .public)")
+    }
+    #endif
   }
   return 0
 }
@@ -77,6 +81,7 @@ class EspeakContainer {
     var pitch: Int32?
     var wordGap: Int32?
     var range: Int32?
+    var ssml_breaks: Int32?
   }
   static let documentsDirectory = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
   var langs: [_Voice]
@@ -89,6 +94,7 @@ class EspeakContainer {
   var pitch: Int32? { get { settings?.pitch } set { settings?.pitch = newValue } }
   var wordGap: Int32? { get { settings?.wordGap } set { settings?.wordGap = newValue } }
   var range: Int32? { get { settings?.range } set { settings?.range = newValue } }
+  var ssml_breaks: Int32? { get { settings?.ssml_breaks } set { settings?.ssml_breaks = newValue } }
 
   private init() {
     do {
@@ -127,8 +133,9 @@ class EspeakContainer {
     try rate.flatMap({ try espeak_ng_SetParameter(espeakRATE, $0, 0).check() })
     try volume.flatMap({ try espeak_ng_SetParameter(espeakVOLUME, $0, 0).check() })
     try pitch.flatMap({ try espeak_ng_SetParameter(espeakPITCH, $0, 0).check() })
-    try wordGap.flatMap({ try espeak_ng_SetParameter(espeakWORDGAP, $0, 0).check() })
-    try range.flatMap({ try espeak_ng_SetParameter(espeakRANGE, $0, 0).check() })
+    //try wordGap.flatMap({ try espeak_ng_SetParameter(espeakWORDGAP, $0, 0).check() })
+    try energy.flatMap({ try espeak_ng_SetParameter(espeakRANGE, $0, 0).check() })
+    //try ssml_breaks.flatMap({ try espeak_ng_SetParameter(espeakSSML_BREAK_MUL, $0, 0).check() })
   }
   static private let _single = EspeakContainer()
   static var single: EspeakContainer {
@@ -147,7 +154,7 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
   private var output: [Float32] = []
   private var outputOffset: Int = 0
   private var outputMutex = DispatchSemaphore(value: 1)
-  private static var espeakVoice = ""
+  private static var speakerVoice = ""
 
   @objc override init(componentDescription: AudioComponentDescription, options: AudioComponentInstantiationOptions) throws {
     let basicDescription = AudioStreamBasicDescription(
@@ -158,7 +165,7 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
       mFramesPerPacket: 1,
       mBytesPerFrame: 4,
       mChannelsPerFrame: 1,
-      mBitsPerChannel: 32,
+      mBitsPerChannel: 16,  //32
       mReserved: 0
     )
     self.format = AVAudioFormat(cmAudioFormatDescription: try! CMAudioFormatDescription(audioStreamBasicDescription: basicDescription))
@@ -170,8 +177,8 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
 
     self.parameterTree = .createTree(withChildren: [
       AUParameterTree.createGroup(
-        withIdentifier: "espeak",
-        name: "eSpeak-NG",
+        withIdentifier: "speechtts",
+        name: "eesti_tts",
         children: [
           AUParameterTree.createParameter(
             withIdentifier: "rate",
@@ -201,16 +208,7 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
             dependentParameters: nil
           ),
           AUParameterTree.createParameter(
-            withIdentifier: "wordGap",
-            name: "Word gap",
-            address: EspeakParameter.wordGap.rawValue,
-            min: 0, max: 500, unit: .milliseconds,
-            unitName: nil,
-            valueStrings: nil,
-            dependentParameters: nil
-          ),
-          AUParameterTree.createParameter(
-            withIdentifier: "range",
+            withIdentifier: "energy",
             name: "Inflection",
             address: EspeakParameter.range.rawValue,
             min: 0, max: 100, unit: .percent,
@@ -223,11 +221,12 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
     ])
     self.parameterTree?.implementorValueProvider = { param in
       switch param.address {
-      case EspeakParameter.rate.rawValue: return AUValue(container.rate ?? espeak_GetParameter(espeakRATE, 1))
-      case EspeakParameter.volume.rawValue: return AUValue(container.volume ?? espeak_GetParameter(espeakVOLUME, 1))
-      case EspeakParameter.pitch.rawValue: return AUValue(container.pitch ?? espeak_GetParameter(espeakPITCH, 1))
-      case EspeakParameter.wordGap.rawValue: return AUValue(container.wordGap ?? espeak_GetParameter(espeakWORDGAP, 1))
-      case EspeakParameter.range.rawValue: return AUValue(container.range ?? espeak_GetParameter(espeakRANGE, 1))
+      case EspeakParameter.rate.rawValue: return AUValue(container.rate ?? espeak_GetParameter(speechRATE, 1))
+      case EspeakParameter.volume.rawValue: return AUValue(container.volume ?? espeak_GetParameter(speechVOLUME, 1))
+      case EspeakParameter.pitch.rawValue: return AUValue(container.pitch ?? espeak_GetParameter(speechPITCH, 1))
+      //case EspeakParameter.wordGap.rawValue: return AUValue(container.wordGap ?? espeak_GetParameter(espeakWORDGAP, 1))
+      case EspeakParameter.range.rawValue: return AUValue(container.range ?? espeak_GetParameter(speechENERGY, 1))
+      //case EspeakParameter.ssml_breaks.rawValue: return AUValue(container.ssml_breaks ?? espeak_GetParameter(espeakSSML_BREAK_MUL, 1))
       default:
         log.warning("\(param, privacy: .public) => ???")
         return 0
@@ -240,6 +239,7 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
       case EspeakParameter.pitch.rawValue: container.pitch = Int32(value)
       case EspeakParameter.wordGap.rawValue: container.wordGap = Int32(value)
       case EspeakParameter.range.rawValue: container.range = Int32(value)
+      case EspeakParameter.ssml_breaks.rawValue: container.ssml_breaks = Int32(value)
       default:
         log.warning("\(param, privacy: .public) => \(value, privacy: .public)")
       }
@@ -380,7 +380,7 @@ public class SynthAudioUnit: AVSpeechSynthesisProviderAudioUnit {
           guard let _ = matchLang(langs, langVar) else { continue }
           let langId = langVar.universalId
           let langPath = "auto.\(langId.lowercased())"
-          let localeIds = [langId] // langVariants.map({ $0.universalId })
+          let localeIds = [langId]
           list.append(AVSpeechSynthesisProviderVoice(
             name: "ESpeak",
             identifier: "\(langPath).\(emptyVoiceId)",

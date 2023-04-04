@@ -17,7 +17,7 @@
 import Foundation
 import OSLog
 
-fileprivate let log = Logger(subsystem: "eesti_tts", category: "data")
+fileprivate let log = Logger(subsystem: "espeak-ng", category: "data")
 
 @propertyWrapper struct JSONFileBacked<T: Codable> {
   let storage: URL

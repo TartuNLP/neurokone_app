@@ -4,7 +4,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 class FastSpeech extends TfModel {
   FastSpeech(super.TAG);
 
-  //Prepares the input dimensions, runs the model and returns the model's output mel spectrogram
+  //Prepares the input dimensions, runs the model and returns the model's output mel-scale spectrogram.
   Future<List> getMelSpectrogram(
       List inputIds, int voiceId, double speed) async {
     List<Object> inputList = [
