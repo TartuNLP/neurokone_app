@@ -3,6 +3,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:eesti_tts/ui/header.dart';
 import 'package:eesti_tts/ui/voice.dart';
 import 'package:eesti_tts/synth/tts.dart';
+import 'package:eesti_tts/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -10,22 +11,22 @@ import 'package:lottie/lottie.dart';
 import 'package:android_intent_plus/android_intent.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({
+  //final String title;
+  final String lang;
+  late final Map<String, String> langText;
+  final Function switchLangs;
+  //final Function changeColors;
+  final List<Voice> voices = Variables.voices;
+
+  MainPage({
     Key? key,
     //required this.title,
     required this.lang,
-    required this.langText,
     required this.switchLangs,
     //required this.changeColors,
-    required this.voices,
-  }) : super(key: key);
-
-  //final String title;
-  final String lang;
-  final Map<String, String> langText;
-  final Function switchLangs;
-  //final Function changeColors;
-  final List<Voice> voices;
+  }) : super(key: key) {
+    langText = Variables.langs[lang]!;
+  }
 
   @override
   State<MainPage> createState() => MainPageState();
@@ -300,8 +301,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _ttsSettingsButton() {
     return TextButton(
       child: Text(widget.langText['Choose']!),
-      onPressed:
-          _openCustomTtsSelect, //isIOS ? _openCustomTtsSelect : _openAndroidTtsSettings,
+      onPressed: isIOS ? _openCustomTtsSelect : _openAndroidTtsSettings,
     );
   }
 
