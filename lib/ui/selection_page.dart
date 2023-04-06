@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:eesti_tts/synth/native_channel.dart';
 import 'package:eesti_tts/ui/header.dart';
 import 'package:eesti_tts/ui/voice.dart';
@@ -23,7 +25,7 @@ class LanguageSelectionPage extends StatefulWidget {
 }
 
 class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
-  late List voicesList;
+  late List<bool> currentDefaults;
 
   @override
   void initState() {
@@ -32,18 +34,12 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   }
 
   _checkVoices() {
-    voicesList = [];
-    List defaults = widget.channel.getDefaults();
-    for (String voice in widget.voices) {
-      voicesList.add([voice, defaults.contains(voice)]);
-    }
+    List allDefaults = widget.channel.getDefaults();
+    currentDefaults =
+        widget.voices.map((voice) => allDefaults.contains(voice)).toList();
   }
 
   Widget build(BuildContext context) {
-    // This is used in the platform side to register the view.
-    const String viewType = '<platform-view-type>';
-    // Pass parameters to the platform side.
-    final Map<String, dynamic> creationParams = <String, dynamic>{};
     switch (defaultTargetPlatform) {
       /*
       case TargetPlatform.iOS:
@@ -63,16 +59,23 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
             ),
             body: Column(
               children: [
-                ListView.builder(
-                  itemBuilder: (context, index) => TextButton(
-                      onPressed: _toggleVoice(index),
-                      child: Row(
+                Container(
+                  height: MediaQuery.of(context).size.height - 150,
+                  width: MediaQuery.of(context).size.width,
+                  child: ListView.builder(
+                    itemCount: widget.voices.length,
+                    itemBuilder: (context, index) => ListTile(
+                      onTap: () => _toggleVoice(index),
+                      title: Container(
+                          child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(widget.voices[index][0]),
-                          Text(widget.voices[index][1] as bool ? "✓" : ""),
+                          Text(widget.voices[index]),
+                          Text(currentDefaults[index] ? "✓" : ""),
                         ],
                       )),
+                    ),
+                  ),
                 ),
                 TextButton(
                   child: Text(widget.langText['Selected']!),
@@ -86,10 +89,12 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   }
 
   _toggleVoice(int index) {
+    bool newVal = !currentDefaults[index];
+    log("id:" + index.toString());
     setState(() {
-      voicesList[index][1] = !voicesList[index][1];
+      currentDefaults[index] = newVal;
     });
-    widget.channel.setNewVoices(voicesList);
+    widget.channel.setNewVoices(currentDefaults);
   }
 
   _confirm() {

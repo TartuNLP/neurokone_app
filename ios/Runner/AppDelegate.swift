@@ -1,5 +1,6 @@
 import UIKit
 import Flutter
+import AVFoundation
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
@@ -22,11 +23,11 @@ import Flutter
   private func handleMethodCalls(call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
       case "getDefaults":
-      result(defaults.value(forKey: "voices"))
+      result(defaults?.value(forKey: "voices") as? Array ?? [])
       case "setDefaults":
-        let arguments = call.arguments as? [[String]: Any]
-        let arg1 = arguments?["arg1"] as? [String] ?? []
-        defaults.set(arg1, forKey: "voices")
+        let arguments = call.arguments as? [String: Any]
+        let arg1 = arguments?["arg1"] as? String ?? ""
+        defaults?.set(arg1, forKey: "voices")
         AVSpeechSynthesisProviderVoice.updateSpeechVoices()
         result("Success!")
       default:

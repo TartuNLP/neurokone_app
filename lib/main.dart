@@ -20,6 +20,7 @@ class _TtsAppState extends State<TtsApp> {
   //Initialise app in Estonian by default
   String lang = 'Eesti';
   final MaterialColor themeColor = Colors.blue;
+  final NativeChannel channel = new NativeChannel();
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +40,7 @@ class _TtsAppState extends State<TtsApp> {
         '/select': (context) => LanguageSelectionPage(
               lang: lang,
               switchLangs: this.switchLanguages,
-              channel: new NativeChannel(Variables.channelPath),
+              channel: this.channel,
             ),
       },
     );
