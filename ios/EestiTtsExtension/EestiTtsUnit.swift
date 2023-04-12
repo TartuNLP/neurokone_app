@@ -7,11 +7,14 @@ The object that's responsible for rendering the speech the system requests.
 
 import AVFoundation
 
-public class CustomSpeechSynthesizerExampleAudioUnit: AVSpeechSynthesisProviderAudioUnit {
+private let langCode: String = "et-EE";
+private let appCode: String = "dj.phonix.espeak-n";
+
+public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     
     // MARK: - Private Properties
 
-    private let groupDefaults = UserDefaults(suiteName: "group.com.tartunlp.eesti_tts")
+    private let groupDefaults = UserDefaults(suiteName: "group.\(appCode)")
     
     private var request: AVSpeechSynthesisProviderRequest?
     
@@ -52,12 +55,12 @@ public class CustomSpeechSynthesizerExampleAudioUnit: AVSpeechSynthesisProviderA
     // MARK: - Public Properties
     public override var speechVoices: [AVSpeechSynthesisProviderVoice] {
         get {
-            let voices: [String] = (groupDefaults?.value(forKey: "voices") as? [String]) ?? []
+            let voices: [String] = (groupDefaults?.value(forKey: "voices") as? [String])!
             return voices.map { voice in
                 return AVSpeechSynthesisProviderVoice(name: voice,
-                                                      identifier: "com.identifier.\(voice)",
-                                                      primaryLanguages: ["en-US"],
-                                                      supportedLanguages: ["en-US"])
+                                                      identifier: "\(appCode).\(langCode.lowercased()).\(voice)",
+                                                      primaryLanguages: [langCode],
+                                                      supportedLanguages: [langCode])
             }
         }
         set { }
@@ -70,6 +73,41 @@ public class CustomSpeechSynthesizerExampleAudioUnit: AVSpeechSynthesisProviderA
     public override func allocateRenderResources() throws {
         try super.allocateRenderResources()
     }
+
+    /*
+    private func performRender(
+        actionFlags: UnsafeMutablePointer<AudioUnitRenderActionFlags>,
+        timestamp: UnsafePointer<AudioTimeStamp>,
+        frameCount: AUAudioFrameCount,
+        outputBusNumber: Int,
+        outputAudioBufferList: UnsafeMutablePointer<AudioBufferList>,
+        renderEvents: UnsafePointer<AURenderEvent>?,
+        renderPull: AURenderPullInputBlock?
+    ) -> AUAudioUnitStatus {
+        let unsafeBuffer = UnsafeMutableAudioBufferListPointer(outputAudioBufferList)
+        let frames = unsafeBuffer[0].mData!.assumingMemoryBound(to: Float32.self)
+        frames.assign(repeating: 0, count: Int(frameCount))
+
+        self.outputMutex.wait()
+        let count = min(self.output.count - self.outputOffset, Int(frameCount))
+        self.output.withUnsafeBufferPointer { ptr in
+        frames.assign(from: ptr.baseAddress!.advanced(by: self.outputOffset), count: count)
+        }
+        outputAudioBufferList.pointee.mBuffers.mDataByteSize = UInt32(count * MemoryLayout<Float32>.size)
+
+        self.outputOffset += count
+        if self.outputOffset >= self.output.count {
+        actionFlags.pointee = .offlineUnitRenderAction_Complete
+        self.output.removeAll()
+        self.outputOffset = 0
+        }
+        self.outputMutex.signal()
+
+        return noErr
+    }
+
+    public override var internalRenderBlock: AUInternalRenderBlock { self.performRender }
+    */
     
     public override var internalRenderBlock: AUInternalRenderBlock {
         return { actionFlags, timestamp, frameCount, outputBusNumber, outputAudioBufferList, _, _ in
@@ -101,8 +139,6 @@ public class CustomSpeechSynthesizerExampleAudioUnit: AVSpeechSynthesisProviderA
             return noErr
         }
     }
-    
-    // MARK: - Public Methods
     
     public override func synthesizeSpeechRequest(_ speechRequest: AVSpeechSynthesisProviderRequest) {
         request = speechRequest

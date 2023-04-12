@@ -1,8 +1,9 @@
-import 'dart:developer';
+import 'package:logger/logger.dart';
 import 'dart:math' as Math;
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 class EstProcessor {
+  var logger = Logger();
   //For splitting the whole text into sentences.
   RegExp sentencesSplit =
       RegExp(r'[.!?]((((" )| |( "))(?=[a-zõäöüšžA-ZÕÄÖÜŠŽ0-9]))|("?$))');
@@ -49,7 +50,8 @@ class EstProcessor {
       //if last sentence doesn't end with .!?
       sentences.addAll(_splitSentence(text, currentSentId, null));
     }
-    log('Text split into sentences/sentence parts:' + sentences.toString());
+    logger
+        .d('Text split into sentences/sentence parts:' + sentences.toString());
     return sentences;
   }
 
@@ -642,7 +644,7 @@ class EstProcessor {
     text = _expandAbbreviations(text);
     text = text.toLowerCase();
 
-    log('Text preprocessed:' + text);
+    logger.d('Text preprocessed:' + text);
     return text;
   }
 

@@ -2,7 +2,7 @@ import 'package:eesti_tts/ui/voice.dart';
 import 'package:flutter/material.dart';
 
 class Variables {
-  static final String channelPath = 'group.com.tartunlp.eesti_tts-channel';
+  static final String channelPath = 'dj.phonix.espeak-n';
 
   //Defaults for Estonian and English UI.
   static final Map<String, Map<String, String>> langs = {

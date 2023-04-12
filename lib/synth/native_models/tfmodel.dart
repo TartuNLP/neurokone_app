@@ -1,7 +1,8 @@
-import 'dart:developer';
+import 'package:logger/logger.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class TfModel {
+  var logger = Logger();
   final String TAG;
   late String modulePath;
   late Interpreter mModule;
@@ -13,9 +14,9 @@ class TfModel {
 
   loadModel() async {
     mModule = await Interpreter.fromAsset(modulePath);
-    log(modulePath);
+    logger.d(modulePath);
     for (Tensor tensor in mModule.getInputTensors()) {
-      log('$TAG (in): ' +
+      logger.d('$TAG (in): ' +
           'name:' +
           tensor.name +
           ', shape:' +
@@ -24,7 +25,7 @@ class TfModel {
           tensor.type.toString());
     }
     for (Tensor tensor in mModule.getOutputTensors()) {
-      log('$TAG (out): ' +
+      logger.d('$TAG (out): ' +
           'name:' +
           tensor.name +
           ', shape:' +

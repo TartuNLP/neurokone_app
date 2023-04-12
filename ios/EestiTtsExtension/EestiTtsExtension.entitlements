@@ -6,7 +6,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.tartunlp.eesti_tts</string>
+		<string>group.dj.phonix.espeak-n</string>
 	</array>
 </dict>
 </plist>

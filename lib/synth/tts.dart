@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:logger/logger.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:eesti_tts/synth/native_tts.dart';
 import 'package:eesti_tts/synth/est_processor.dart';
@@ -18,6 +18,8 @@ class Tts {
   bool stopNative = false;
   String engine = '';
 
+  var logger = Logger();
+
   Tts(this.isIOS);
 
   //Loads Android system's tts engine.
@@ -31,7 +33,7 @@ class Tts {
   void initTtsNative() {
     if (nativeTts == null)
       nativeTts = NativeTts('fastspeech2-est', 'hifigan-est.v2', this.isIOS);
-    log('TtsEngine: native');
+    logger.d('TtsEngine: native');
   }
 
   Future setDefaultEngine() async {
@@ -62,6 +64,7 @@ class Tts {
       }
       stopNative = false;
     } else {
+      //await systemTts.setVoice({"name": "Reed", "locale": "de-DE"});
       //await systemTts.setVolume(volume);
       await systemTts.setSpeechRate(speed / 2);
       //await systemTts.setPitch(pitch);

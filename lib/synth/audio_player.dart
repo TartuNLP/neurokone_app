@@ -1,4 +1,4 @@
-import 'dart:developer';
+import 'package:logger/logger.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
@@ -59,6 +59,7 @@ Future<void> save(Uint8List data, String path, int sampleRate) async {
 }
 
 class TtsPlayer {
+  var logger = Logger();
   AudioPlayer player = AudioPlayer();
   DateTime lastStart = DateTime.now();
   int previusDurationInMs = 0;
@@ -80,7 +81,7 @@ class TtsPlayer {
   //Converts the predicted bytesm adds these to buffer, saves the audio file,
   //waits until the last audio has finished playing and the plays the current audio from memory
   playAudio(String sentence, List<double> bytes, int index) async {
-    log('Playing audio for sentence "' + sentence + '"');
+    logger.d('Playing audio for sentence "' + sentence + '"');
     String filePath =
         (await getTemporaryDirectory()).toString().split('\'')[1] +
             '/tempAudio' +
@@ -108,7 +109,7 @@ class TtsPlayer {
     lastStart = DateTime.now();
     await player.play(DeviceFileSource(filePath));
     //await player.play(filePath, isLocal: true);
-    log("Audio playing.");
+    logger.d("Audio playing.");
   }
 
   bool isPlaying() {

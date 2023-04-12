@@ -10,15 +10,15 @@
 			<array>
 				<dict>
 					<key>description</key>
-					<string>SpeechSynthesizerExampleExtension</string>
+					<string>EestiTtsExtension</string>
 					<key>manufacturer</key>
-					<string>Demo</string>
+					<string>TNLP</string>
 					<key>name</key>
-					<string>Apple: SpeechSynthesizerExampleExtension</string>
+					<string>TartuNLP</string>
 					<key>sandboxSafe</key>
 					<true/>
 					<key>subtype</key>
-					<string>demo</string>
+					<string>etts</string>
 					<key>tags</key>
 					<array>
 						<string>Speech Synthesizer</string>

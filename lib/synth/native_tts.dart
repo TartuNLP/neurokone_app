@@ -1,10 +1,11 @@
-import 'dart:developer';
+import 'package:logger/logger.dart';
 import 'package:eesti_tts/synth/text_encoder.dart';
 import 'package:eesti_tts/synth/native_models/fastspeech.dart';
 import 'package:eesti_tts/synth/native_models/vocoder.dart';
 import 'package:eesti_tts/synth/audio_player.dart';
 
 class NativeTts {
+  var logger = Logger();
   //Processes the text before input to the model.
   final Encoder encoder = Encoder();
   //Model that synthesizes mel spectrogram from processed text.
@@ -26,12 +27,12 @@ class NativeTts {
   nativeTextToSpeech(String sentence, int voiceId, double invertedSpeed) async {
     double speed = 1.0 / invertedSpeed;
     List output = encoder.textToIds(sentence);
-    log('Input ids length: ' + output.length.toString());
+    logger.d('Input ids length: ' + output.length.toString());
     output = await _synth.getMelSpectrogram(output, voiceId, speed);
-    log('Spectrogram shape: ' +
+    logger.d('Spectrogram shape: ' +
         [output[0].length, output[0][0].length].toString());
     output = _vocoder.getAudio(output);
-    log('Audio length: ' + output[0].length.toString());
+    logger.d('Audio length: ' + output[0].length.toString());
 
     List<double> audioBytes = [];
     if (output[0].length > 1) {

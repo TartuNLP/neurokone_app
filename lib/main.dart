@@ -1,7 +1,6 @@
 import 'package:eesti_tts/synth/native_channel.dart';
 import 'package:eesti_tts/ui/main_page.dart';
 import 'package:eesti_tts/ui/selection_page.dart';
-import 'package:eesti_tts/variables.dart';
 import 'package:flutter/material.dart';
 
 void main() {

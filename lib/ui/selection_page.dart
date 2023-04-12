@@ -1,5 +1,4 @@
-import 'dart:developer';
-
+import 'package:logger/logger.dart';
 import 'package:eesti_tts/synth/native_channel.dart';
 import 'package:eesti_tts/ui/header.dart';
 import 'package:eesti_tts/ui/voice.dart';
@@ -25,6 +24,7 @@ class LanguageSelectionPage extends StatefulWidget {
 }
 
 class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
+  var logger = Logger();
   late List<bool> currentDefaults;
 
   @override
@@ -90,14 +90,14 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
 
   _toggleVoice(int index) {
     bool newVal = !currentDefaults[index];
-    log("id:" + index.toString());
+    logger.d("id:" + index.toString());
     setState(() {
       currentDefaults[index] = newVal;
     });
     widget.channel.setNewVoices(currentDefaults);
   }
 
-  _confirm() {
+  _confirm() async {
     widget.channel.save();
     Navigator.pop(context);
   }
