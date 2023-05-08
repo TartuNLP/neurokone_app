@@ -5,14 +5,15 @@ Abstract:
 The object that's responsible for rendering the speech the system requests.
 */
 
+import os
 import AVFoundation
+import TensorFlowLite
 
-private let langCode: String = "et-EE";
-private let appCode: String = "dj.phonix.espeak-n";
+private let appCode = "com.tartunlp.eestitts"
+let logger = Logger(subsystem: "eestitts", category: "EestiTtsUnit")
 
 public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
-    
-    // MARK: - Private Properties
+    private let langCodes: [String] = ["et-EE"];
 
     private let groupDefaults = UserDefaults(suiteName: "group.\(appCode)")
     
@@ -23,49 +24,66 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private var currentBuffer: AVAudioPCMBuffer?
     private var framePosition: AVAudioFramePosition = 0
     private var format: AVAudioFormat
-        
-    // MARK: - Lifecycle
+    
+    private var parameterObserver: NSKeyValueObservation!
+    private var outputMutex = DispatchSemaphore(value: 1)
+    
+    private final let processor: Processor = Processor()
+    private final let encoder: Encoder = Encoder()
+    private var synthesizer: FastSpeechModel!
+    private var vocoder: VocoderModel!
     
     @objc
     override init(componentDescription: AudioComponentDescription,
-                  options: AudioComponentInstantiationOptions) throws {
+            options: AudioComponentInstantiationOptions) throws {
         
-        let basicDescription = AudioStreamBasicDescription(mSampleRate: 22_050,
-                                                           mFormatID: kAudioFormatLinearPCM,
-                                                           mFormatFlags: kAudioFormatFlagsNativeFloatPacked | kAudioFormatFlagIsNonInterleaved,
-                                                           mBytesPerPacket: 4,
-                                                           mFramesPerPacket: 1,
-                                                           mBytesPerFrame: 4,
-                                                           mChannelsPerFrame: 1,
-                                                           mBitsPerChannel: 32,
-                                                           mReserved: 0)
-        
-        format = AVAudioFormat(cmAudioFormatDescription: try! CMAudioFormatDescription(audioStreamBasicDescription: basicDescription))
+        let basicDescription = AudioStreamBasicDescription(
+            mSampleRate: 22_050,
+            mFormatID: kAudioFormatLinearPCM,
+            mFormatFlags: kAudioFormatFlagsNativeFloatPacked | kAudioFormatFlagIsNonInterleaved,
+            mBytesPerPacket: 4,
+            mFramesPerPacket: 1,
+            mBytesPerFrame: 4,
+            mChannelsPerFrame: 1,
+            mBitsPerChannel: 32,
+            mReserved: 0
+        )
+        format = AVAudioFormat(
+            cmAudioFormatDescription: try! CMAudioFormatDescription(
+                audioStreamBasicDescription: basicDescription
+            )
+        )
         outputBus = try AUAudioUnitBus(format: self.format)
+        try super.init(componentDescription: componentDescription, options: options)
         
-        try super.init(componentDescription: componentDescription,
-                       options: options)
+        _outputBusses = AUAudioUnitBusArray(
+            audioUnit: self,
+            busType: AUAudioUnitBusType.output,
+            busses: [outputBus]
+        )
+
+        AVSpeechSynthesisVoice.speechVoices()
         
-        _outputBusses = AUAudioUnitBusArray(audioUnit: self,
-                                            busType: AUAudioUnitBusType.output,
-                                            busses: [outputBus])
-        
+        self.synthesizer = try FastSpeechModel(modelPath: (groupDefaults?.value(forKey: "synthesizer") as? String)!)
+        self.vocoder = try VocoderModel(modelPath: (groupDefaults?.value(forKey: "vocoder") as? String)!)
     }
-    
+
     // MARK: - Public Properties
+
     public override var speechVoices: [AVSpeechSynthesisProviderVoice] {
         get {
+            //let langs: [String] = (groupDefaults?.value(forKey: "langs") as? [String])!
             let voices: [String] = (groupDefaults?.value(forKey: "voices") as? [String])!
             return voices.map { voice in
                 return AVSpeechSynthesisProviderVoice(name: voice,
-                                                      identifier: "\(appCode).\(langCode.lowercased()).\(voice)",
-                                                      primaryLanguages: [langCode],
-                                                      supportedLanguages: [langCode])
+                                                      identifier: "auto.\(langCodes[0].lowercased()).\(voice)",
+                                                      primaryLanguages: langCodes,
+                                                      supportedLanguages: langCodes)
             }
         }
         set { }
     }
-        
+    
     public override var outputBusses: AUAudioUnitBusArray {
         return _outputBusses
     }
@@ -74,7 +92,6 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         try super.allocateRenderResources()
     }
 
-    /*
     private func performRender(
         actionFlags: UnsafeMutablePointer<AudioUnitRenderActionFlags>,
         timestamp: UnsafePointer<AudioTimeStamp>,
@@ -84,78 +101,98 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         renderEvents: UnsafePointer<AURenderEvent>?,
         renderPull: AURenderPullInputBlock?
     ) -> AUAudioUnitStatus {
-        let unsafeBuffer = UnsafeMutableAudioBufferListPointer(outputAudioBufferList)
-        let frames = unsafeBuffer[0].mData!.assumingMemoryBound(to: Float32.self)
-        frames.assign(repeating: 0, count: Int(frameCount))
+        // The audio buffer to fill with data to return to the system
+        let unsafeBuffer = UnsafeMutableAudioBufferListPointer(outputAudioBufferList)[0]
+        let frames = unsafeBuffer.mData!.assumingMemoryBound(to: Float32.self)
+
+        // Clear the target buffer.
+        frames.update(repeating: 0, count: Int(frameCount))
 
         self.outputMutex.wait()
-        let count = min(self.output.count - self.outputOffset, Int(frameCount))
-        self.output.withUnsafeBufferPointer { ptr in
-        frames.assign(from: ptr.baseAddress!.advanced(by: self.outputOffset), count: count)
-        }
-        outputAudioBufferList.pointee.mBuffers.mDataByteSize = UInt32(count * MemoryLayout<Float32>.size)
 
-        self.outputOffset += count
-        if self.outputOffset >= self.output.count {
-        actionFlags.pointee = .offlineUnitRenderAction_Complete
-        self.output.removeAll()
-        self.outputOffset = 0
+        // Get the frames from the current buffer that represents the SSML.
+        let sourceBuffer = UnsafeMutableAudioBufferListPointer(self.currentBuffer!.mutableAudioBufferList)[0]
+        let sourceFrames = sourceBuffer.mData!.assumingMemoryBound(to: Float32.self)
+
+        // Iterate through the requested number of frames.
+        for frame in 0..<frameCount {
+            // Copy the source frames into the target buffer.
+            frames[Int(frame)] = sourceFrames[Int(self.framePosition)]
+            self.framePosition += 1
+            // Complete the request if the frame position exceeds the available buffer.
+            if self.framePosition >= self.currentBuffer!.frameLength {
+                actionFlags.pointee = .offlineUnitRenderAction_Complete
+                break
+            }
         }
+
+        outputAudioBufferList.pointee.mBuffers.mDataByteSize = UInt32(Int(self.framePosition) * MemoryLayout<Float32>.size)
         self.outputMutex.signal()
 
         return noErr
     }
 
     public override var internalRenderBlock: AUInternalRenderBlock { self.performRender }
-    */
-    
-    public override var internalRenderBlock: AUInternalRenderBlock {
-        return { actionFlags, timestamp, frameCount, outputBusNumber, outputAudioBufferList, _, _ in
-            
-            // The audio buffer to fill with data to return to the system
-            let unsafeBuffer = UnsafeMutableAudioBufferListPointer(outputAudioBufferList)[0]
-            let frames = unsafeBuffer.mData!.assumingMemoryBound(to: Float32.self)
-            
-            // Get the frames from the current buffer that represents the SSML.
-            let sourceBuffer = UnsafeMutableAudioBufferListPointer(self.currentBuffer!.mutableAudioBufferList)[0]
-            let sourceFrames = sourceBuffer.mData!.assumingMemoryBound(to: Float32.self)
-
-            // Clear the target buffer.
-            for frame in 0..<frameCount {
-                frames[Int(frame)] = 0.0
-            }
-            
-            // Iterate through the requested number of frames.
-            for frame in 0..<frameCount {
-                // Copy the source frames into the target buffer.
-                frames[Int(frame)] = sourceFrames[Int(self.framePosition)]
-                self.framePosition += 1
-                // Complete the request if the frame position exceeds the available buffer.
-                if self.framePosition >= self.currentBuffer!.frameLength {
-                    actionFlags.pointee = .offlineUnitRenderAction_Complete
-                    break
-                }
-            }
-            return noErr
-        }
-    }
     
     public override func synthesizeSpeechRequest(_ speechRequest: AVSpeechSynthesisProviderRequest) {
+        logger.info("QQQ request:")
+        logger.info("QQQ \(speechRequest)")
+
+        let text: String = speechRequest.ssmlRepresentation
+        let voice: AVSpeechSynthesisProviderVoice = speechRequest.voice
+        logger.info("QQQ ssml:")
+        logger.info("QQQ text: \(text)")
+        logger.info("QQQ voice: \(voice)")
+
+        self.outputMutex.wait()
+        
         request = speechRequest
         currentBuffer = getAudioBufferForSSML(speechRequest.ssmlRepresentation)
+        //let inputs = inputsFromRequest(requestSsml: text)
+        /*
+        let sentences = text.split(separator: " . ")
+        //let sentences = processor.splitSentences(text: text)
+        for sentence in sentences {
+            let ids: [Int] = encoder.textToIds(text: String(sentence))
+            //let ids: [Int] = encoder.textToIds(text: sentence)
+            do {
+                let spectrogram: Tensor = try self.synthesizer.getMelSpectrogram(inputIds: ids)
+                
+                let audioData: [Float] = try self.vocoder.getAudio(input: spectrogram)
+                let audioFilePath: String = saveAudio(data: audioData)
+                //currentBuffer = getAudioBufferForSSML(text)
+                currentBuffer = getAudioBufferForSSML(audioFilePath)
+            } catch {
+                logger.info("QQQ Inference failed")
+            }
+        }*/
+        
+        //let resampled = vDSP.multiply(Float(1.0/32767.0), vDSP.integerToFloatingPoint(holder.samples, floatingPointType: Float.self))
+        
         framePosition = 0
+        self.outputMutex.signal()
+    }
+    
+    func inputsFromRequest(requestSsml: String) -> [Int] {
+        return [requestSsml.count]
+    }
+    
+    func saveAudio(data: [Float]) -> String {
+        //let shape = data.count
+        return try! ARFileManager().createWavFile(using: Data(data as? Array ?? [])).absoluteString
     }
     
     public override func cancelSpeechRequest() {
+        self.outputMutex.wait()
         request = nil
+        self.outputMutex.signal()
     }
     
-    func getAudioBufferForSSML(_ ssml: String) -> AVAudioPCMBuffer? {
-        let audioFileName = ssml.contains("goodbye") ? "goodbye" : "hello"
-        guard let fileUrl = Bundle.main.url(forResource: audioFileName,
-                                            withExtension: "aiff") else {
-            return nil
-        }
+    func getAudioBufferForSSML(_ filePath: String) -> AVAudioPCMBuffer? {
+        let audioFileName = filePath.contains("goodbye") ? "hello" : "goodbye"
+        guard let fileUrl = Bundle.main.url(forResource: audioFileName, withExtension: "aiff") else { return nil }
+        //let fileUrl = Bundle.main.url(forResource: filePath, withExtension: "aiff")!
+        logger.info("QQQ Audio file url: \(fileUrl.description)")
         
         do {
             let file = try AVAudioFile(forReading: fileUrl)
@@ -169,3 +206,97 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     }
 }
 
+//MARK: Logic for Creating Audio file
+
+class ARFileManager {
+
+      static let shared = ARFileManager()
+      let fileManager = FileManager.default
+
+      var documentDirectoryURL: URL? {
+          return fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
+      }
+
+      func createWavFile(using rawData: Data) throws -> URL {
+           //Prepare Wav file header
+           let waveHeaderFormate = createWaveHeader(data: rawData) as Data
+
+           //Prepare Final Wav File Data
+           let waveFileData = waveHeaderFormate + rawData
+
+           //Store Wav file in document directory.
+           return try storeMusicFile(data: waveFileData)
+       }
+
+       private func createWaveHeader(data: Data) -> NSData {
+
+            let sampleRate:Int32 = 22050
+            let chunkSize:Int32 = 36 + Int32(data.count)
+            let subChunkSize:Int32 = 16
+            let format:Int16 = 1
+            let channels:Int16 = 1
+            let bitsPerSample:Int16 = 16
+            let byteRate:Int32 = sampleRate * Int32(channels * bitsPerSample / 8)
+            let blockAlign: Int16 = channels * bitsPerSample / 8
+            let dataSize:Int32 = Int32(data.count)
+
+            let header = NSMutableData()
+
+            header.append([UInt8]("RIFF".utf8), length: 4)
+            header.append(intToByteArray(chunkSize), length: 4)
+
+            //WAVE
+            header.append([UInt8]("WAVE".utf8), length: 4)
+
+            //FMT
+            header.append([UInt8]("fmt ".utf8), length: 4)
+
+            header.append(intToByteArray(subChunkSize), length: 4)
+            header.append(shortToByteArray(format), length: 2)
+            header.append(shortToByteArray(channels), length: 2)
+            header.append(intToByteArray(sampleRate), length: 4)
+            header.append(intToByteArray(byteRate), length: 4)
+            header.append(shortToByteArray(blockAlign), length: 2)
+            header.append(shortToByteArray(bitsPerSample), length: 2)
+
+            header.append([UInt8]("data".utf8), length: 4)
+            header.append(intToByteArray(dataSize), length: 4)
+
+            return header
+       }
+
+      private func intToByteArray(_ i: Int32) -> [UInt8] {
+            return [
+              //little endian
+              UInt8(truncatingIfNeeded: (i      ) & 0xff),
+              UInt8(truncatingIfNeeded: (i >>  8) & 0xff),
+              UInt8(truncatingIfNeeded: (i >> 16) & 0xff),
+              UInt8(truncatingIfNeeded: (i >> 24) & 0xff)
+             ]
+       }
+
+       private func shortToByteArray(_ i: Int16) -> [UInt8] {
+              return [
+                  //little endian
+                  UInt8(truncatingIfNeeded: (i      ) & 0xff),
+                  UInt8(truncatingIfNeeded: (i >>  8) & 0xff)
+              ]
+        }
+
+       func storeMusicFile(data: Data) throws -> URL {
+
+           let fileName = "Record \(Date().description)"
+
+             guard documentDirectoryURL != nil else {
+                debugPrint("Error: Failed to fetch mediaDirectoryURL")
+                //throw ARError(localizedDescription:             AlertMessage.medioDirectoryPathNotAvaiable)
+                 throw AVError(_nsError: NSError())
+              }
+
+             let filePath = documentDirectoryURL!.appendingPathComponent("\(fileName).wav")
+              debugPrint("File Path: \(filePath.path)")
+              try data.write(to: filePath)
+
+             return filePath //Save file's path respected to document directory.
+        }
+ }

@@ -1,8 +1,8 @@
-import 'package:eesti_tts/ui/voice.dart';
+import 'package:eestitts/ui/voice.dart';
 import 'package:flutter/material.dart';
 
 class Variables {
-  static final String channelPath = 'dj.phonix.espeak-n';
+  static final String channelPath = 'com.tartunlp.eestitts';
 
   //Defaults for Estonian and English UI.
   static final Map<String, Map<String, String>> langs = {

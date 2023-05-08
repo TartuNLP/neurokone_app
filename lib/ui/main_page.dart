@@ -1,12 +1,14 @@
 import 'dart:io' show Platform;
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:eesti_tts/ui/header.dart';
-import 'package:eesti_tts/ui/voice.dart';
-import 'package:eesti_tts/synth/tts.dart';
-import 'package:eesti_tts/variables.dart';
+import 'package:eestitts/synth/system_channel.dart';
+import 'package:eestitts/ui/header.dart';
+import 'package:eestitts/ui/voice.dart';
+import 'package:eestitts/synth/tts.dart';
+import 'package:eestitts/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:logger/logger.dart';
 import 'package:lottie/lottie.dart';
 import 'package:android_intent_plus/android_intent.dart';
 
@@ -15,6 +17,7 @@ class MainPage extends StatefulWidget {
   final String lang;
   late final Map<String, String> langText;
   final Function switchLangs;
+  final SystemChannel channel;
   //final Function changeColors;
   final List<Voice> voices = Variables.voices;
 
@@ -23,6 +26,7 @@ class MainPage extends StatefulWidget {
     //required this.title,
     required this.lang,
     required this.switchLangs,
+    required this.channel,
     //required this.changeColors,
   }) : super(key: key) {
     langText = Variables.langs[lang]!;
@@ -44,6 +48,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late TextEditingController _textEditingController;
   String _fieldText = '';
 
+  //late List<String> enabledSystemVoices;
+
   bool isSystemPlaying = false;
   bool isNativePlaying = false;
 
@@ -59,13 +65,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     //color = _currentVoice.getColor();
-    _textEditingController = TextEditingController();
-    _textEditingController.addListener(() {
+    this._textEditingController = TextEditingController();
+    this._textEditingController.addListener(() {
       setState(() {
-        _fieldText = _textEditingController.text;
+        this._fieldText = _textEditingController.text;
       });
     });
     _initTts();
+    //this.enabledSystemVoices =
+    //    widget.channel.enabledVoices.map((e) => e as String).toList();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -177,12 +185,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
+  List<Voice> _namesToVoices(List<String> names) {
+    List<Voice> voices = [];
+    for (Voice voice in voices) {
+      if (names.contains(voice.getName())) voices.add(voice);
+    }
+    return voices;
+  }
+
   //Toggle switch between the native and system's tts engine.
   _radioEngines() {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         ListTile(
-          title: _dropDownVoices(),
+          title: _dropDownVoices(false),
           leading: Radio<bool>(
             fillColor: MaterialStateColor.resolveWith((states) => Colors.green),
             focusColor:
@@ -198,7 +215,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
           ),
         ),
         ListTile(
-          title: _ttsSettingsButton(),
+          title:
+              isIOS ? _iosDropdownAndSelection() : _androidTtsSettingsButton(),
           leading: Radio<bool>(
             fillColor: MaterialStateColor.resolveWith((states) => Colors.green),
             focusColor:
@@ -218,23 +236,31 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   //Dropdown list of tts engine's voices.
-  _dropDownVoices() {
+  _dropDownVoices(bool system) {
+    //Logger().d("All enabled voices: " + enabledSystemVoices.toString());
+    //if (system && enabledSystemVoices.isEmpty) {
+    //  return Text("No voices enabled.");
+    //}
     return DropdownButtonHideUnderline(
       child: ButtonTheme(
+        minWidth: 145,
         //alignedDropdown: true,
         child: DropdownButton2(
           dropdownStyleData: DropdownStyleData(
               elevation: 16,
               decoration: BoxDecoration(color: Colors.transparent)),
           value: _currentVoice,
-          items: widget.voices
+          items: widget
+              .voices //(system ? _namesToVoices(enabledSystemVoices) : widget.voices)
               .map((Voice voice) => DropdownMenuItem(
                     value: voice,
                     child: _voiceBox(voice),
                   ))
               .toList(),
           selectedItemBuilder: (BuildContext ctxt) {
-            return widget.voices.map<Widget>((Voice voice) {
+            return widget
+                .voices //(system ? _namesToVoices(enabledSystemVoices) : widget.voices)
+                .map<Widget>((Voice voice) {
               return DropdownMenuItem(child: _voiceBox(voice), value: voice);
             }).toList();
           },
@@ -277,9 +303,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         ),
       ),
       //height: voiceTileHeight,
-      constraints: BoxConstraints.expand(width: 250, height: 40),
+      constraints: BoxConstraints.expand(width: 145, height: 40),
       child: Row(
-        mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Lottie.asset('assets/icons_logos/${voice.getIcon()}.json',
@@ -297,17 +323,36 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  //Takes the user to Android 'Text-to-speech output' settings.
-  _ttsSettingsButton() {
-    return TextButton(
-      child: Text(widget.langText['Choose']!),
-      onPressed: isIOS ? _openCustomTtsSelect : _openAndroidTtsSettings,
+  _iosDropdownAndSelection() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+            onPressed: _openCustomTtsSelect,
+            icon: Icon(IconData(0xe57f, fontFamily: 'MaterialIcons'))),
+        //_dropDownVoices(true),
+      ],
     );
   }
 
   //Opens a view on iOS where custom speech synthesis engines can be enabled.
-  _openCustomTtsSelect() {
-    Navigator.pushNamed(context, '/select');
+  _openCustomTtsSelect() async {
+    try {
+      List newVoices = await Navigator.pushNamed(context, '/select') as List;
+      /*
+      setState(() {
+        this.enabledSystemVoices = newVoices.map((e) => e as String).toList();
+      });
+      */
+    } catch (e) {}
+  }
+
+  //Takes the user to Android 'Text-to-speech output' settings.
+  _androidTtsSettingsButton() {
+    return TextButton(
+      child: Text(widget.langText['Choose']!),
+      onPressed: _openAndroidTtsSettings,
+    );
   }
 
   //Opens Android Text-to-Speech output settings screen.
@@ -437,8 +482,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Executes the text-to-speech.
   Future _speak() async {
     if (!isSystemVoice) isNativePlaying = true;
-    tts.speak(_fieldText, _speed,
-        isSystemVoice ? null : widget.voices.indexOf(_currentVoice));
+    tts.speak(
+        _fieldText,
+        _speed,
+        isSystemVoice,
+        isSystemVoice
+            ? _currentVoice.getName()
+            : widget.voices.indexOf(_currentVoice));
   }
 
   //Stops the synthesis.

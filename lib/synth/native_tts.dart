@@ -1,8 +1,8 @@
 import 'package:logger/logger.dart';
-import 'package:eesti_tts/synth/text_encoder.dart';
-import 'package:eesti_tts/synth/native_models/fastspeech.dart';
-import 'package:eesti_tts/synth/native_models/vocoder.dart';
-import 'package:eesti_tts/synth/audio_player.dart';
+import 'package:eestitts/synth/text_encoder.dart';
+import 'package:eestitts/synth/native_models/fastspeech.dart';
+import 'package:eestitts/synth/native_models/vocoder.dart';
+import 'package:eestitts/synth/audio_player.dart';
 
 class NativeTts {
   var logger = Logger();

@@ -1,8 +1,8 @@
 import 'package:logger/logger.dart';
-import 'package:eesti_tts/synth/native_channel.dart';
-import 'package:eesti_tts/ui/header.dart';
-import 'package:eesti_tts/ui/voice.dart';
-import 'package:eesti_tts/variables.dart';
+import 'package:eestitts/synth/system_channel.dart';
+import 'package:eestitts/ui/header.dart';
+import 'package:eestitts/ui/voice.dart';
+import 'package:eestitts/variables.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -12,7 +12,7 @@ class LanguageSelectionPage extends StatefulWidget {
   late final Map<String, String> langText;
   final String lang;
   final Function switchLangs;
-  final NativeChannel channel;
+  final SystemChannel channel;
 
   LanguageSelectionPage(
       {required this.lang, required this.switchLangs, required this.channel}) {
@@ -25,18 +25,13 @@ class LanguageSelectionPage extends StatefulWidget {
 
 class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   var logger = Logger();
-  late List<bool> currentDefaults;
+  late List<String> currentDefaults;
 
   @override
   void initState() {
     super.initState();
-    _checkVoices();
-  }
-
-  _checkVoices() {
-    List allDefaults = widget.channel.getDefaults();
-    currentDefaults =
-        widget.voices.map((voice) => allDefaults.contains(voice)).toList();
+    this.currentDefaults =
+        widget.channel.getDefaultVoices().map((e) => e as String).toList();
   }
 
   Widget build(BuildContext context) {
@@ -53,6 +48,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
         return Scaffold(
             backgroundColor: const Color.fromARGB(255, 238, 238, 238),
             appBar: AppBar(
+              automaticallyImplyLeading: false, //disables back button
               backgroundColor: Colors.white,
               shadowColor: Colors.white,
               title: Header(widget.switchLangs, widget.lang),
@@ -71,7 +67,9 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(widget.voices[index]),
-                          Text(currentDefaults[index] ? "✓" : ""),
+                          Text(currentDefaults.contains(widget.voices[index])
+                              ? "✓"
+                              : ""),
                         ],
                       )),
                     ),
@@ -89,16 +87,22 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   }
 
   _toggleVoice(int index) {
-    bool newVal = !currentDefaults[index];
     logger.d("id:" + index.toString());
-    setState(() {
-      currentDefaults[index] = newVal;
-    });
+    String voice = widget.voices[index];
+    if (currentDefaults.contains(voice)) {
+      setState(() {
+        currentDefaults.remove(voice);
+      });
+    } else {
+      setState(() {
+        currentDefaults.add(voice);
+      });
+    }
     widget.channel.setNewVoices(currentDefaults);
   }
 
   _confirm() async {
     widget.channel.save();
-    Navigator.pop(context);
+    Navigator.pop(context /*, currentDefaults*/);
   }
 }

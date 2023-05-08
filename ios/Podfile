@@ -1,8 +1,9 @@
 # Uncomment this line to define a global platform for your project
-# platform :ios, '12.0'
+platform :ios, '16.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+ENV['SWIFT_VERSION'] = '5'
 
 project 'Runner', {
   'Debug' => :debug,
@@ -31,10 +32,20 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
+  #pod 'TensorFlowLiteC', '~> 2.5.0'
   pod 'TensorFlowLiteSwift', '~> 2.5.0'
   pod 'TensorFlowLiteSelectTfOps', '~> 2.5.0'
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+end
+
+target 'EestiTtsExtension' do
+  use_frameworks!
+  use_modular_headers!
+
+  #pod 'TensorFlowLiteC', '~> 2.5.0'
+  pod 'TensorFlowLiteSwift', '~> 2.5.0'
+  pod 'TensorFlowLiteSelectTfOps', '~> 2.5.0'
 end
 
 post_install do |installer|

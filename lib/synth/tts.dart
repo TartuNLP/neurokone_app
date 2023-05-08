@@ -1,7 +1,7 @@
 import 'package:logger/logger.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:eesti_tts/synth/native_tts.dart';
-import 'package:eesti_tts/synth/est_processor.dart';
+import 'package:eestitts/synth/native_tts.dart';
+import 'package:eestitts/synth/est_processor.dart';
 
 class Tts {
   /////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@ class Tts {
   // implementation, supports both Android and iOS.
   /////////////////////////////////////////////////////////
   final bool isIOS;
-  String lang = 'et';
+  String lang = 'et-EE';
   late FlutterTts systemTts;
   NativeTts? nativeTts;
   bool stopNative = false;
@@ -55,16 +55,20 @@ class Tts {
   //Processes the text before input to the model.
   final EstProcessor _processor = EstProcessor();
 
-  speak(String text, double speed, int? voice) async {
+  speak(String text, double speed, bool isSystem, dynamic voice) async {
     List<String> sentences = await _processor.preprocess(text);
-    if (voice != null) {
+    logger.i("Synth voice: " + voice.toString());
+    if (!isSystem) {
       for (String sentence in sentences) {
         if (stopNative) break;
         await nativeTts!.nativeTextToSpeech(sentence, voice, speed);
       }
       stopNative = false;
     } else {
-      //await systemTts.setVoice({"name": "Reed", "locale": "de-DE"});
+      await systemTts.setLanguage(lang);
+      try {
+        await systemTts.setVoice({"name": voice, "locale": lang});
+      } catch (e) {}
       //await systemTts.setVolume(volume);
       await systemTts.setSpeechRate(speed / 2);
       //await systemTts.setPitch(pitch);

@@ -1,6 +1,6 @@
-import 'package:eesti_tts/synth/native_channel.dart';
-import 'package:eesti_tts/ui/main_page.dart';
-import 'package:eesti_tts/ui/selection_page.dart';
+import 'package:eestitts/synth/system_channel.dart';
+import 'package:eestitts/ui/main_page.dart';
+import 'package:eestitts/ui/selection_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -19,7 +19,7 @@ class _TtsAppState extends State<TtsApp> {
   //Initialise app in Estonian by default
   String lang = 'Eesti';
   final MaterialColor themeColor = Colors.blue;
-  final NativeChannel channel = new NativeChannel();
+  final SystemChannel channel = new SystemChannel();
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +34,7 @@ class _TtsAppState extends State<TtsApp> {
               //title: 'Neurokõne',
               lang: lang,
               switchLangs: this.switchLanguages,
+              channel: this.channel,
               //changeColors: this.changeThemeColor,
             ),
         '/select': (context) => LanguageSelectionPage(
