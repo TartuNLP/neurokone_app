@@ -13,12 +13,12 @@ class Processor {
     private final let sentenceSplit = /*(?<!^)*//([,;!?]\"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )/ //lookbehind functionality (?<!^) needs to be replaced until it is supported in Swift
     private final let sentenceStrip: String = "^[,;!?]?\"? ?"
     
-    //private static var CURLY_RE = /(.*?)\\{(.+?)\\}(.*)/
+    private final let CURLY_RE = /(.*?)\{(.+?)\}(.*)/
     private final let DECIMALS_RE = /([0-9]+[,.][0-9]+)/
-    private final let CURRENCY_RE = "([£$€]((\\d+[.,])?\\d+))|(((\\d+[.,])?\\d+)[£$€])"
-    private final let ORDINAL_RE = /[0-9]+\\./
+    private final let CURRENCY_RE = /([£$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£$€])/
+    private final let ORDINAL_RE = /[0-9]+\./
     private final let NUMBER_RE = /[0-9]+/
-    private final let DECIMALSCURRENCYNUMBER_RE = /(([0-9]+[,.][0-9]+)|([£$€]((\\d+[.,])?\\d+))|(((\\d+[.,])?\\d+)[£$€])|[0-9]+\\.?)/
+    private final let DECIMALSCURRENCYNUMBER_RE = /(([0-9]+[,.][0-9]+)|([£$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£$€])|[0-9]+\.?)/
     private final let CURRENCIES = [
         "£s": " nael ",
         "£m": " naela ",
@@ -53,8 +53,10 @@ class Processor {
     // sõnad, mille korral järgnev arvsõna läheb nimetavasse käändesse (kui oma kääne määramata)
     //private static let NOMINATIVE_PRECEEDING_WORDS = ["kell", "number", "aasta", "kl", "nr", "a"]
     
+    private final let ONLY_UPPER_RE = /[A-ZÄÖÜÕŽŠ]+/
     private final let PRONOUNCEABLE_ACRONYMS = ["ABBA", "AIDS", "ALDE", "API", "ARK", "ATKO", "BAFTA", "BENU", "CERN", "CRISPR", "COVID", "DARPA", "EFTA", "EKA", "EKI", "EKRE", "EKSA", "EMO", "EMOR", "ERM", "ERSO", "ESTO", "ETA", "EÜE", "FIDE", "FIFA", "FISA", "GAZ", "GITIS", "IBAN", "IPA", "ISIC", "ISIS", "ISO", "JOKK", "NASA", "NATO", "PERH", "PID", "PIN", "PRIA", "RAF", "RET", "SALT", "SARS", "SETI", "SIG", "SIM", "SMIT", "SORVVO", "TASS", "UNESCO", "VAZ", "VEB", "WADA", "WiFi"]
     
+    private final let NO_SPECIAL_SYMBOLS_RE = /([A-ZÄÖÜÕŽŠa-zäöüõšž]+(\.(?!( [A-ZÄÖÜÕŽŠ])))?)|([£$€]?[0-9.,]+[£$€]?)/
     private final let AUDIBLE_SYMBOLS = [
         "@": "ät",
         "$": "dollar",
@@ -238,6 +240,7 @@ class Processor {
         "kW": "kilovatt",
         "kWh": "kilovatttund",
     ]
+    private final let CONTAINS_ROMAN_RE = /^[IVXLCDM]+-?\w*$/
     private final let ROMAN_NUMBERS = [
         "I": 1,
         "V": 5,
@@ -316,20 +319,26 @@ class Processor {
         return text.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
     }
     
-    private func subBetween(text: String, label: String, target: String) -> String {
+    private func subBetween(text: String, label: Regex<(Substring, Substring, Substring)>, target: String) -> String {
         var remainingText = text
         var newText = ""
-        let pattern = try! Regex(label)
-        while let match = try! pattern.firstMatch(in: remainingText) {
-            if let range = remainingText.range(of: label) {
-                do {
-                    remainingText = remainingText.replacingCharacters(in: range, with: "\(match[0])\(target)\(match[2])")
-                } catch {
-                    remainingText = remainingText.replacingCharacters(in: range, with: "\(match[0])\(target)\(match[1])")
-                }
-                newText += remainingText[..<match.range.upperBound]
-                remainingText = String(remainingText[match.range.upperBound...])
-             }
+        while let match = remainingText.firstMatch(of: label) {
+            remainingText.replaceSubrange(match.range, with: "\(match.output.0)\(target)\(match.2)")
+            //remainingText = remainingText.replacingCharacters(in: match.range, with: "\(match.output.0)\(target)\(match.2)")
+            newText += remainingText[..<match.range.upperBound]
+            remainingText = String(remainingText[match.range.upperBound...])
+        }
+        return newText
+    }
+    
+    private func subBetween(text: String, label: Regex<(Substring, Substring)>, target: String) -> String {
+        var remainingText = text
+        var newText = ""
+        while let match = remainingText.firstMatch(of: label) {
+            remainingText.replaceSubrange(match.range, with: "\(match.output.0)\(target)\(match.1)")
+            //remainingText = remainingText.replacingCharacters(in: match.range, with: "\(match.output.0)\(target)\(match.output.1)")
+            newText += remainingText[..<match.range.upperBound]
+            remainingText = String(remainingText[match.range.upperBound...])
         }
         return newText
     }
@@ -337,8 +346,8 @@ class Processor {
     private func romanToArabic(word: String) -> String {
         var endingWord: String = ""
         let pattern = /-?[a-z]+$/
-        if let match = try! pattern.firstMatch(in: word) {
-            endingWord = " " + (word[match.startIndex] == "-" ? word[match.startIndex...match.endIndex].dropFirst(1) : word[match.startIndex...match.endIndex])
+        if let match = word.firstMatch(of: pattern) {
+            endingWord = " " + (word[match.startIndex] == "-" ? word[match.range].dropFirst(1) : word[match.range])
         }
         if word.wholeMatch(of: /[IXC]{4}/) != nil || word.wholeMatch(of: /[VLD]{2}/) != nil {
             return word
@@ -368,7 +377,7 @@ class Processor {
     private func expandAbbreviations(text: String) -> String {
         var newText = text
         for entry in ABBREVIATIONS {
-            newText = newText.replacingOccurrences(of: "\\b\(entry.key)\\.", with: entry.value)
+            newText = newText.replacingOccurrences(of: "\\b\(entry.key)\\.", with: entry.value, options: .regularExpression)
         }
         return newText;
     }
@@ -387,13 +396,12 @@ class Processor {
         } else if text.contains("£") {
             curr = "£";
         }
-        let wholeRange = s.startIndex..<s.endIndex
-        if let match = s.range(of: CURRENCY_RE, options: .regularExpression), match == wholeRange {
+        if s.wholeMatch(of: CURRENCY_RE) != nil {
             var moneys = "0"
             var cents = "0"
             var spelling = ""
             s = s.replacingOccurrences(of: "[£$€]", with: "", options: .regularExpression)
-            var parts = s.split(separator: ",")
+            let parts = s.split(separator: ",")
             if !s.hasPrefix(",") {
                 moneys = String(parts[0])
             }
@@ -423,13 +431,13 @@ class Processor {
                 s = s.replacingCharacters(in: range, with: spelling)
             }
         }
-        return s;
+        return s
     }
     
     private func expandDecimals(text: String) -> String {
         var remainingText = text
         var outText = ""
-        while let match = try! DECIMALS_RE.firstMatch(in: remainingText) {
+        while let match = remainingText.firstMatch(of: DECIMALS_RE) {
             outText += remainingText[..<match.range.lowerBound]
             outText += String(remainingText[match.range]).replacingOccurrences(of: "[.,]", with: " koma ", options: .regularExpression)
             remainingText = String(remainingText[match.range.upperBound...])
@@ -441,7 +449,7 @@ class Processor {
     private func expandOrdinals(text: String, kaane: Character) -> String {
         var remainingText = text
         var outText = ""
-        while let match = try! ORDINAL_RE.firstMatch(in: remainingText) {
+        while let match = remainingText.firstMatch(of: ORDINAL_RE) {
             outText += remainingText[..<match.range.lowerBound]
             outText += NumberNorm.toOrdinal(n: Int64(match.output.dropLast(1))!, kaane: kaane)
             remainingText = String(remainingText[match.range.upperBound...])
@@ -453,7 +461,7 @@ class Processor {
     private func expandCardinals(text: String, kaane: Character) -> String {
         var remainingText = text
         var outText = ""
-        while let match = try! NUMBER_RE.firstMatch(in: remainingText) {
+        while let match = remainingText.firstMatch(of: NUMBER_RE) {
             outText += remainingText[..<match.range.lowerBound]
             outText += NumberNorm.numToString(n: Int64(match.output)!, kaane: kaane)
             remainingText = String(remainingText[match.endIndex...])
@@ -484,7 +492,7 @@ class Processor {
         for i in 0..<tokens.count {
             var word = tokens[i]
             // if current token is a symbol
-            if word.wholeMatch(of: /([A-ZÄÖÜÕŽŠa-zäöüõšž]+(\\.(?!( [A-ZÄÖÜÕŽŠ])))?)|([£$€]?[0-9.,]+[£$€]?)/) == nil {
+            if word.wholeMatch(of: NO_SPECIAL_SYMBOLS_RE) == nil {
                 if AUDIBLE_SYMBOLS.keys.contains(word) {
                     if AUDIBLE_CONNECTING_SYMBOLS.contains(word) && !(i>0 && i<tokens.count-1 && tokens[i-1].wholeMatch(of: DECIMALSCURRENCYNUMBER_RE) != nil && tokens[i+1].wholeMatch(of: DECIMALSCURRENCYNUMBER_RE) != nil) {
                         continue
@@ -497,10 +505,10 @@ class Processor {
                 continue
             }
             // roman numbers to arabic
-            if word.wholeMatch(of: /^[IVXLCDM]+-?\\w*$/) != nil {
+            if word.wholeMatch(of: CONTAINS_ROMAN_RE) != nil {
                 word = romanToArabic(word: word)
                 if word.split(separator: " ").count > 1 {
-                    newTextParts.append(processByWord(tokens: word.split(separator: " ") as! [String]))
+                    newTextParts.append(processByWord(tokens: word.split(separator: " ").map { String($0) }))
                     continue
                 }
             }
@@ -519,7 +527,7 @@ class Processor {
             }
             if ABBREVIATIONS.keys.contains(word) {
                 word = ABBREVIATIONS[word]!
-            } else if word.wholeMatch(of: /[A-ZÄÖÜÕŽŠ]+/) != nil {
+            } else if word.wholeMatch(of: ONLY_UPPER_RE) != nil {
                 if !PRONOUNCEABLE_ACRONYMS.contains(word) {
                     var newWord: [String] = []
                     for char in word {
@@ -536,7 +544,7 @@ class Processor {
     private func cleanTextForEstonian(text: String) -> String {
         var newText = text
         // ... between numbers to kuni
-        if let match = try! /(\\d)\\.\\.\\.(\\d)/.firstMatch(in: newText) {
+        if let match = newText.firstMatch(of: /(\d)\.\.\.(\d)/) {
             newText = String(text[..<match.range.lowerBound])
             newText += match.output.0 + " kuni " + match.output.2
             newText += text[match.range.upperBound...]
@@ -546,17 +554,17 @@ class Processor {
         newText = simplifyUnicode(sentence: newText)
         
         // add a hyphen between any number-letter sequences  # TODO should not be done in URLs
-        newText = subBetween(text: newText, label: "(\\d)([A-ZÄÖÜÕŽŠa-zäöüõšž])", target: "-")
-        newText = subBetween(text: newText, label: "([A-ZÄÖÜÕŽŠa-zäöüõšž])(\\d)", target: "-")
+        newText = subBetween(text: newText, label: /(\d)[A-ZÄÖÜÕŽŠa-zäöüõšž]/, target: "-")
+        newText = subBetween(text: newText, label: /[A-ZÄÖÜÕŽŠa-zäöüõšž](\d)/, target: "-")
         
         // remove grouping between numbers
         // keeping space in 2006-10-27 12:48:50, in general require group of 3
-        newText  = subBetween(text: newText, label: "([0-9]) ([0-9]{3})(?!\\d)", target: "")
+        newText  = subBetween(text: newText, label: /([0-9]) ([0-9]{3})(?!\d)/, target: "")
         newText = newText.first!.lowercased() + newText.dropFirst()
         
         // split text into words ands symbols
         var tokens: [String] = []
-        while let match = try! /([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\\S/.firstMatch(in: newText) {
+        while let match = newText.firstMatch(of: /([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\S/) {
             tokens.append(String(newText[match.range]))
             newText = String(newText[match.range.upperBound...])
         }
@@ -567,40 +575,44 @@ class Processor {
         newText = collapseWhitespace(text: newText)
         newText = expandAbbreviations(text: newText)
         
-        logger.info("text preprocessed: \(newText)")
+        NSLog("text preprocessed: \(newText)")
         return newText
     }
     
     private func processSentence(text: String) -> String {
         var remainingText = text
         var sequence: [String] = []
-        while text.count > 0 {
-            if let match = try! /(.*?)\\{(.+?)\\}(.*)/.firstMatch(in: remainingText) {
+        while remainingText.count > 0 {
+            if let match = remainingText.firstMatch(of: CURLY_RE) {
                 sequence.append(cleanTextForEstonian(text: String(match.output.0)))
                 sequence.append(String(match.output.1))
-                remainingText = String(match.output.2)
+                remainingText = String(match.output.3)
             } else {
                 sequence.append(cleanTextForEstonian(text: remainingText))
                 break
             }
         }
-        return sequence.joined(separator: " ");
+        return sequence.joined(separator: " ")
     }
     
+    // input: <speak><voice name="extension-identifier.voice-identifier">text</voice></speak>
     func splitSentences(text: String) -> [String] {
         var sentences: [String] = []
-        var remainingSents: String = text
-        while let sentMatch = try! sentencesSplit.firstMatch(in: remainingSents) {
-            let sentence: String = String(remainingSents[..<sentMatch.range.lowerBound])
+        var remainingSents: String = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        while let sentMatch = remainingSents.firstMatch(of: sentencesSplit) {
+            var sentence: String = String(remainingSents[..<sentMatch.range.lowerBound])
             remainingSents = String(remainingSents[sentMatch.range.upperBound...])
-            var currentCharId = sentence.startIndex
-            while let splitMatch = try! sentenceSplit.firstMatch(in: sentence) {
-                if sentence.distance(from: sentence.startIndex, to: splitMatch.range.lowerBound) > 20 + sentence.distance(from: sentence.startIndex, to: currentCharId) && sentence.distance(from: sentence.startIndex, to: splitMatch.range.upperBound) < sentence.count - 20 {
-                    sentences.append(String(sentence[currentCharId...splitMatch.range.lowerBound]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
-                    currentCharId = splitMatch.range.lowerBound
+            while let splitMatch = sentence.firstMatch(of: sentenceSplit) {
+                if sentence.distance(from: sentence.startIndex, to: splitMatch.range.lowerBound) > 20 && sentence.distance(from: splitMatch.range.upperBound, to: sentence.endIndex) > 20 {
+                    // if lookahead doesn't work
+                    sentences.append(String(sentence[...splitMatch.range.upperBound]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
+                    sentence = String(sentence[splitMatch.range.upperBound])
+                    // if lookahead works
+                    //sentences.append(String(sentence[...splitMatch.range.lowerBound]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
+                    //sentence = String(sentence[splitMatch.range.lowerBound])
                 }
             }
-            sentences.append(processSentence(text: String(sentence[currentCharId...]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression) + "."))
+            sentences.append(processSentence(text: sentence).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression) + ".")
         }
         return sentences;
     }
@@ -742,7 +754,7 @@ class NumberNorm {
     }
 
     static func numToString(n: Int64, kaane: Character) -> String {
-        var helperOut: String = numToStringHelper(n: n)
+        let helperOut: String = numToStringHelper(n: n)
         if (kaane == "O") {
             return toGenitive(words: helperOut.split(separator: " ") as! [String])
         }

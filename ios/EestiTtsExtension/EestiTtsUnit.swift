@@ -10,7 +10,7 @@ import AVFoundation
 import TensorFlowLite
 
 private let appCode = "com.tartunlp.eestitts"
-let logger = Logger(subsystem: "eestitts", category: "EestiTtsUnit")
+//let logger = Logger(subsystem: appCode, category: "SynthAudioUnit")
 
 public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private let langCodes: [String] = ["et-EE"];
@@ -27,6 +27,8 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     
     private var parameterObserver: NSKeyValueObservation!
     private var outputMutex = DispatchSemaphore(value: 1)
+    
+    private let voices = ["Mari", "Tambet", "Liivika", "Kalev", "Külli", "Meelis", "Albert", "Indrek", "Vesta", "Peeter"]
     
     private final let processor: Processor = Processor()
     private final let encoder: Encoder = Encoder()
@@ -135,51 +137,52 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     public override var internalRenderBlock: AUInternalRenderBlock { self.performRender }
     
     public override func synthesizeSpeechRequest(_ speechRequest: AVSpeechSynthesisProviderRequest) {
-        logger.info("QQQ request:")
-        logger.info("QQQ \(speechRequest)")
+        NSLog("QQQ request: \(speechRequest)")
 
         let text: String = speechRequest.ssmlRepresentation
         let voice: AVSpeechSynthesisProviderVoice = speechRequest.voice
-        logger.info("QQQ ssml:")
-        logger.info("QQQ text: \(text)")
-        logger.info("QQQ voice: \(voice)")
+        NSLog("QQQ ssml text: \(text)")
+        NSLog("QQQ ssml voice: \(voice)")
 
         self.outputMutex.wait()
         
         request = speechRequest
-        currentBuffer = getAudioBufferForSSML(speechRequest.ssmlRepresentation)
-        //let inputs = inputsFromRequest(requestSsml: text)
-        /*
-        let sentences = text.split(separator: " . ")
+        synthesizer.setVoice(voice: voices.firstIndex(of: voice.name)!)
+        
+        let sentences = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression).split(separator: " . ")
         //let sentences = processor.splitSentences(text: text)
+        NSLog("QQQ sentences: \(sentences)")
         for sentence in sentences {
             let ids: [Int] = encoder.textToIds(text: String(sentence))
             //let ids: [Int] = encoder.textToIds(text: sentence)
+            NSLog("QQQ ids: \(ids)")
             do {
                 let spectrogram: Tensor = try self.synthesizer.getMelSpectrogram(inputIds: ids)
-                
-                let audioData: [Float] = try self.vocoder.getAudio(input: spectrogram)
-                let audioFilePath: String = saveAudio(data: audioData)
-                //currentBuffer = getAudioBufferForSSML(text)
+                NSLog("QQQ spectrogram: \(spectrogram)")
+                let audioDataTensor: Tensor = try self.vocoder.getAudio(input: spectrogram)
+                NSLog("QQQ audio: \(audioDataTensor)")
+                let audioInt16Data: Data = convertFloatDataToShortData(floatData: audioDataTensor.data)
+                let audioFilePath: String = saveAudio(audioData: audioInt16Data)
                 currentBuffer = getAudioBufferForSSML(audioFilePath)
             } catch {
-                logger.info("QQQ Inference failed")
+                NSLog("QQQ inference failed: \(error.localizedDescription)")
             }
-        }*/
-        
-        //let resampled = vDSP.multiply(Float(1.0/32767.0), vDSP.integerToFloatingPoint(holder.samples, floatingPointType: Float.self))
+        }
         
         framePosition = 0
         self.outputMutex.signal()
     }
     
-    func inputsFromRequest(requestSsml: String) -> [Int] {
-        return [requestSsml.count]
+    func convertFloatDataToShortData(floatData: Data) -> Data {
+        var floatArray = Array<Float>(repeating: 0, count: floatData.count/MemoryLayout<Float>.stride)
+        _ = floatArray.withUnsafeMutableBytes { floatData.copyBytes(to: $0) }
+        
+        let int16Array: [Int16] = floatArray.map { Int16(round($0 * 32768))}
+        return int16Array.withUnsafeBufferPointer(Data.init)
     }
     
-    func saveAudio(data: [Float]) -> String {
-        //let shape = data.count
-        return try! ARFileManager().createWavFile(using: Data(data as? Array ?? [])).absoluteString
+    func saveAudio(audioData: Data) -> String {
+        return try! ARFileManager().createWavFile(using: audioData).absoluteString
     }
     
     public override func cancelSpeechRequest() {
@@ -189,10 +192,11 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     }
     
     func getAudioBufferForSSML(_ filePath: String) -> AVAudioPCMBuffer? {
-        let audioFileName = filePath.contains("goodbye") ? "hello" : "goodbye"
-        guard let fileUrl = Bundle.main.url(forResource: audioFileName, withExtension: "aiff") else { return nil }
-        //let fileUrl = Bundle.main.url(forResource: filePath, withExtension: "aiff")!
-        logger.info("QQQ Audio file url: \(fileUrl.description)")
+        //let audioFileName = filePath.hasPrefix("goodbye") ? "goodbye" : "hello"
+        //guard let fileUrl = Bundle.main.url(forResource: audioFileName, withExtension: "aiff") else { return nil }
+        //guard let fileUrl = Bundle.main.url(forResource: filePath, withExtension: "wav") else { return nil }
+        let fileUrl = URL(string: filePath)!
+        NSLog("QQQ audio file url: \(fileUrl.description)")
         
         do {
             let file = try AVAudioFile(forReading: fileUrl)
@@ -201,6 +205,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
             try file.read(into: buffer!)
             return buffer
         } catch {
+            NSLog("QQQ audio playing failed: \(error.localizedDescription)")
             return nil
         }
     }
@@ -230,15 +235,15 @@ class ARFileManager {
 
        private func createWaveHeader(data: Data) -> NSData {
 
-            let sampleRate:Int32 = 22050
-            let chunkSize:Int32 = 36 + Int32(data.count)
-            let subChunkSize:Int32 = 16
-            let format:Int16 = 1
-            let channels:Int16 = 1
-            let bitsPerSample:Int16 = 16
-            let byteRate:Int32 = sampleRate * Int32(channels * bitsPerSample / 8)
+            let sampleRate: Int32 = 22050
+            let chunkSize: Int32 = 36 + Int32(data.count)
+            let subChunkSize: Int32 = 16
+            let format: Int16 = 1
+            let channels: Int16 = 1
+            let bitsPerSample: Int16 = 16
+            let byteRate: Int32 = sampleRate * Int32(channels * bitsPerSample / 8)
             let blockAlign: Int16 = channels * bitsPerSample / 8
-            let dataSize:Int32 = Int32(data.count)
+            let dataSize: Int32 = Int32(data.count)
 
             let header = NSMutableData()
 

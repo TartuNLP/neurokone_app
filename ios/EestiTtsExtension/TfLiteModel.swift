@@ -14,18 +14,17 @@ class TfLiteModel {
     
     init(modelPath: String) throws {
         do {
-            var options = Interpreter.Options()
-            //var options = InterpreterOptions()
-            options.threadCount = 1
+            //var options = Interpreter.Options()
+            //options.threadCount = 1
             
             // Initialize as Interpreter
-            self.model = try Interpreter(modelPath: modelPath, options: options)
-            logger.info("QQQInitialised model \(modelPath.split(separator: ".").last ?? "")")
+            self.model = try Interpreter(modelPath: modelPath/*, options: options*/)
+            NSLog("QQQ Initialised model \(modelPath)")
             
             // Allocate memory for the input tensor
             try self.model.allocateTensors()
         } catch {
-            logger.info("QQQFailed to create the interpreter with error: \(error.localizedDescription)")
+            NSLog("QQQ Failed to create the interpreter with error: \(error.localizedDescription)")
             throw NSError()
         }
     }

@@ -26,46 +26,36 @@ class FastSpeechModel: TfLiteModel {
     func setPitch(pitch: Float) { self.pitch = pitch; }
 
     func setEnergy(energy: Float) { self.energy = energy; }
-
+    
     func getMelSpectrogram(inputIds: [Int]) throws -> Tensor {
-        logger.info("input id length: \(inputIds.count)");
-        try self.model.resizeInput(at: 0, to: [inputIds.count]);
-        try self.model.allocateTensors();
+        let primaryInputs: [[Int32]] = [inputIds.map { Int32($0) }, [Int32(self.voice)]]
+        let secondaryInputs: [[Float]] = [[self.speed], [self.pitch], [self.energy]]
         
-        let allInputs = [[inputIds], [self.voice], [self.speed], [self.pitch], [self.energy]]
-        for id in 0..<allInputs.count {
-            let dataIn = Data(allInputs[id] as? Array ?? [])
-            try model.copy(dataIn, toInputAt: id)
+        try self.model.resizeInput(at: 0, to: Tensor.Shape([1, inputIds.count]))
+        for id in 1..<primaryInputs.count {
+            try self.model.resizeInput(at: id, to: Tensor.Shape([primaryInputs[id].count]))
         }
+        for id in 0..<secondaryInputs.count {
+            try self.model.resizeInput(at: id+primaryInputs.count, to: Tensor.Shape([secondaryInputs[id].count]))
+        }
+        //NSLog("QQQ inputs resized")
+        
+        try self.model.allocateTensors()
+        
+        for id in 0..<primaryInputs.count {
+            let dataIn = primaryInputs[id].withUnsafeBufferPointer(Data.init)
+            try self.model.copy(dataIn, toInputAt: id)
+        }
+        for id in 0..<secondaryInputs.count {
+            let dataIn = secondaryInputs[id].withUnsafeBufferPointer(Data.init)
+            try self.model.copy(dataIn, toInputAt: id+primaryInputs.count)
+        }
+        //NSLog("QQQ input prepared")
         
         // inference
-        try model.invoke()
+        try self.model.invoke()
+        //NSLog("QQQ model invoked")
         
         return try model.output(at: 0)
-        
-        /*
-        Map<Integer, Object> outputMap = new HashMap<>();
-        FloatBuffer outputBuffer = FloatBuffer.allocate(350000);
-        outputMap.put(0, outputBuffer);
-
-        int[][] inputs = new int[1][inputIds.length];
-        inputs[0] = inputIds;
-
-        Object[] input = new Object[]{inputs, new int[]{voice}, new float[]{speed}, new float[]{pitch}, new float[]{energy}};
-        long time = System.currentTimeMillis();
-        self.model.runForMultipleInputsOutputs(input, outputMap);
-        Log.d(TAG, "time cost: " + (System.currentTimeMillis() - time));
-        Log.i(TAG, "Spectrogram shape: " + Arrays.toString(self.model.getOutputTensor(0).shape()));
-
-        int size = self.model.getOutputTensor(0).shape()[2];
-        int[] shape = {1, outputBuffer.position() / size, size};
-        TensorBuffer spectrogram = TensorBuffer.createFixedSize(shape, DataType.FLOAT32);
-        float[] outputArray = new float[outputBuffer.position()];
-        outputBuffer.rewind();
-        outputBuffer.get(outputArray);
-        spectrogram.loadArray(outputArray);
-
-        return spectrogram;
-        */
     }
 }

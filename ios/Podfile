@@ -32,7 +32,7 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
-  #pod 'TensorFlowLiteC', '~> 2.5.0'
+  pod 'TensorFlowLiteC', '~> 2.5.0'
   pod 'TensorFlowLiteSwift', '~> 2.5.0'
   pod 'TensorFlowLiteSelectTfOps', '~> 2.5.0'
 
@@ -43,7 +43,7 @@ target 'EestiTtsExtension' do
   use_frameworks!
   use_modular_headers!
 
-  #pod 'TensorFlowLiteC', '~> 2.5.0'
+  pod 'TensorFlowLiteC', '~> 2.5.0'
   pod 'TensorFlowLiteSwift', '~> 2.5.0'
   pod 'TensorFlowLiteSelectTfOps', '~> 2.5.0'
 end

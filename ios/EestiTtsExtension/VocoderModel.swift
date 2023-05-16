@@ -10,24 +10,30 @@ import Foundation
 import TensorFlowLite
 
 class VocoderModel: TfLiteModel {
-    func getAudio(input: Tensor) throws -> [Float] {
+    func getAudio(input: Tensor) throws -> Tensor {
         try self.model.resizeInput(at: 0, to: input.shape)
         try self.model.allocateTensors()
-
-        //var outputBuffer: FloatBuffer = FloatBuffer.allocate(350000)
-
-        //var time = System.currentTimeMillis();
-        let dataIn = Data(input as? Array ?? [])
-        // Data to Tensor.
-        try model.copy(dataIn, toInputAt: 0)
+        
+        NSLog("model input shape: \(try self.model.input(at: 0).shape)")
+        NSLog("model input dtype: \(try self.model.input(at: 0).dataType)")
+        try self.model.copy(input.data, toInputAt: 0)
+        
         // inference
-        try model.invoke()
+        try self.model.invoke()
         
-        let output = try model.output(at: 0).data
+        return try self.model.output(at: 0)
         
-        var arr2 = Array<Float>(repeating: 0, count: output.count/MemoryLayout<Float>.stride)
-        _ = arr2.withUnsafeMutableBytes { output.copyBytes(to: $0) }
+        /*
+        let output = try self.model.output(at: 0).data
         
-        return arr2
+         var audioArray = Array<Float>(repeating: 0, count: output.count/MemoryLayout<Float>.stride)
+        _ = audioArray.withUnsafeMutableBytes { output.copyBytes(to: $0) }
+        
+        return audioArray*/
+        
+        /*
+        let primaryInputs: [[Int32]] = [inputIds.map { Int32($0) }, [Int32(self.voice)]]
+        let secondaryInputs: [[Float]] = [[self.speed], [self.pitch], [self.energy]]
+        */
     }
 }

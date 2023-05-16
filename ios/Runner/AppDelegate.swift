@@ -1,3 +1,4 @@
+import os
 import UIKit
 import Flutter
 import AVFoundation
@@ -6,6 +7,7 @@ import AVFoundation
 @objc class AppDelegate: FlutterAppDelegate {
   let defaults = UserDefaults(suiteName: "group.com.tartunlp.eestitts")
   let mainBundle = Bundle.main
+  let logger = Logger()
 
   override func application(
     _ application: UIApplication,
@@ -35,7 +37,7 @@ import AVFoundation
         result(defaults?.value(forKey: "voices") as? [String] ?? [])
       case "setDefaultVoices":
         let arguments = call.arguments as? [String]
-        print("Enabling voices: " + arguments!.description)
+        logger.info("Enabling voices: \(arguments!.description)")
         defaults?.set(arguments!, forKey: "voices")
         AVSpeechSynthesisProviderVoice.updateSpeechVoices()
         result("Success!")

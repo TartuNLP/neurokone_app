@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
-		19E81103B8EF80E4EB97D336 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8590148660937F696CA5CCD6 /* Pods_Runner.framework */; };
 		250F87AC29FA7FB20061D593 /* hello.aiff in Resources */ = {isa = PBXBuildFile; fileRef = 250F87AA29FA7FB20061D593 /* hello.aiff */; };
 		250F87AD29FA7FB20061D593 /* goodbye.aiff in Resources */ = {isa = PBXBuildFile; fileRef = 250F87AB29FA7FB20061D593 /* goodbye.aiff */; };
 		2573F94C29F0182300B2E47C /* EestiTtsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 25B7B42E29E58DAA00F5494E /* EestiTtsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -27,6 +26,7 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		B9BC3BE22F97E1DD9B850D52 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B53E79FD7E80803BF54D70DB /* Pods_Runner.framework */; };
+		D512599B8C82BF00B4D2E267 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8590148660937F696CA5CCD6 /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,7 +108,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B9BC3BE22F97E1DD9B850D52 /* Pods_Runner.framework in Frameworks */,
-				19E81103B8EF80E4EB97D336 /* Pods_Runner.framework in Frameworks */,
+				D512599B8C82BF00B4D2E267 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,7 +283,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1430;
-				LastUpgradeCheck = 1300;
+				LastUpgradeCheck = 1430;
 				ORGANIZATIONNAME = "The Chromium Authors";
 				TargetAttributes = {
 					25B7B42D29E58DAA00F5494E = {
@@ -521,6 +521,21 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-l\"c++\"",
+					"-framework",
+					"\"TensorFlowLite\"",
+					"-framework",
+					"\"TensorFlowLiteC\"",
+					"-framework",
+					"\"TensorFlowLiteSelectTfOps\"",
+					"-weak_framework",
+					"\"CoreML\"",
+					"-force_load",
+					"$(SRCROOT)/Pods/TensorFlowLiteSelectTfOps/Frameworks/TensorFlowLiteSelectTfOps.framework/TensorFlowLiteSelectTfOps",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tartunlp.eestitts.synth-ext";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -562,6 +577,21 @@
 				);
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-l\"c++\"",
+					"-framework",
+					"\"TensorFlowLite\"",
+					"-framework",
+					"\"TensorFlowLiteC\"",
+					"-framework",
+					"\"TensorFlowLiteSelectTfOps\"",
+					"-weak_framework",
+					"\"CoreML\"",
+					"-force_load",
+					"$(SRCROOT)/Pods/TensorFlowLiteSelectTfOps/Frameworks/TensorFlowLiteSelectTfOps.framework/TensorFlowLiteSelectTfOps",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tartunlp.eestitts.synth-ext";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -709,6 +739,28 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
 				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-all_load",
+					"-l\"c++\"",
+					"-framework",
+					"\"TensorFlowLite\"",
+					"-framework",
+					"\"TensorFlowLiteC\"",
+					"-framework",
+					"\"TensorFlowLiteSelectTfOps\"",
+					"-framework",
+					"\"audioplayers_darwin\"",
+					"-framework",
+					"\"flutter_tts\"",
+					"-framework",
+					"\"path_provider_foundation\"",
+					"-framework",
+					"\"tflite_flutter\"",
+					"-weak_framework",
+					"\"CoreML\"",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.tartunlp.eestitts;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -745,6 +797,28 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Flutter",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-all_load",
+					"-l\"c++\"",
+					"-framework",
+					"\"TensorFlowLite\"",
+					"-framework",
+					"\"TensorFlowLiteC\"",
+					"-framework",
+					"\"TensorFlowLiteSelectTfOps\"",
+					"-framework",
+					"\"audioplayers_darwin\"",
+					"-framework",
+					"\"flutter_tts\"",
+					"-framework",
+					"\"path_provider_foundation\"",
+					"-framework",
+					"\"tflite_flutter\"",
+					"-weak_framework",
+					"\"CoreML\"",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.tartunlp.eestitts;
 				PRODUCT_NAME = "$(TARGET_NAME)";
