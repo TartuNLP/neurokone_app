@@ -56,9 +56,9 @@ class Tts {
   final EstProcessor _processor = EstProcessor();
 
   speak(String text, double speed, bool isSystem, dynamic voice) async {
-    List<String> sentences = await _processor.preprocess(text);
     logger.i("Synth voice: " + voice.toString());
     if (!isSystem) {
+      List<String> sentences = await _processor.preprocess(text);
       for (String sentence in sentences) {
         if (stopNative) break;
         await nativeTts!.nativeTextToSpeech(sentence, voice, speed);
@@ -72,7 +72,7 @@ class Tts {
       //await systemTts.setVolume(volume);
       await systemTts.setSpeechRate(speed / 2);
       //await systemTts.setPitch(pitch);
-      await systemTts.speak(sentences.join(' . '));
+      await systemTts.speak(text);
     }
   }
 }

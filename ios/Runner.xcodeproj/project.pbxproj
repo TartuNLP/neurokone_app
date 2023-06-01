@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
-		250F87AC29FA7FB20061D593 /* hello.aiff in Resources */ = {isa = PBXBuildFile; fileRef = 250F87AA29FA7FB20061D593 /* hello.aiff */; };
-		250F87AD29FA7FB20061D593 /* goodbye.aiff in Resources */ = {isa = PBXBuildFile; fileRef = 250F87AB29FA7FB20061D593 /* goodbye.aiff */; };
 		2573F94C29F0182300B2E47C /* EestiTtsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 25B7B42E29E58DAA00F5494E /* EestiTtsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		25B7B43129E58DAA00F5494E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 25B7B43029E58DAA00F5494E /* README.md */; };
 		25B7B45129E5A13E00F5494E /* EestiTtsUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B7B44D29E5A13D00F5494E /* EestiTtsUnit.swift */; };
@@ -58,8 +56,6 @@
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		16A060066367F170C681C641 /* Pods-EestiTtsExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EestiTtsExtension.debug.xcconfig"; path = "Target Support Files/Pods-EestiTtsExtension/Pods-EestiTtsExtension.debug.xcconfig"; sourceTree = "<group>"; };
 		247E13F89DD419A6BB0BABC4 /* Pods-EestiTtsExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EestiTtsExtension.release.xcconfig"; path = "Target Support Files/Pods-EestiTtsExtension/Pods-EestiTtsExtension.release.xcconfig"; sourceTree = "<group>"; };
-		250F87AA29FA7FB20061D593 /* hello.aiff */ = {isa = PBXFileReference; lastKnownFileType = audio.aiff; name = hello.aiff; path = ../../../../Audio/hello.aiff; sourceTree = "<group>"; };
-		250F87AB29FA7FB20061D593 /* goodbye.aiff */ = {isa = PBXFileReference; lastKnownFileType = audio.aiff; name = goodbye.aiff; path = ../../../../Audio/goodbye.aiff; sourceTree = "<group>"; };
 		255AF48D29E717D10036665F /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		255AF48F29E71A510036665F /* EestiTtsExtension.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = EestiTtsExtension.entitlements; sourceTree = "<group>"; };
 		258D12F429E96E8D005C0305 /* TensorFlowLite.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TensorFlowLite.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -115,15 +111,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		250F87A929FA7F950061D593 /* Audio */ = {
-			isa = PBXGroup;
-			children = (
-				250F87AB29FA7FB20061D593 /* goodbye.aiff */,
-				250F87AA29FA7FB20061D593 /* hello.aiff */,
-			);
-			path = Audio;
-			sourceTree = "<group>";
-		};
 		258D130429E98E67005C0305 /* Recovered References */ = {
 			isa = PBXGroup;
 			children = (
@@ -135,7 +122,6 @@
 		25B7B42F29E58DAA00F5494E /* EestiTtsExtension */ = {
 			isa = PBXGroup;
 			children = (
-				250F87A929FA7F950061D593 /* Audio */,
 				255AF48F29E71A510036665F /* EestiTtsExtension.entitlements */,
 				25B7B44E29E5A13D00F5494E /* AudioUnitFactory.swift */,
 				25B7B44D29E5A13D00F5494E /* EestiTtsUnit.swift */,
@@ -319,8 +305,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				250F87AD29FA7FB20061D593 /* goodbye.aiff in Resources */,
-				250F87AC29FA7FB20061D593 /* hello.aiff in Resources */,
 				25B7B43129E58DAA00F5494E /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -538,6 +522,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tartunlp.eestitts.synth-ext";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -594,6 +579,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.tartunlp.eestitts.synth-ext";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "EestiTtsExtension/Common/EestiTtsExtension-Bridging-Header.h";

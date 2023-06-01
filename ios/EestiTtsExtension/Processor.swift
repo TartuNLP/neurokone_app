@@ -10,6 +10,7 @@ import Foundation
 
 class Processor {
     private final let sentencesSplit = /[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))/
+    //private final let sentencesSplit = /[.!?]((((\" )| |( \")))|(\"?$))/
     private final let sentenceSplit = /*(?<!^)*//([,;!?]\"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )/ //lookbehind functionality (?<!^) needs to be replaced until it is supported in Swift
     private final let sentenceStrip: String = "^[,;!?]?\"? ?"
     
@@ -286,7 +287,7 @@ class Processor {
     ]
     
     private func convertToUtf8(text: String) -> String {
-        return String(describing: text.cString(using: String.Encoding.utf8))
+        return text.cString(using: String.Encoding.utf8)!.description
     }
     
     private func simplifyUnicode(sentence: String) -> String {
@@ -312,7 +313,7 @@ class Processor {
         
         newSent = newSent.replacingOccurrences(of: "\\p{M}", with: "", options: .regularExpression)
 
-        return sentence;
+        return sentence
     }
     
     private func collapseWhitespace(text: String) -> String {
@@ -328,6 +329,7 @@ class Processor {
             newText += remainingText[..<match.range.upperBound]
             remainingText = String(remainingText[match.range.upperBound...])
         }
+        newText += remainingText
         return newText
     }
     
@@ -335,11 +337,12 @@ class Processor {
         var remainingText = text
         var newText = ""
         while let match = remainingText.firstMatch(of: label) {
-            remainingText.replaceSubrange(match.range, with: "\(match.output.0)\(target)\(match.1)")
+            remainingText.replaceSubrange(match.range, with: "\(match.output.0)\(target)\(match.output.1)")
             //remainingText = remainingText.replacingCharacters(in: match.range, with: "\(match.output.0)\(target)\(match.output.1)")
             newText += remainingText[..<match.range.upperBound]
             remainingText = String(remainingText[match.range.upperBound...])
         }
+        newText += remainingText
         return newText
     }
     
@@ -379,7 +382,7 @@ class Processor {
         for entry in ABBREVIATIONS {
             newText = newText.replacingOccurrences(of: "\\b\(entry.key)\\.", with: entry.value, options: .regularExpression)
         }
-        return newText;
+        return newText
     }
     
     private func expandCurrency(text: String, kaane: Character) -> String {
@@ -388,13 +391,13 @@ class Processor {
             s = text.replacingOccurrences(of: ",", with: "")
         }
         s = s.replacingOccurrences(of: ".", with: ",")
-        var curr = "N";
+        var curr = "N"
         if text.contains("$") {
-            curr = "$";
+            curr = "$"
         } else if text.contains("€") {
-            curr = "€";
+            curr = "€"
         } else if text.contains("£") {
-            curr = "£";
+            curr = "£"
         }
         if s.wholeMatch(of: CURRENCY_RE) != nil {
             var moneys = "0"
@@ -443,7 +446,7 @@ class Processor {
             remainingText = String(remainingText[match.range.upperBound...])
         }
         outText += remainingText
-        return outText;
+        return outText
     }
     
     private func expandOrdinals(text: String, kaane: Character) -> String {
@@ -549,18 +552,22 @@ class Processor {
             newText += match.output.0 + " kuni " + match.output.2
             newText += text[match.range.upperBound...]
         }
+        
         // reduce Unicode repertoire _before_ inserting any hyphens
-        newText = convertToUtf8(text: newText)
+        //newText = convertToUtf8(text: newText)
         newText = simplifyUnicode(sentence: newText)
+        NSLog("QQQ 9: text: \(newText)")
         
         // add a hyphen between any number-letter sequences  # TODO should not be done in URLs
         newText = subBetween(text: newText, label: /(\d)[A-ZÄÖÜÕŽŠa-zäöüõšž]/, target: "-")
         newText = subBetween(text: newText, label: /[A-ZÄÖÜÕŽŠa-zäöüõšž](\d)/, target: "-")
+        NSLog("QQQ 10: text: \(newText)")
         
         // remove grouping between numbers
         // keeping space in 2006-10-27 12:48:50, in general require group of 3
         newText  = subBetween(text: newText, label: /([0-9]) ([0-9]{3})(?!\d)/, target: "")
-        newText = newText.first!.lowercased() + newText.dropFirst()
+        newText = newText.prefix(1).lowercased() + newText.dropFirst()
+        NSLog("QQQ 11: text: \(newText)")
         
         // split text into words ands symbols
         var tokens: [String] = []
@@ -568,18 +575,18 @@ class Processor {
             tokens.append(String(newText[match.range]))
             newText = String(newText[match.range.upperBound...])
         }
-        
+        NSLog("QQQ 12: text: \(tokens)")
         newText = processByWord(tokens: tokens)
         newText = newText.lowercased()
         newText += "."
         newText = collapseWhitespace(text: newText)
         newText = expandAbbreviations(text: newText)
         
-        NSLog("text preprocessed: \(newText)")
+        NSLog("QQQ text preprocessed: \(newText)")
         return newText
     }
     
-    private func processSentence(text: String) -> String {
+    private func processSentence(_ text: String) -> String {
         var remainingText = text
         var sequence: [String] = []
         while remainingText.count > 0 {
@@ -592,29 +599,48 @@ class Processor {
                 break
             }
         }
-        return sequence.joined(separator: " ")
+        return sequence.joined(separator: " ").replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression)
     }
     
     // input: <speak><voice name="extension-identifier.voice-identifier">text</voice></speak>
     func splitSentences(text: String) -> [String] {
         var sentences: [String] = []
+        NSLog("QQQ 1: sentences: \(text)")
         var remainingSents: String = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        if remainingSents.wholeMatch(of: /.+[.!?]\"?$/) == nil {
+            remainingSents += "."
+        }
+        NSLog("QQQ 2: sentences: \(remainingSents)")
         while let sentMatch = remainingSents.firstMatch(of: sentencesSplit) {
+            NSLog("QQQ 3: sentence match: \(sentMatch)")
             var sentence: String = String(remainingSents[..<sentMatch.range.lowerBound])
+            NSLog("QQQ 4: sentence: \(sentence)")
             remainingSents = String(remainingSents[sentMatch.range.upperBound...])
-            while let splitMatch = sentence.firstMatch(of: sentenceSplit) {
-                if sentence.distance(from: sentence.startIndex, to: splitMatch.range.lowerBound) > 20 && sentence.distance(from: splitMatch.range.upperBound, to: sentence.endIndex) > 20 {
+            NSLog("QQQ 5: remaining sentence: \(remainingSents)")
+        
+            //For splitting sentences if they're too long for the synthesizer
+            var startId = sentence.startIndex
+            while let splitMatch = sentence[startId...].firstMatch(of: sentenceSplit) {
+                NSLog("QQQ 6: split match: \(splitMatch)")
+                if sentence.distance(from: sentence.startIndex, to: splitMatch.range.lowerBound) > 30 && sentence.distance(from: splitMatch.range.upperBound, to: sentence.endIndex) > 30 {
                     // if lookahead doesn't work
-                    sentences.append(String(sentence[...splitMatch.range.upperBound]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
-                    sentence = String(sentence[splitMatch.range.upperBound])
+                    sentences.append(processSentence(String(sentence[..<splitMatch.range.upperBound])))
+                    sentence = String(sentence[splitMatch.range.upperBound...])
+                    startId = sentence.startIndex
+                    
                     // if lookahead works
-                    //sentences.append(String(sentence[...splitMatch.range.lowerBound]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
+                    //sentences.append(String(sentence[..<splitMatch.range.lowerBound]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
                     //sentence = String(sentence[splitMatch.range.lowerBound])
+                } else {
+                    startId = splitMatch.range.upperBound
                 }
             }
-            sentences.append(processSentence(text: sentence).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression) + ".")
+            
+            NSLog("QQQ 7")
+            sentences.append(processSentence(sentence))
+            NSLog("QQQ 8: sentences: \(sentences)")
         }
-        return sentences;
+        return sentences
     }
 }
 
@@ -728,13 +754,13 @@ class NumberNorm {
         }
         if split.count >= 2 {
             var parts: [String] = []
-            for i in 0...split.count-1 {
+            for i in 0..<split.count {
                 parts.append(String(split[i]))
             }
             let text: String = toGenitive(words: parts)
             last = text + " " + last
         }
-        return last;
+        return last
     }
     
     static func toGenitive(words: [String]) -> String {

@@ -7,7 +7,6 @@ import AVFoundation
 @objc class AppDelegate: FlutterAppDelegate {
   let defaults = UserDefaults(suiteName: "group.com.tartunlp.eestitts")
   let mainBundle = Bundle.main
-  let logger = Logger()
 
   override func application(
     _ application: UIApplication,
@@ -15,7 +14,9 @@ import AVFoundation
   ) -> Bool {
     let flutterController = window?.rootViewController as? FlutterViewController
 
+    //addModelPath(assetPath: "assets/fastspeech2-est_quant.tflite", key: "synthesizer", controller: flutterController!)
     addModelPath(assetPath: "assets/fastspeech2-est.tflite", key: "synthesizer", controller: flutterController!)
+    //addModelPath(assetPath: "assets/hifigan-est.tflite", key: "vocoder", controller: flutterController!)
     addModelPath(assetPath: "assets/hifigan-est.v2.tflite", key: "vocoder", controller: flutterController!)
 
     let methodChannel = FlutterMethodChannel(name: "com.tartunlp.eestitts", binaryMessenger: flutterController!.binaryMessenger) //binaryMessenger: rootViewController as! FlutterBinaryMessenger
@@ -37,7 +38,7 @@ import AVFoundation
         result(defaults?.value(forKey: "voices") as? [String] ?? [])
       case "setDefaultVoices":
         let arguments = call.arguments as? [String]
-        logger.info("Enabling voices: \(arguments!.description)")
+        print("Enabling voices: \(arguments!.description)")
         defaults?.set(arguments!, forKey: "voices")
         AVSpeechSynthesisProviderVoice.updateSpeechVoices()
         result("Success!")
@@ -52,7 +53,6 @@ import AVFoundation
         result("Success!")
       */
       default:
-        //result("fail.")
         result(FlutterMethodNotImplemented)
     }
   }
