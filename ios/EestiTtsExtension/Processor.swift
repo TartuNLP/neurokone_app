@@ -598,7 +598,7 @@ class Processor {
         return sequence.joined(separator: " ").replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression)
     }
     
-    // input: <speak><voice name="extension-identifier.voice-identifier">text</voice></speak>
+    // input format: <speak><voice name="extension-identifier.voice-identifier">text</voice></speak>
     func splitSentences(text: String) -> [String] {
         var sentences: [String] = []
         var remainingSents: String = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)

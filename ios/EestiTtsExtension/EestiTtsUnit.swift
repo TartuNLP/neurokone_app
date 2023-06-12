@@ -32,8 +32,13 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private final let encoder: Encoder = Encoder()
     private var synthesizer: FastSpeechModel!
     private var vocoder: VocoderModel!
-    private let audioChunkSize = 4*80*60
-    private let overlapSize = 4*80*15
+    
+    private let bytesInFrame = 4*80 //80 bins of 4-byte float values
+    private let audioChunkSize = 60
+    private let overlapSize = 15
+    
+    //Length of silence to be added between sentences
+    private let silenceLength = 160
     
     private let filemanager = ARFileManager()
     
@@ -114,20 +119,6 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         frames.update(repeating: 0, count: Int(frameCount))
 
         self.outputMutex.wait()
-        
-        /*
-        let count = min(self.output.count - self.outputOffset, Int(frameCount))
-        self.output.withUnsafeBufferPointer { ptr in
-          frames.update(from: ptr.baseAddress!.advanced(by: self.outputOffset), count: count)
-        }
-        outputAudioBufferList.pointee.mBuffers.mDataByteSize = UInt32(count * MemoryLayout<Float32>.size)
-
-        self.outputOffset += count
-        if self.outputOffset >= self.output.count {
-          actionFlags.pointee = .offlineUnitRenderAction_Complete
-          self.output.removeAll()
-          self.outputOffset = 0
-        }*/
 
         // Get the frames from the current buffer that represents the SSML.
         let sourceBuffer = UnsafeMutableAudioBufferListPointer(self.currentBuffer!.mutableAudioBufferList)[0]
@@ -160,7 +151,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     }
     
     func toShortArray(_ floatArray: [Float]) -> [Int16] {
-        return floatArray.map { Int16(round($0 * 32768))}
+        return floatArray.map { Int16(round(pow(2, 15) * $0))}
     }
     
     func arrayToData(_ array: [Int16]) -> Data {
@@ -184,19 +175,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         var fileSize: Double = 0.0
         fileSize = try! (fileUrl.resourceValues(forKeys: [URLResourceKey.fileSizeKey]).allValues.first?.value as! Double?)!
         fileSize = (fileSize / (1024 * 1024))
-        NSLog("QQQ audio file size for sentence \"\(sentence)\": \(fileSize) MB")
-        
-        /*
-        do {
-            let audioFormat = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: 22050, channels: 1, interleaved: false)!  // given NSData audio format
-            guard let PCMBuffer = AVAudioPCMBuffer(pcmFormat: audioFormat, frameCapacity: UInt32(shortData.count) / audioFormat.streamDescription.pointee.mBytesPerFrame) else {
-                return nil
-            }
-            PCMBuffer.frameLength = PCMBuffer.frameCapacity
-            let channels = UnsafeBufferPointer(start: PCMBuffer.int16ChannelData, count: Int(PCMBuffer.format.channelCount))
-            (shortData as NSData).getBytes(UnsafeMutableRawPointer(channels[0]) , length: shortData.count)
-            return PCMBuffer
-        }*/
+        NSLog("QQQ audio size for \"\(sentence)\": \(fileSize) MB")
         
         do {
             let file = try AVAudioFile(forReading: fileUrl)
@@ -217,6 +196,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         let voice: AVSpeechSynthesisProviderVoice = speechRequest.voice
         //Replace English sample with Estonian.
         text = text.replacingOccurrences(of: "Hello! My name is \(voice.name).", with: "Tere! Mina olen \(voice.name).")
+        
         NSLog("QQQ ssml text: \(text)")
         NSLog("QQQ ssml voice: \(voice)")
 
@@ -225,34 +205,33 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         request = speechRequest
         synthesizer.setVoice(voice: voices.firstIndex(of: voice.name)!)
         
-        //let sentences = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression).split(separator: " . ")
         let sentences = processor.splitSentences(text: text)
         NSLog("QQQ sentences: \(sentences)")
         var audioData = Data()
         for sentence in sentences {
-            let ids: [Int] = encoder.textToIds(text: String(sentence))
-            //let ids: [Int] = encoder.textToIds(text: sentence)
-            NSLog("QQQ letter ids: \(ids)")
+            let ids: [Int] = encoder.textToIds(text: sentence)
+            //NSLog("QQQ letter ids: \(ids)")
             do {
                 let synthOutput: Data = try self.synthesizer.getMelSpectrogram(inputIds: ids)
                 self.synthesizer.reload()
                 //NSLog("QQQ spectrogram: \(synthOutput)")
                 
-                for id in 0...synthOutput.count/((self.audioChunkSize - self.overlapSize)) {
-                    //NSLog("QQQ part \(id + 1)")
-                    let start_id = id*(self.audioChunkSize - self.overlapSize)
-                    let end_id = min(synthOutput.count, (id+1)*self.audioChunkSize - id*self.overlapSize)
+                for id in 0...synthOutput.count/(bytesInFrame*(self.audioChunkSize - self.overlapSize)) {
+                    
+                    let start_id = id*bytesInFrame*(self.audioChunkSize - self.overlapSize)
+                    let end_id = min(synthOutput.count, bytesInFrame*((id+1)*self.audioChunkSize - id*self.overlapSize))
                     
                     let vocOutput = try self.vocoder.getAudio(input: synthOutput.subdata(in: start_id..<end_id))
                     self.vocoder.reload()
                     
-                    let overlapRatio: Double = Double(self.overlapSize)/Double(end_id - start_id)
+                    let overlapRatio: Double = Double(bytesInFrame*self.overlapSize)/Double(end_id - start_id)
                     if end_id == synthOutput.count && overlapRatio >= 1 {
                         break
                     }
                     let numValuesCut = Int(ceil(Double(vocOutput.count)*overlapRatio/2.0))
                     let clip_start = start_id == 0 ? 0 : numValuesCut
                     let clip_end = end_id == synthOutput.count ? vocOutput.count : vocOutput.count - numValuesCut
+                    
                     audioData += vocOutput.subdata(in: clip_start..<clip_end)
                     if end_id == synthOutput.count {
                         break
@@ -262,14 +241,10 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
                 NSLog("QQQ inference failed: \(error.localizedDescription)")
             }
             //Silence between sentences
-            audioData += Data(repeating: 0, count: 160)
+            audioData += Data(repeating: 0, count: self.silenceLength)
             let audioFilePath: String = saveAudio(arrayToData(toShortArray(floatDataToArray(audioData))))
             self.currentBuffer = getAudioBufferForSSML(audioFilePath, String(sentence))
         }
-        //NSLog("QQQ whole in audio: \(audioData)")
-        //let audioFilePath: String = saveAudio(arrayToData(int16Data))
-        //let audioFilePath: String = saveAudio(arrayToData(toShortArray(floatDataToArray(audioData))))
-        
         
         self.framePosition = 0
         self.outputMutex.signal()
@@ -282,7 +257,6 @@ class ARFileManager {
 
     var documentDirectoryURL: URL? {
         return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
-        //return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
     }
 
     func createWavFile(using rawData: Data) throws -> URL {
