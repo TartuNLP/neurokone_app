@@ -28,7 +28,7 @@ class FastSpeechModel: TfLiteModel {
     func setEnergy(energy: Float) { self.energy = energy; }
     
     func getMelSpectrogram(inputIds: [Int]) throws -> Data {
-        try self.model.allocateTensors()
+        //try self.model.allocateTensors()
         let primaryInputs: [[Int32]] = [inputIds.map { Int32($0) }, [Int32(self.voice)]]
         let secondaryInputs: [[Float]] = [[self.speed], [self.pitch], [self.energy]]
         
@@ -56,10 +56,6 @@ class FastSpeechModel: TfLiteModel {
         // inference
         try self.model.invoke()
         //NSLog("QQQ model invoked")
-        
-        for id in 0..<self.model.outputTensorCount {
-            NSLog("QQQ synth output \(id), tensor: \(try self.model.output(at: id))")
-        }
         
         return try self.model.output(at: 0).data
     }

@@ -241,7 +241,7 @@ class Processor {
         "kW": "kilovatt",
         "kWh": "kilovatttund",
     ]
-    private final let CONTAINS_ROMAN_RE = /^[IVXLCDM]+-?\w*$/
+    private final let CONTAINS_ROMAN_RE = /^[IVXLCDM]+(-\w+)?$/
     private final let ROMAN_NUMBERS = [
         "I": 1,
         "V": 5,
@@ -556,18 +556,15 @@ class Processor {
         // reduce Unicode repertoire _before_ inserting any hyphens
         //newText = convertToUtf8(text: newText)
         newText = simplifyUnicode(sentence: newText)
-        NSLog("QQQ 9: text: \(newText)")
         
         // add a hyphen between any number-letter sequences  # TODO should not be done in URLs
         newText = subBetween(text: newText, label: /(\d)[A-ZÄÖÜÕŽŠa-zäöüõšž]/, target: "-")
         newText = subBetween(text: newText, label: /[A-ZÄÖÜÕŽŠa-zäöüõšž](\d)/, target: "-")
-        NSLog("QQQ 10: text: \(newText)")
         
         // remove grouping between numbers
         // keeping space in 2006-10-27 12:48:50, in general require group of 3
         newText  = subBetween(text: newText, label: /([0-9]) ([0-9]{3})(?!\d)/, target: "")
         newText = newText.prefix(1).lowercased() + newText.dropFirst()
-        NSLog("QQQ 11: text: \(newText)")
         
         // split text into words ands symbols
         var tokens: [String] = []
@@ -575,7 +572,6 @@ class Processor {
             tokens.append(String(newText[match.range]))
             newText = String(newText[match.range.upperBound...])
         }
-        NSLog("QQQ 12: text: \(tokens)")
         newText = processByWord(tokens: tokens)
         newText = newText.lowercased()
         newText += "."
@@ -605,23 +601,17 @@ class Processor {
     // input: <speak><voice name="extension-identifier.voice-identifier">text</voice></speak>
     func splitSentences(text: String) -> [String] {
         var sentences: [String] = []
-        NSLog("QQQ 1: sentences: \(text)")
         var remainingSents: String = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
         if remainingSents.wholeMatch(of: /.+[.!?]\"?$/) == nil {
             remainingSents += "."
         }
-        NSLog("QQQ 2: sentences: \(remainingSents)")
         while let sentMatch = remainingSents.firstMatch(of: sentencesSplit) {
-            NSLog("QQQ 3: sentence match: \(sentMatch)")
             var sentence: String = String(remainingSents[..<sentMatch.range.lowerBound])
-            NSLog("QQQ 4: sentence: \(sentence)")
             remainingSents = String(remainingSents[sentMatch.range.upperBound...])
-            NSLog("QQQ 5: remaining sentence: \(remainingSents)")
-        
+            
             //For splitting sentences if they're too long for the synthesizer
             var startId = sentence.startIndex
             while let splitMatch = sentence[startId...].firstMatch(of: sentenceSplit) {
-                NSLog("QQQ 6: split match: \(splitMatch)")
                 if sentence.distance(from: sentence.startIndex, to: splitMatch.range.lowerBound) > 30 && sentence.distance(from: splitMatch.range.upperBound, to: sentence.endIndex) > 30 {
                     // if lookahead doesn't work
                     sentences.append(processSentence(String(sentence[..<splitMatch.range.upperBound])))
@@ -636,9 +626,7 @@ class Processor {
                 }
             }
             
-            NSLog("QQQ 7")
             sentences.append(processSentence(sentence))
-            NSLog("QQQ 8: sentences: \(sentences)")
         }
         return sentences
     }

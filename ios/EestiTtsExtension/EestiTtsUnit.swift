@@ -32,6 +32,8 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private final let encoder: Encoder = Encoder()
     private var synthesizer: FastSpeechModel!
     private var vocoder: VocoderModel!
+    private let audioChunkSize = 4*80*60
+    private let overlapSize = 4*80*15
     
     private let filemanager = ARFileManager()
     
@@ -176,13 +178,13 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         self.outputMutex.signal()
     }
     
-    func getAudioBufferForSSML(_ filePath: String) -> AVAudioPCMBuffer? {
+    func getAudioBufferForSSML(_ filePath: String, _ sentence: String) -> AVAudioPCMBuffer? {
         let fileUrl = URL(string: filePath)!
         NSLog("QQQ audio file url: \(fileUrl.description)")
         var fileSize: Double = 0.0
         fileSize = try! (fileUrl.resourceValues(forKeys: [URLResourceKey.fileSizeKey]).allValues.first?.value as! Double?)!
         fileSize = (fileSize / (1024 * 1024))
-        NSLog("QQQ audio file size: \(fileSize) MB")
+        NSLog("QQQ audio file size for sentence \"\(sentence)\": \(fileSize) MB")
         
         /*
         do {
@@ -209,11 +211,12 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     }
     
     public override func synthesizeSpeechRequest(_ speechRequest: AVSpeechSynthesisProviderRequest) {
-        let audioChunkSize = 4*80*50
         NSLog("QQQ request: \(speechRequest)")
 
-        let text: String = speechRequest.ssmlRepresentation
+        var text: String = speechRequest.ssmlRepresentation
         let voice: AVSpeechSynthesisProviderVoice = speechRequest.voice
+        //Replace English sample with Estonian.
+        text = text.replacingOccurrences(of: "Hello! My name is \(voice.name).", with: "Tere! Mina olen \(voice.name).")
         NSLog("QQQ ssml text: \(text)")
         NSLog("QQQ ssml voice: \(voice)")
 
@@ -229,31 +232,44 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         for sentence in sentences {
             let ids: [Int] = encoder.textToIds(text: String(sentence))
             //let ids: [Int] = encoder.textToIds(text: sentence)
-            NSLog("QQQ ids: \(ids)")
+            NSLog("QQQ letter ids: \(ids)")
             do {
                 let synthOutput: Data = try self.synthesizer.getMelSpectrogram(inputIds: ids)
                 self.synthesizer.reload()
-                NSLog("QQQ spectrogram: \(synthOutput)")
+                //NSLog("QQQ spectrogram: \(synthOutput)")
                 
-                for id in 0...synthOutput.count/audioChunkSize {
-                    NSLog("QQQ part \(id+1)")
-                    let vocOutput = try self.vocoder.getAudio(input: synthOutput.subdata(in: audioChunkSize*id..<min(synthOutput.count, audioChunkSize*(id+1))))
+                for id in 0...synthOutput.count/((self.audioChunkSize - self.overlapSize)) {
+                    //NSLog("QQQ part \(id + 1)")
+                    let start_id = id*(self.audioChunkSize - self.overlapSize)
+                    let end_id = min(synthOutput.count, (id+1)*self.audioChunkSize - id*self.overlapSize)
+                    
+                    let vocOutput = try self.vocoder.getAudio(input: synthOutput.subdata(in: start_id..<end_id))
                     self.vocoder.reload()
-                    NSLog("QQQ part of audio: \(vocOutput)")
-                    audioData += vocOutput
-                    //let floatArray: [Float] = floatDataToArray(modelOutput)
-                    //let int16Data: [Int16] = toShortArray(floatArray)
+                    
+                    let overlapRatio: Double = Double(self.overlapSize)/Double(end_id - start_id)
+                    if end_id == synthOutput.count && overlapRatio >= 1 {
+                        break
+                    }
+                    let numValuesCut = Int(ceil(Double(vocOutput.count)*overlapRatio/2.0))
+                    let clip_start = start_id == 0 ? 0 : numValuesCut
+                    let clip_end = end_id == synthOutput.count ? vocOutput.count : vocOutput.count - numValuesCut
+                    audioData += vocOutput.subdata(in: clip_start..<clip_end)
+                    if end_id == synthOutput.count {
+                        break
+                    }
                 }
             } catch {
                 NSLog("QQQ inference failed: \(error.localizedDescription)")
             }
             //Silence between sentences
             audioData += Data(repeating: 0, count: 160)
+            let audioFilePath: String = saveAudio(arrayToData(toShortArray(floatDataToArray(audioData))))
+            self.currentBuffer = getAudioBufferForSSML(audioFilePath, String(sentence))
         }
-        NSLog("QQQ whole in audio: \(audioData)")
+        //NSLog("QQQ whole in audio: \(audioData)")
         //let audioFilePath: String = saveAudio(arrayToData(int16Data))
-        let audioFilePath: String = saveAudio(arrayToData(toShortArray(floatDataToArray(audioData))))
-        currentBuffer = getAudioBufferForSSML(audioFilePath)
+        //let audioFilePath: String = saveAudio(arrayToData(toShortArray(floatDataToArray(audioData))))
+        
         
         self.framePosition = 0
         self.outputMutex.signal()
