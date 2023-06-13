@@ -8,7 +8,6 @@ import 'package:eestitts/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:logger/logger.dart';
 import 'package:lottie/lottie.dart';
 import 'package:android_intent_plus/android_intent.dart';
 
@@ -29,7 +28,7 @@ class MainPage extends StatefulWidget {
     required this.channel,
     //required this.changeColors,
   }) : super(key: key) {
-    langText = Variables.langs[lang]!;
+    this.langText = Variables.langs[this.lang]!;
   }
 
   @override
@@ -47,8 +46,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Controller for the text in Textfield.
   late TextEditingController _textEditingController;
   String _fieldText = '';
-
-  //late List<String> enabledSystemVoices;
 
   bool isSystemPlaying = false;
   bool isNativePlaying = false;
@@ -187,7 +184,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   List<Voice> _namesToVoices(List<String> names) {
     List<Voice> voices = [];
-    for (Voice voice in voices) {
+    for (Voice voice in widget.voices) {
       if (names.contains(voice.getName())) voices.add(voice);
     }
     return voices;
@@ -237,10 +234,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   //Dropdown list of tts engine's voices.
   _dropDownVoices(bool system) {
-    //Logger().d("All enabled voices: " + enabledSystemVoices.toString());
-    //if (system && enabledSystemVoices.isEmpty) {
-    //  return Text("No voices enabled.");
-    //}
     return DropdownButtonHideUnderline(
       child: ButtonTheme(
         minWidth: 145,
@@ -339,11 +332,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _openCustomTtsSelect() async {
     try {
       List newVoices = await Navigator.pushNamed(context, '/select') as List;
-      /*
-      setState(() {
-        this.enabledSystemVoices = newVoices.map((e) => e as String).toList();
-      });
-      */
     } catch (e) {}
   }
 

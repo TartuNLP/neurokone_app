@@ -3,7 +3,7 @@ import 'dart:math' as Math;
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 class EstProcessor {
-  var logger = Logger();
+  Logger logger = Logger();
   //For splitting the whole text into sentences.
   RegExp sentencesSplit =
       RegExp(r'[.!?]((((" )| |( "))(?=[a-zõäöüšžA-ZÕÄÖÜŠŽ0-9]))|("?$))');
@@ -34,7 +34,7 @@ class EstProcessor {
       }
     }
     sentenceParts
-        .add(sentence.substring(currentCharId).replaceAll(strip, '') + '.');
+        .add(sentence.substring(currentCharId).replaceAll(this.strip, '') + '.');
     return sentenceParts;
   }
 
@@ -50,7 +50,7 @@ class EstProcessor {
       //if last sentence doesn't end with .!?
       sentences.addAll(_splitSentence(text, currentSentId, null));
     }
-    logger
+    this.logger
         .d('Text split into sentences/sentence parts:' + sentences.toString());
     return sentences;
   }
@@ -644,7 +644,7 @@ class EstProcessor {
     text = _expandAbbreviations(text);
     text = text.toLowerCase();
 
-    logger.d('Text preprocessed:' + text);
+    this.logger.d('Text preprocessed:' + text);
     return text;
   }
 

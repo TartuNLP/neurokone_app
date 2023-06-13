@@ -26,19 +26,19 @@ class _TtsAppState extends State<TtsApp> {
     return MaterialApp(
       title: 'TartuNLP',
       theme: ThemeData(
-        primarySwatch: themeColor,
+        primarySwatch: this.themeColor,
       ),
       initialRoute: '/',
       routes: {
         '/': (context) => MainPage(
               //title: 'Neurokõne',
-              lang: lang,
+              lang: this.lang,
               switchLangs: this.switchLanguages,
               channel: this.channel,
               //changeColors: this.changeThemeColor,
             ),
         '/select': (context) => LanguageSelectionPage(
-              lang: lang,
+              lang: this.lang,
               switchLangs: this.switchLanguages,
               channel: this.channel,
             ),
@@ -49,14 +49,14 @@ class _TtsAppState extends State<TtsApp> {
   /*
   void changeThemeColor(MaterialColor color) {
     setState(() {
-      themeColor = color;
+      this.themeColor = color;
     });
   }
   */
 
   void switchLanguages(String newLang) {
     setState(() {
-      lang = newLang;
+      this.lang = newLang;
     });
   }
 }

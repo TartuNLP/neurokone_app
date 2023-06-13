@@ -34,12 +34,12 @@ class Header extends StatelessWidget {
   //Button that, when selected, has a blueish background and is disabled.
   _radioButton(String langCode, String language) {
     return TextButton(
-        style: _lang == language
+        style: this._lang == language
             ? ButtonStyle(
                 backgroundColor: MaterialStateProperty.all<Color>(
                     const Color.fromARGB(255, 228, 251, 255)))
             : null,
-        onPressed: _lang == language ? null : () => this.callback(language),
+        onPressed: this._lang == language ? null : () => this.callback(language),
         child: Text(langCode));
   }
 }

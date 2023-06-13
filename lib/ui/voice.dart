@@ -6,21 +6,21 @@ class Voice {
   final String _icon;
 
   String getName() {
-    return _name;
+    return this._name;
   }
 
   MaterialColor getColor() {
-    return _color;
+    return this._color;
   }
 
   String getIcon() {
-    return _icon;
+    return this._icon;
   }
 
   const Voice(this._name, this._color, this._icon);
 
   @override
-  bool operator ==(Object other) => other is Voice && other._name == _name;
+  bool operator ==(Object other) => other is Voice && other._name == this._name;
 
   @override
   int get hashCode => super.hashCode;

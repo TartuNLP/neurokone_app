@@ -2,19 +2,19 @@ import 'package:logger/logger.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class TfModel {
-  var logger = Logger();
+  Logger logger = Logger();
   final String TAG;
   late String modulePath;
   late Interpreter mModule;
 
   TfModel(this.TAG) {
-    modulePath = this.TAG + '.tflite';
+    this.modulePath = this.TAG + '.tflite';
     loadModel();
   }
 
   loadModel() async {
-    mModule = await Interpreter.fromAsset(modulePath);
-    logger.d(modulePath);
+    this.mModule = await Interpreter.fromAsset(this.modulePath);
+    this.logger.d(modulePath);
     /*
     for (Tensor tensor in mModule.getInputTensors()) {
       logger.d('$TAG (in): ' +
@@ -40,24 +40,24 @@ class TfModel {
   //Performs inference on the model and returns model's output as Tensor.
   //Input should already formatted to to model's input shape.
   Tensor invokeModel(List<Object> inputList) {
-    var inputTensors = mModule.getInputTensors();
+    var inputTensors = this.mModule.getInputTensors();
 
     for (int i = 0; i < inputList.length; i++) {
-      var tensor = inputTensors.elementAt(i);
+      Tensor tensor = inputTensors.elementAt(i);
       final newShape = tensor.getInputShapeIfDifferent(inputList[i]);
       if (newShape != null) {
-        mModule.resizeInputTensor(i, newShape);
+        this.mModule.resizeInputTensor(i, newShape);
       }
     }
-    mModule.allocateTensors();
+    this.mModule.allocateTensors();
 
-    inputTensors = mModule.getInputTensors();
+    inputTensors = this.mModule.getInputTensors();
     for (int i = 0; i < inputList.length; i++) {
       inputTensors.elementAt(i).setTo(inputList[i]);
     }
 
-    mModule.invoke();
+    this.mModule.invoke();
 
-    return mModule.getOutputTensor(0);
+    return this.mModule.getOutputTensor(0);
   }
 }

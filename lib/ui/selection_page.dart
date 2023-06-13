@@ -16,7 +16,7 @@ class LanguageSelectionPage extends StatefulWidget {
 
   LanguageSelectionPage(
       {required this.lang, required this.switchLangs, required this.channel}) {
-    langText = Variables.langs[this.lang]!;
+    this.langText = Variables.langs[this.lang]!;
   }
 
   @override
