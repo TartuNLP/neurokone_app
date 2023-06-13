@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name" translatable="false">eesti_tts</string>
+    <string name="app_name" translatable="false">eestitts</string>
     <string name="service_name" translatable="false">Eesti TTS</string>
 
-    <string name="sample_text" translatable="false">Kui Arno isaga koolimajja jõudis.</string>
+    <string name="sample_text" translatable="false">kui arno isaga koolimajja jõudis.</string>
     <string name="voice_title" translatable="false">Sünteesi kõne</string>
     <string name="voice_summary" translatable="false">Sünteesi eestikeelset kõne 10 erineva häälega.</string>
     <string name="tts_settings_label">Kõnelejad</string>

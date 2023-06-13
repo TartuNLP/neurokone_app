@@ -1,7 +1,8 @@
-import 'dart:developer';
+import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
 
 class Encoder {
+  Logger logger = Logger();
   static List<String> SYMBOLS = [
     'pad',
     '-', //
@@ -66,7 +67,7 @@ class Encoder {
     for (String symbol in symbols.characters) {
       int? id = SYMBOL_TO_ID[symbol];
       if (id == null) {
-        log("symbolsToSequence: id is not found for " + symbol);
+        this.logger.d("symbolsToSequence: id is not found for " + symbol);
       } else {
         sequence.add(id);
       }
