@@ -7,43 +7,33 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeechService;
 import android.text.TextUtils;
 import android.util.Log;
+
 import android.content.res.AssetManager;
+
+import androidx.annotation.Nullable;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.tensorflow.lite.DataType;
+import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 import java.io.*;
 
-public class Konesuntees extends TextToSpeechService /*implements FlutterPlugin, MethodCallHandler*/ {
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
     private final String TAG = "Kõnesüntees";
-
-    /*
-    private MethodChannel channel;
-    private FlutterPluginBinding binding;
-
-    @Override
-    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-        channel = new MethodChannel(binding.getBinaryMessenger(), "com.tartunlp.eestitts");
-        channel.setMethodCallHandler(this);
-        this.binding = binding;
-    }
-
-    @Override
-    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        channel.setMethodCallHandler(null);
-        this.binding = null;
-    }
-
-    @Override
-    public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-        if (call.method.equals("getPlatformVersion")) {
-            result.success("Android " + android.os.Build.VERSION.RELEASE);
-        } else {
-            result.notImplemented();
-        }
-    }*/
-
     /*
      * This is the sampling rate of our output audio. This engine outputs
      * audio at 22.05kHz 16bits per sample PCM audio.
@@ -121,25 +111,14 @@ public class Konesuntees extends TextToSpeechService /*implements FlutterPlugin,
 
         Log.d(TAG, strOutFileName + " not found. Copying model from app assets...");
 
-        /*
-        String assetPath = binding
-                .getFlutterAssets()
-                .getAssetFilePathBySubpath("assets/" + strOutFileName, "com.tartunlp.eestitts");
-
-        try (OutputStream out = new FileOutputStream(f);
-             InputStream in = binding.getApplicationContext().getAssets().open(assetPath))
-             {
-            byte[] buffer = new byte[1024];
-            int length = in.read(buffer);
-            while (length > 0) {
-                out.write(buffer, 0, length);
-                length = in.read(buffer);
-            }
-            out.flush();
-            Log.d(TAG, "Copy task successful.");
-        } catch (IOException e) {
-            Log.e(TAG, "Failed to copy file " + strOutFileName, e);
-        }*/
+        //FlutterLoader loader = FlutterInjector.instance().flutterLoader();
+        //loader.startInitialization(getApplicationContext());
+        //loader.ensureInitializationComplete(getApplicationContext(), new String[] {});
+        //String key = loader.getLookupKeyForAsset("assets/mobilenetv3.ptl");
+        
+        //AssetManager assetManager = registrar.context().getAssets();
+        //String key = registrar.lookupKeyForAsset("assets/" + strOutFileName);
+        //AssetFileDescriptor fd = assetManager.openFd(key);
 
         try (OutputStream myOutput = new FileOutputStream(f);
              InputStream myInput = getAssets().open(strOutFileName)
