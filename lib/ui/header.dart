@@ -1,5 +1,7 @@
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:eestitts/variables.dart';
 
 class Header extends StatelessWidget {
   final Function callback;
@@ -15,6 +17,7 @@ class Header extends StatelessWidget {
         SvgPicture.asset('assets/icons_logos/neurokone-logo-clean.svg'),
         Spacer(),
         _langRadioButtons(),
+        _settingsButton(),
       ],
     );
   }
@@ -39,7 +42,40 @@ class Header extends StatelessWidget {
                 backgroundColor: MaterialStateProperty.all<Color>(
                     const Color.fromARGB(255, 228, 251, 255)))
             : null,
-        onPressed: this._lang == language ? null : () => this.callback(language),
+        onPressed:
+            this._lang == language ? null : () => this.callback(language),
         child: Text(langCode));
+  }
+
+  _settingsButton() {
+    return PopupMenuButton<String>(
+      icon: const Icon(
+        Icons.more_vert_rounded,
+        color: Colors.black54,
+      ),
+      onSelected: _handleClick,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(8.0),
+          bottomRight: Radius.circular(8.0),
+          topLeft: Radius.circular(8.0),
+          topRight: Radius.circular(8.0),
+        ),
+      ),
+      itemBuilder: (BuildContext context) {
+        return {Variables.langs[_lang]!['TTS Settings']!}.map((String choice) {
+          return PopupMenuItem<String>(
+            value: choice,
+            child: Text(choice),
+          );
+        }).toList();
+      },
+    );
+  }
+
+  void _handleClick(String value) async {
+    if (value == Variables.langs[_lang]!['TTS Settings']!) {
+      await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS').launch();
+    }
   }
 }

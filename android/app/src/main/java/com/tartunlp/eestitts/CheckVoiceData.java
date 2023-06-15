@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -40,39 +39,21 @@ public class CheckVoiceData extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Intent intent = getIntent();
-        List<String> checkLanguages = getCheckVoiceDataFor(intent);
-
-        // If the call didn't specify which languages to check, check
-        // for all the supported ones.
-        if (checkLanguages.isEmpty()) {
-            checkLanguages = Arrays.asList(SUPPORTED_LANGUAGES);
-        }
-
         ArrayList<String> available = new ArrayList<String>();
         ArrayList<String> unavailable = new ArrayList<String>();
 
-        for (String lang : checkLanguages) {
-            // This check is required because checkLanguages might contain
-            // an arbitrary list of languages if the intent specified them
-            // {@link #getCheckVoiceDataFor}.
-            if (isLanguageSupported(lang)) {
-                if (isDataInstalled(lang)) {
-                    available.add(lang);
-                } else {
-                    unavailable.add(lang);
-                }
+        for (String lang : SUPPORTED_LANGUAGES) {
+            if (isDataInstalled(lang)) {
+                available.add(lang);
+            } else {
+                unavailable.add(lang);
             }
         }
 
         int result;
-        if (!checkLanguages.isEmpty() && available.isEmpty()) {
+        if (available.isEmpty()) {
             // No voices available at all.
             result = TextToSpeech.Engine.CHECK_VOICE_DATA_FAIL;
-        } else if (!unavailable.isEmpty()) {
-            // Some voices are available, but some have missing
-            // data.
-            result = TextToSpeech.Engine.CHECK_VOICE_DATA_MISSING_DATA;
         } else {
             // All voices are available.
             result = TextToSpeech.Engine.CHECK_VOICE_DATA_PASS;
@@ -89,40 +70,6 @@ public class CheckVoiceData extends Activity {
         finish();
     }
 
-    /**
-     * The intent that launches this activity can contain an intent extra
-     * {@link //TextToSpeech.Engine.EXTRA_CHECK_VOICE_DATA_FOR} that might specify
-     * a given language to check voice data for. If the intent does not contain
-     * this extra, we assume that a voice check for all supported languages
-     * was requested.
-     */
-    private List<String> getCheckVoiceDataFor(Intent intent) {
-        ArrayList<String> list = intent.getStringArrayListExtra(
-                TextToSpeech.Engine.EXTRA_CHECK_VOICE_DATA_FOR);
-        ArrayList<String> ret = new ArrayList<String>();
-        if (list != null) {
-            for (String lang : list) {
-                if (!TextUtils.isEmpty(lang)) {
-                    ret.add(lang);
-                }
-            }
-        }
-        return ret;
-    }
-
-    /**
-     * Checks whether a given language is in the list of supported languages.
-     */
-    private boolean isLanguageSupported(String input) {
-        for (String lang : SUPPORTED_LANGUAGES) {
-            if (lang.equals(input)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     /*
      * Note that in our example, all data is packaged in our APK as
      * assets (it could be a raw resource as well). This check is unnecessary
@@ -133,7 +80,7 @@ public class CheckVoiceData extends Activity {
      */
     private boolean isDataInstalled(String lang) {
         String synthName = "fastspeech2-" + lang.split("-")[0] + ".tflite";
-        String vocName = "hifigan-" + lang.split("-")[0] + ".tflite";
+        //String vocName = "hifigan-" + lang.split("-")[0] + ".v2.tflite";
         try {
             InputStream is = getAssets().open(synthName);
 

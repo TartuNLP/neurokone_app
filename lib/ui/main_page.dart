@@ -331,7 +331,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Opens a view on iOS where custom speech synthesis engines can be enabled.
   _openCustomTtsSelect() async {
     try {
-      List newVoices = await Navigator.pushNamed(context, '/select') as List;
+      await Navigator.pushNamed(context, '/select');
     } catch (e) {}
   }
 

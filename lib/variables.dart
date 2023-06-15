@@ -5,8 +5,9 @@ class Variables {
   static final String channelPath = 'com.tartunlp.eestitts';
 
   //Defaults for Estonian and English UI.
-  static final Map<String, Map<String, String>> langs = {
+  static const Map<String, Map<String, String>> langs = {
     'Eesti': {
+      'TTS Settings': 'Kõnesünteesi seaded',
       'Choose': 'Süsteemiseadete hääl',
       'Speak': 'Räägi',
       'Stop': 'Peata',
@@ -18,6 +19,7 @@ class Variables {
       'Selected': 'Lubatud Keeled',
     },
     'English': {
+      'TTS Settings': 'Text-to-speech settings',
       'Choose': 'Default system voice',
       'Speak': 'Speak',
       'Stop': 'Stop',

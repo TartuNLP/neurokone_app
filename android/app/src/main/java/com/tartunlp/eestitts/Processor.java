@@ -575,14 +575,17 @@ class Processor {
         List<String> sentences = new ArrayList<>();
         int currentSentId = 0;
         Matcher matcher;
+        if (!remainingText.matches(".+[.!?]$")) {
+            remainingText += ".";
+        }
         while ((matcher = sentencesSplit.matcher(remainingText)).find(currentSentId)) {
             String sentence = remainingText.substring(currentSentId, matcher.start());
             currentSentId = matcher.end();
             int currentCharId = 0;
             Matcher splitmatcher;
             while ((splitmatcher = sentenceSplit.matcher(sentence)).find(currentCharId)) {
-                if (splitmatcher.start() > 20 + currentCharId &&
-                        splitmatcher.end() < sentence.length() - 20) {
+                if (splitmatcher.start() > 30 + currentCharId &&
+                        splitmatcher.end() < sentence.length() - 30) {
                     sentences.add(sentence
                             .substring(currentCharId, splitmatcher.start())
                             .replaceAll(sentenceStrip, "") +
