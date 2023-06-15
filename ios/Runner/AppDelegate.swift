@@ -6,7 +6,6 @@ import AVFoundation
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
   let defaults = UserDefaults(suiteName: "group.com.tartunlp.eestitts")
-  let mainBundle = Bundle.main
 
   override func application(
     _ application: UIApplication,
@@ -28,7 +27,7 @@ import AVFoundation
 
   private func addModelPath(assetPath: String, key: String, controller: FlutterViewController) {
     let modelKey = controller.lookupKey(forAsset: assetPath)
-    let modelPath = mainBundle.path(forResource: modelKey, ofType: nil)
+    let modelPath = Bundle.main.path(forResource: modelKey, ofType: nil)
     defaults?.set(modelPath, forKey: key)
   }
 

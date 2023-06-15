@@ -30,6 +30,9 @@
             </intent-filter>
         </activity>
 
+        <!--activity>
+        </activity-->
+
         <!--Text to speech service-->
         <service
             android:name=".Konesuntees"

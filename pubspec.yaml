@@ -50,6 +50,12 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  #plugin:
+  # platforms:
+  #    android:
+  #      package: com.tartunlp.eestitts
+  #      pluginClass: Konesuntees
+
   assets:
     - assets/icons_logos/
     - assets/

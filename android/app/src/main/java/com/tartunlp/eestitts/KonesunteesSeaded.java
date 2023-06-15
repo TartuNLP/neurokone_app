@@ -4,16 +4,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceActivity;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-public class KonesunteesSeaded extends Activity {
+public class KonesunteesSeaded extends PreferenceActivity {
 
-    private RadioGroup mVoicesContainer;
     private View mProgress;
 
     public static volatile String voice;
@@ -26,7 +27,7 @@ public class KonesunteesSeaded extends Activity {
 
         mProgress = findViewById(R.id.progress_layout);
 
-        mVoicesContainer = (RadioGroup) findViewById(R.id.tts_voices);
+        RadioGroup mVoicesContainer = (RadioGroup) findViewById(R.id.tts_voices);
         String voice = PrefUtil.getTtsVoice(this);
         if (voice.equals(getString(R.string.label_mari))) {
             ((RadioButton)findViewById(R.id.mari)).setChecked(true);

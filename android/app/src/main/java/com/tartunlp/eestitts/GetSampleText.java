@@ -22,7 +22,7 @@ public class GetSampleText extends Activity {
         Log.i(TAG , "GetSampleText language: " + language);
 
         if (language.equalsIgnoreCase("et") || language.equalsIgnoreCase("est")) {
-            returnData.putExtra("sampleText", getString(R.string.sample_text));
+            returnData.putExtra("sampleText", getString(R.string.sample_text) + " " + PrefUtil.getTtsVoice(this) + ".");
         } else {
             result = TextToSpeech.LANG_NOT_SUPPORTED;
             returnData.putExtra("sampleText", "");
