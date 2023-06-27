@@ -13,14 +13,22 @@ class Tts {
   /////////////////////////////////////////////////////////
   final bool isIOS;
   String lang = 'et-EE';
+  late NativeTts nativeTts;
   late FlutterTts systemTts;
-  NativeTts? nativeTts;
   bool stopNative = false;
-  String engine = '';
+  String? engine;
 
   Logger logger = Logger();
 
-  Tts(this.isIOS);
+  Tts(this.isIOS) {
+    initTtsNative();
+    initSystemTts();
+  }
+
+  //Loads the application's tts engine.
+  void initTtsNative() {
+    this.nativeTts = NativeTts('fastspeech2-est', 'hifigan-est.v2', this.isIOS);
+  }
 
   //Loads Android system's tts engine.
   void initSystemTts() async {
@@ -29,14 +37,7 @@ class Tts {
     await this.systemTts.awaitSpeakCompletion(true);
   }
 
-  //Loads the application's tts engine.
-  void initTtsNative() {
-    if (this.nativeTts == null)
-      this.nativeTts = NativeTts('fastspeech2-est', 'hifigan-est.v2', this.isIOS);
-    this.logger.d('TtsEngine: native');
-  }
-
-  Future setDefaultEngine() async {
+  Future loadSystemDefaultEngine() async {
     if (this.isIOS) {
       if (await this.systemTts.isLanguageAvailable(this.lang)) {
         this.systemTts.setLanguage(this.lang);
@@ -44,10 +45,11 @@ class Tts {
       }
     } else {
       String newEngine = await this.systemTts.getDefaultEngine;
+      this.logger.d(newEngine);
       if (this.engine != newEngine) {
         this.engine = newEngine;
-        print('TtsEngine:' + this.engine.toString());
-        this.systemTts.setEngine(this.engine);
+        this.logger.d('TtsEngine:' + this.engine.toString());
+        this.systemTts.setEngine(this.engine!);
       }
     }
   }
@@ -55,24 +57,24 @@ class Tts {
   //Processes the text before input to the model.
   final EstProcessor _processor = EstProcessor();
 
-  speak(String text, double speed, bool isSystem, dynamic voice) async {
-    this.logger.i("Synth voice: " + voice.toString());
-    if (!isSystem) {
-      List<String> sentences = await _processor.preprocess(text);
-      for (String sentence in sentences) {
-        if (this.stopNative) break;
-        await this.nativeTts!.nativeTextToSpeech(sentence, voice, speed);
-      }
-      this.stopNative = false;
-    } else {
-      await this.systemTts.setLanguage(this.lang);
-      try {
-        await this.systemTts.setVoice({"name": voice, "locale": this.lang});
-      } catch (e) {}
-      //await this.systemTts.setVolume(volume);
-      await this.systemTts.setSpeechRate(speed / 2);
-      //await this.systemTts.setPitch(pitch);
-      await this.systemTts.speak(text);
+  speak(String text, double speed, bool isSystem, int? voice) {
+    isSystem
+        ? _systemSynthesis(text, speed)
+        : _nativeSynthesis(text, speed, voice!);
+  }
+
+  _systemSynthesis(String text, double speed) async {
+    await this.systemTts.setLanguage(this.lang);
+    await this.systemTts.setSpeechRate(speed / 2);
+    await this.systemTts.speak(text);
+  }
+
+  _nativeSynthesis(String text, double speed, int voice) async {
+    List<String> sentences = await _processor.preprocess(text);
+    for (String sentence in sentences) {
+      if (this.stopNative) break;
+      await this.nativeTts.nativeTextToSpeech(sentence, voice, speed);
     }
+    this.stopNative = false;
   }
 }

@@ -8,29 +8,12 @@ import android.speech.tts.TextToSpeechService;
 import android.text.TextUtils;
 import android.util.Log;
 
-import android.content.res.AssetManager;
-
-import androidx.annotation.Nullable;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import org.tensorflow.lite.DataType;
-import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 import java.io.*;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
     private final String TAG = "Kõnesüntees";
@@ -256,8 +239,8 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
         byte[] mAudioBuffer = new byte[4 * outputArray.length + 1]; // +1 because less throws buffervoverflow
         ByteBuffer buffer = ByteBuffer.wrap(mAudioBuffer).order(ByteOrder.LITTLE_ENDIAN);
 
-        for (int i = 0; i < outputArray.length; i++) {
-            buffer.putShort((short) Math.round(32768 * outputArray[i]));
+        for (float v : outputArray) {
+            buffer.putShort((short) Math.round(32768 * v));
         }
         // Get the maximum allowed size of data we can send across in audioAvailable.
         final int maxBufferSize = cb.getMaxBufferSize();

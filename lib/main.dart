@@ -1,6 +1,8 @@
 import 'package:eestitts/synth/system_channel.dart';
+import 'package:eestitts/ui/about_page.dart';
 import 'package:eestitts/ui/main_page.dart';
 import 'package:eestitts/ui/selection_page.dart';
+import 'package:eestitts/ui/instructions_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -28,16 +30,22 @@ class _TtsAppState extends State<TtsApp> {
       theme: ThemeData(
         primarySwatch: this.themeColor,
       ),
-      initialRoute: '/',
+      initialRoute: 'home',
       routes: {
-        '/': (context) => MainPage(
-              //title: 'Neurokõne',
+        'instructions': (context) => InstructionsPage(
+              lang: this.lang,
+              switchLangs: this.switchLanguages,
+            ),
+        'home': (context) => MainPage(
               lang: this.lang,
               switchLangs: this.switchLanguages,
               channel: this.channel,
-              //changeColors: this.changeThemeColor,
             ),
-        '/select': (context) => LanguageSelectionPage(
+        'about': (context) => AboutPage(
+              lang: this.lang,
+              switchLangs: this.switchLanguages,
+            ),
+        'select': (context) => LanguageSelectionPage(
               lang: this.lang,
               switchLangs: this.switchLanguages,
               channel: this.channel,
@@ -45,14 +53,6 @@ class _TtsAppState extends State<TtsApp> {
       },
     );
   }
-
-  /*
-  void changeThemeColor(MaterialColor color) {
-    setState(() {
-      this.themeColor = color;
-    });
-  }
-  */
 
   void switchLanguages(String newLang) {
     setState(() {

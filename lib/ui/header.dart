@@ -16,14 +16,14 @@ class Header extends StatelessWidget {
       children: [
         SvgPicture.asset('assets/icons_logos/neurokone-logo-clean.svg'),
         Spacer(),
-        _langRadioButtons(),
-        _settingsButton(),
+        _languageButtons(),
+        if (ModalRoute.of(context)?.settings.name == 'home')
+          _moreButton(context),
       ],
     );
   }
 
-  //Toggle buttons for UI language.
-  _langRadioButtons() {
+  _languageButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
@@ -47,13 +47,13 @@ class Header extends StatelessWidget {
         child: Text(langCode));
   }
 
-  _settingsButton() {
+  _moreButton(BuildContext context) {
     return PopupMenuButton<String>(
       icon: const Icon(
         Icons.more_vert_rounded,
         color: Colors.black54,
       ),
-      onSelected: _handleClick,
+      onSelected: (value) => _handleClick(value, context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(8.0),
@@ -63,7 +63,7 @@ class Header extends StatelessWidget {
         ),
       ),
       itemBuilder: (BuildContext context) {
-        return {Variables.langs[_lang]!['TTS Settings']!}.map((String choice) {
+        return _getPages(context).map((String choice) {
           return PopupMenuItem<String>(
             value: choice,
             child: Text(choice),
@@ -73,9 +73,21 @@ class Header extends StatelessWidget {
     );
   }
 
-  void _handleClick(String value) async {
-    if (value == Variables.langs[_lang]!['TTS Settings']!) {
+  Set<String> _getPages(BuildContext context) {
+    Set<String> out = Set();
+    for (String page in ['TTS settings', 'about', 'instructions']) {
+      out.add(Variables.langs[_lang]![page]!);
+    }
+    return out;
+  }
+
+  void _handleClick(String value, BuildContext context) async {
+    if (value == Variables.langs[_lang]!['TTS settings']!) {
       await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS').launch();
+    } else if (value == Variables.langs[_lang]!['about']!) {
+      await Navigator.pushNamed(context, 'about');
+    } else if (value == Variables.langs[_lang]!['instructions']!) {
+      await Navigator.pushNamed(context, 'instructions');
     }
   }
 }

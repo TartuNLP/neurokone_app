@@ -1,13 +1,13 @@
 import 'dart:io';
-
+import 'package:eestitts/ui/voice.dart';
 import 'package:logger/logger.dart';
 import 'package:eestitts/variables.dart';
 import 'package:flutter/services.dart';
 
 class SystemChannel {
   Logger logger = Logger();
-  late final MethodChannel channel = new MethodChannel(Variables.channelPath);
-  List enabledVoices = [];
+  late final MethodChannel channel = new MethodChannel(Variables.packageName);
+  List<Voice> enabledVoices = [];
 
   SystemChannel() {
     _getEnabledVoices();
@@ -15,9 +15,23 @@ class SystemChannel {
 
   _getEnabledVoices() async {
     if (Platform.isIOS) {
-      this.enabledVoices = await this.channel.invokeMethod("getDefaultVoices");
+      List enabledVoiceNames =
+          await this.channel.invokeMethod("getDefaultVoices");
+      List<String> enabledVoiceNamesString =
+          enabledVoiceNames.map((e) => e as String).toList();
+      this.enabledVoices = _namesToVoices(enabledVoiceNamesString);
       this.logger.d("Voices: " + this.enabledVoices.toString());
+    } else {
+      this.enabledVoices = Variables.voices;
     }
+  }
+
+  List<Voice> _namesToVoices(List<String> names) {
+    List<Voice> voices = [];
+    for (Voice voice in Variables.voices) {
+      if (names.contains(voice.getName())) voices.add(voice);
+    }
+    return voices;
   }
 
   List getDefaultVoices() {
@@ -25,7 +39,7 @@ class SystemChannel {
   }
 
   void setNewVoices(List<String> newVoices) async {
-    this.enabledVoices = newVoices;
+    this.enabledVoices = _namesToVoices(newVoices);
     this.logger.d("Now enabled: " + this.enabledVoices.toString());
   }
 
