@@ -2,6 +2,7 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:eestitts/variables.dart';
+import 'dart:io' show Platform;
 
 class Header extends StatelessWidget {
   final Function callback;
@@ -11,10 +12,14 @@ class Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        SvgPicture.asset('assets/icons_logos/neurokone-logo-clean.svg'),
+        SvgPicture.asset(
+          'assets/icons_logos/neurokone-logo-clean.svg',
+          width: screenWidth < 380 ? screenWidth / 2.5 : null,
+        ),
         Spacer(),
         _languageButtons(),
         if (ModalRoute.of(context)?.settings.name == 'home')
@@ -37,11 +42,12 @@ class Header extends StatelessWidget {
   //Button that, when selected, has a blueish background and is disabled.
   _radioButton(String langCode, String language) {
     return TextButton(
-        style: this._lang == language
-            ? ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                    const Color.fromARGB(255, 228, 251, 255)))
-            : null,
+        style: ButtonStyle(
+            backgroundColor: this._lang == language
+                ? MaterialStateProperty.all<Color>(
+                    const Color.fromARGB(255, 228, 251, 255))
+                : null,
+            minimumSize: MaterialStateProperty.all<Size>(Size(50, 40))),
         onPressed:
             this._lang == language ? null : () => this.callback(language),
         child: Text(langCode));
@@ -49,10 +55,15 @@ class Header extends StatelessWidget {
 
   _moreButton(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: const Icon(
-        Icons.more_vert_rounded,
-        color: Colors.black54,
-      ),
+      icon: Platform.isIOS
+          ? const Icon(
+              Icons.more_horiz_rounded,
+              color: Colors.black54,
+            )
+          : const Icon(
+              Icons.more_vert_rounded,
+              color: Colors.black54,
+            ),
       onSelected: (value) => _handleClick(value, context),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
@@ -75,7 +86,7 @@ class Header extends StatelessWidget {
 
   Set<String> _getPages(BuildContext context) {
     Set<String> out = Set();
-    for (String page in ['TTS settings', 'about', 'instructions']) {
+    for (String page in ['TTS settings', /*'about', */ 'instructions']) {
       out.add(Variables.langs[_lang]![page]!);
     }
     return out;

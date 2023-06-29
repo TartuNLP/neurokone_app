@@ -1,6 +1,6 @@
 import 'dart:io' show Platform;
+import 'dart:math';
 import 'package:eestitts/ui/page_view.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:eestitts/synth/system_channel.dart';
 import 'package:eestitts/ui/header.dart';
 import 'package:eestitts/ui/voice.dart';
@@ -152,11 +152,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Lastly, speak/predict and play button.
   @override
   Widget build(BuildContext context) {
+    print(MediaQuery.of(context).size.width);
     return NewPage.createScaffoldView(
       appBarTitle: Header(widget.switchLangs, widget.lang),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(),
@@ -164,7 +165,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _radioEngines(),
+                  _ttsEngineChoice(),
                   _speedControl(),
                   _inputTextField(),
                   _speakStopButtons(),
@@ -178,30 +179,51 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   //Toggle switch between the native and system's tts engine.
-  _radioEngines() {
+  _ttsEngineChoice() {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _radioTile(_dropDownVoices(), false),
-        _radioTile(
-            this.isIOS ? _iosSelection() : _androidTtsSettingsButton(), true),
+        Text(
+          widget.langText['engine']!,
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        Flex(
+          direction: Axis.horizontal,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            _radioTile(_dropDownVoices(), false),
+            _radioTile(_ttsSettingsButton(), true),
+          ],
+        ),
       ],
     );
   }
 
+  //Text-to-speech voice option
   _radioTile(title, initialValue) {
-    return ListTile(
-      title: title,
-      leading: Radio<bool>(
-        fillColor: MaterialStateColor.resolveWith((states) => Colors.green),
-        focusColor: MaterialStateColor.resolveWith((states) => Colors.green),
-        value: initialValue,
-        groupValue: this.isSystemVoice,
-        onChanged: (bool? value) {
-          setState(() {
-            this.isSystemVoice = value!;
-          });
-        },
+    return Expanded(
+      flex: 2,
+      child: ListTile(
+        contentPadding: EdgeInsets.all(10),
+        title: title,
+        horizontalTitleGap: 0,
+        minLeadingWidth: 36,
+        leading: Radio<bool>(
+          visualDensity: const VisualDensity(
+            horizontal: VisualDensity.minimumDensity,
+            vertical: VisualDensity.minimumDensity,
+          ),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          fillColor: MaterialStateColor.resolveWith((states) => Colors.green),
+          focusColor: MaterialStateColor.resolveWith((states) => Colors.green),
+          value: initialValue,
+          groupValue: this.isSystemVoice,
+          onChanged: (bool? value) {
+            setState(() {
+              this.isSystemVoice = value!;
+            });
+          },
+        ),
       ),
     );
   }
@@ -210,115 +232,96 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _dropDownVoices() {
     return DropdownButtonHideUnderline(
       child: ButtonTheme(
-        minWidth: 145,
-        //alignedDropdown: true,
-        child: DropdownButton2(
-          dropdownStyleData: DropdownStyleData(
-              elevation: 16,
-              decoration: BoxDecoration(color: Colors.transparent)),
-          value: _currentNativeVoice,
-          items: Variables.voices
-              .map((Voice voice) => DropdownMenuItem(
-                    value: voice,
-                    child: _voiceBox(voice),
-                  ))
-              .toList(),
-          selectedItemBuilder: (BuildContext _) {
-            return Variables.voices.map<Widget>((Voice voice) {
-              return DropdownMenuItem(
-                value: voice,
-                child: _voiceBox(voice),
-              );
-            }).toList();
-          },
-          onChanged: (value) => setState(() {
-            _currentNativeVoice = value as Voice;
-          }),
-        ),
-      ),
-    );
-    /*
-        PopupMenuButton(
+        child: PopupMenuButton(
           color: Colors.transparent,
-          offset: Offset(
-              0, (Variables.voices.indexOf(_currentVoice) + 1) * voiceTileHeight),
-          elevation: 24,
-          initialValue: _currentVoice,
-          child: _voiceBox(_currentVoice, arrow: true),
+          offset: Offset(0,
+              Variables.voices.indexOf(_currentNativeVoice) * voiceTileHeight),
+          elevation: 16,
+          constraints: BoxConstraints(
+            maxWidth: min(MediaQuery.of(context).size.width * 0.5, 200),
+          ),
+          initialValue: _currentNativeVoice,
+          child: _voiceBox(_currentNativeVoice, false),
           // Callback that sets the selected popup menu item.
           onSelected: (item) {
             setState(() {
-              _currentVoice = item as Voice;
+              _currentNativeVoice = item as Voice;
             });
           },
           itemBuilder: (context) => Variables.voices
               .map((Voice voice) => PopupMenuItem(
+                    textStyle: TextStyle(),
+                    padding: EdgeInsets.all(0),
                     value: voice,
-                    child: _voiceBox(voice),
+                    child: _voiceBox(voice, true),
                   ))
               .toList(),
-        ),*/
+        ),
+      ),
+    );
   }
 
   //Component that represents a voice in the dropdown list.
-  _voiceBox(Voice voice) {
+  _voiceBox(Voice voice, bool hasSvg) {
     return Container(
       decoration: BoxDecoration(
         color: voice.getColor(),
         borderRadius: const BorderRadius.all(
-          Radius.circular(10),
+          Radius.circular(14),
         ),
       ),
       //height: voiceTileHeight,
-      constraints: BoxConstraints.expand(width: 145, height: 40),
-      child: _boxContents(voice),
+      constraints: BoxConstraints.expand(
+          width: min(MediaQuery.of(context).size.width * 0.5, 200),
+          height: voiceTileHeight),
+      child: _boxContents(voice, hasSvg),
     );
   }
 
-  _boxContents(Voice voice) {
+  //Contents in the voice representing box
+  _boxContents(Voice voice, bool hasSvg) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisAlignment:
+          hasSvg ? MainAxisAlignment.start : MainAxisAlignment.center,
       children: [
-        Variables.voiceIcon(voice),
+        if (hasSvg) Variables.voiceIcon(voice),
         Text(
           voice.getName(),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black54,
+          ),
           overflow: TextOverflow.visible,
         ),
-        /*Visibility(
-            child: Icon(Icons.arrow_drop_down),
-            visible: arrow,
-          ),*/
       ],
     );
-  }
-
-  _iosSelection() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-            onPressed: _openCustomTtsSelect,
-            icon: Icon(IconData(0xe57f, fontFamily: 'MaterialIcons'))),
-      ],
-    );
-  }
-
-  //Opens a view on iOS where custom speech synthesis engines can be enabled.
-  _openCustomTtsSelect() async {
-    try {
-      await Navigator.pushNamed(context, 'select');
-    } catch (e) {}
   }
 
   //Takes the user to Android 'Text-to-speech output' settings.
-  _androidTtsSettingsButton() {
-    return TextButton(
-      child: Text(widget.langText['choose']!),
-      onPressed: () async {
-        await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS')
-            .launch();
-      },
+  _ttsSettingsButton() {
+    return SizedBox(
+      height: voiceTileHeight,
+      child: TextButton(
+        child: Text(
+          widget.langText['choose']!,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13),
+        ),
+        onPressed: () async {
+          isIOS
+              ? await Navigator.pushNamed(context, 'select')
+              : await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS')
+                  .launch();
+        },
+        style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all<Color>(
+                Color.fromARGB(255, 208, 225, 255)),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ))),
+      ),
     );
   }
 
@@ -338,6 +341,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
+  //Icon indicating minimum or maximum speed
   _sliderEdgeIcon(icon, alignment) {
     return SizedBox(
       width: 55,

@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:eestitts/ui/header.dart';
 import 'package:eestitts/ui/page_view.dart';
 import 'package:eestitts/variables.dart';
@@ -19,18 +20,43 @@ class _InstructionsPageState extends State<InstructionsPage> {
     return NewPage.createScaffoldView(
       appBarTitle: Header(widget.switchLangs, widget.lang),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _instructionText(),
-            _proceedButton(),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _introductionText(),
+              SizedBox(
+                height: 30,
+              ),
+              Platform.isIOS ? _iosIstructions() : _androidInstructions(),
+              _proceedButton(),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  _instructionText() {
-    return Text("Instructions");
+  _introductionText() {
+    return Text(
+      Variables.langs[widget.lang]!['introductionText']!,
+      style: TextStyle(fontSize: 16),
+    );
+  }
+
+  _iosIstructions() {
+    return Text(
+      Variables.langs[widget.lang]!['instructionTextiOS']!,
+      style: TextStyle(fontSize: 16),
+    );
+  }
+
+  _androidInstructions() {
+    return Text(
+      Variables.langs[widget.lang]!['instructionTextAndroid']!,
+      style: TextStyle(fontSize: 16),
+    );
   }
 
   _proceedButton() {
