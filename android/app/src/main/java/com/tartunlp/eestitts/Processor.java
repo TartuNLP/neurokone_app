@@ -575,26 +575,30 @@ class Processor {
         List<String> sentences = new ArrayList<>();
         int currentSentId = 0;
         Matcher matcher;
-        if (!remainingText.matches(".+[.!?]$")) {
+        if (!remainingText.matches(".+[.!?]\"?$")) {
             remainingText += ".";
         }
         while ((matcher = sentencesSplit.matcher(remainingText)).find(currentSentId)) {
             String sentence = remainingText.substring(currentSentId, matcher.start());
             currentSentId = matcher.end();
             int currentCharId = 0;
+            int lastSplitId = 0;
             Matcher splitmatcher;
-            while ((splitmatcher = sentenceSplit.matcher(sentence)).find(currentCharId)) {
+            while ((splitmatcher = sentenceSplit.matcher(sentence.substring(lastSplitId))).find(currentCharId)) {
                 if (splitmatcher.start() > 30 + currentCharId &&
                         splitmatcher.end() < sentence.length() - 30) {
-                    sentences.add(sentence
-                            .substring(currentCharId, splitmatcher.start())
+                    sentences.add(processSentence(sentence
+                            .substring(lastSplitId, splitmatcher.start())
                             .replaceAll(sentenceStrip, "") +
-                            '.');
-                    currentCharId = splitmatcher.start();
+                            '.'));
+                    lastSplitId = splitmatcher.start();
+                    currentCharId = 0;
+                } else {
+                    currentCharId = splitmatcher.end();
                 }
             }
             sentences
-                    .add(processSentence(sentence.substring(currentCharId).replaceAll(sentenceStrip, "") + '.'));
+                    .add(processSentence(sentence.substring(lastSplitId).replaceAll(sentenceStrip, "") + '.'));
         }
         return sentences;
     }
