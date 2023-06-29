@@ -7,6 +7,7 @@ import 'dart:io' show Platform;
 class Header extends StatelessWidget {
   final Function callback;
   final String _lang;
+  bool get isIOS => Platform.isIOS;
 
   Header(this.callback, this._lang);
 
@@ -18,7 +19,7 @@ class Header extends StatelessWidget {
       children: [
         SvgPicture.asset(
           'assets/icons_logos/neurokone-logo-clean.svg',
-          width: screenWidth < 380 ? screenWidth / 2.5 : null,
+          width: screenWidth < 370 ? screenWidth / 2.5 : null,
         ),
         Spacer(),
         _languageButtons(),
@@ -55,7 +56,7 @@ class Header extends StatelessWidget {
 
   _moreButton(BuildContext context) {
     return PopupMenuButton<String>(
-      icon: Platform.isIOS
+      icon: isIOS
           ? const Icon(
               Icons.more_horiz_rounded,
               color: Colors.black54,
@@ -86,8 +87,11 @@ class Header extends StatelessWidget {
 
   Set<String> _getPages(BuildContext context) {
     Set<String> out = Set();
-    for (String page in ['TTS settings', /*'about', */ 'instructions']) {
-      out.add(Variables.langs[_lang]![page]!);
+    List<String> options = isIOS
+        ? [/*'about', */ 'instructions']
+        : ['TTS settings', /*'about', */ 'instructions'];
+    for (String option in options) {
+      out.add(Variables.langs[_lang]![option]!);
     }
     return out;
   }

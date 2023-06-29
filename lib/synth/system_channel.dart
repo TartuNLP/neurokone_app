@@ -34,19 +34,18 @@ class SystemChannel {
     return voices;
   }
 
-  List getDefaultVoices() {
+  List<Voice> getDefaultVoices() {
     return this.enabledVoices;
   }
 
-  void setNewVoices(List<String> newVoices) async {
-    this.enabledVoices = _namesToVoices(newVoices);
+  void setNewVoices(List<Voice> newVoices) async {
+    this.enabledVoices = newVoices;
     this.logger.d("Now enabled: " + this.enabledVoices.toString());
   }
 
   Future<void> save() async {
     this.logger.d("Saving " + this.enabledVoices.toString() + " to defaults.");
-    this.logger.i(await this
-        .channel
-        .invokeMethod('setDefaultVoices', this.enabledVoices));
+    this.logger.i(await this.channel.invokeMethod('setDefaultVoices',
+        this.enabledVoices.map((e) => e.getName()).toList()));
   }
 }

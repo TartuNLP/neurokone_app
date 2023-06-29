@@ -152,7 +152,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Lastly, speak/predict and play button.
   @override
   Widget build(BuildContext context) {
-    print(MediaQuery.of(context).size.width);
     return NewPage.createScaffoldView(
       appBarTitle: Header(widget.switchLangs, widget.lang),
       body: SingleChildScrollView(

@@ -8,8 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class LanguageSelectionPage extends StatefulWidget {
-  final List<String> voices =
-      Variables.voices.map((Voice voice) => voice.getName()).toList();
+  final List<Voice> voices = Variables.voices;
   late final Map<String, String> langText;
   final String lang;
   final Function switchLangs;
@@ -26,13 +25,12 @@ class LanguageSelectionPage extends StatefulWidget {
 
 class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   var logger = Logger();
-  late List<String> currentDefaults;
+  late List<Voice> currentDefaults;
 
   @override
   void initState() {
     super.initState();
-    this.currentDefaults =
-        widget.channel.getDefaultVoices().map((e) => e as String).toList();
+    this.currentDefaults = widget.channel.getDefaultVoices();
   }
 
   Widget build(BuildContext context) {
@@ -53,7 +51,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
                         child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(widget.voices[index]),
+                        Text(widget.voices[index].getName()),
                         Text(currentDefaults.contains(widget.voices[index])
                             ? "✓"
                             : ""),
@@ -76,11 +74,16 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
 
   _toggleVoice(int index) {
     logger.d("id:" + index.toString());
-    String voice = widget.voices[index];
+    Voice voice = widget.voices[index];
     if (currentDefaults.contains(voice)) {
-      setState(() {
-        currentDefaults.remove(voice);
-      });
+      for (Voice defaultVoice in currentDefaults) {
+        if (defaultVoice == voice) {
+          setState(() {
+            currentDefaults.remove(voice);
+          });
+          break;
+        }
+      }
     } else {
       setState(() {
         currentDefaults.add(voice);
