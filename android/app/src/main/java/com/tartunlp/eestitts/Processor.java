@@ -318,6 +318,7 @@ class Processor {
         sentence = sentence.replaceAll("sch", "š");
         sentence = sentence.replaceAll("[ĆČ]", "Tš");
         sentence = sentence.replaceAll("[ćč]", "tš");
+        sentence = sentence.replaceAll("—", ",");
 
         //sentence = Normalizer.normalize(sentence, Normalizer.Form.NFD);
         sentence = Normalizer.normalize(sentence, Normalizer.Form.NFC);
@@ -344,7 +345,7 @@ class Processor {
 
     private static String romanToArabic(String word) {
         String endingWord = "";
-        Matcher m = Pattern.compile("-?[a-z]+$").matcher(word);
+        Matcher m = Pattern.compile("-[a-z]+$").matcher(word);
         if (m.find())
             endingWord = " " + (m.group().startsWith("-") ? m.group().substring(1) : m.group());
         if (word.matches("[IXC]{4}"))
@@ -487,7 +488,7 @@ class Processor {
                 continue;
             }
             // roman numbers to arabic
-            if (word.matches("^[IVXLCDM]+-?\\w*$")) {
+            if (word.matches("^[IVXLCDM]+(-\\w*)?$")) {
                 word = romanToArabic(word);
                 if (word.split(" ").length > 1) {
                     newTextParts.add(processByWord(Arrays.asList(word.split(" "))));
@@ -584,21 +585,24 @@ class Processor {
             int currentCharId = 0;
             int lastSplitId = 0;
             Matcher splitmatcher;
-            while ((splitmatcher = sentenceSplit.matcher(sentence.substring(lastSplitId))).find(currentCharId)) {
-                if (splitmatcher.start() > 30 + currentCharId &&
-                        splitmatcher.end() < sentence.length() - 30) {
-                    sentences.add(processSentence(sentence
-                            .substring(lastSplitId, splitmatcher.start())
+            while ((splitmatcher = sentenceSplit.matcher(sentence)).find(currentCharId)) {
+                int start = splitmatcher.start();
+                int end = splitmatcher.end();
+                if (start > 20 + lastSplitId &&
+                        end < sentence.length() - 20) {
+                    String sentToAdd = processSentence(sentence
+                            .substring(lastSplitId, start)
                             .replaceAll(sentenceStrip, "") +
-                            '.'));
-                    lastSplitId = splitmatcher.start();
-                    currentCharId = 0;
+                            '.');
+                    if (sentToAdd.matches(".*[a-z].*")) sentences.add(sentToAdd);
+                    lastSplitId = start;
+                    currentCharId = start;
                 } else {
-                    currentCharId = splitmatcher.end();
+                    currentCharId = end;
                 }
             }
-            sentences
-                    .add(processSentence(sentence.substring(lastSplitId).replaceAll(sentenceStrip, "") + '.'));
+            String sentToAdd = processSentence(sentence.substring(lastSplitId).replaceAll(sentenceStrip, "") + '.');
+            if (sentToAdd.matches(".*[a-z].*")) sentences.add(sentToAdd);
         }
         return sentences;
     }

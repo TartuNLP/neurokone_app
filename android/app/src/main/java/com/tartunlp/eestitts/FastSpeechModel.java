@@ -45,16 +45,14 @@ public class FastSpeechModel {
 
         @SuppressLint("UseSparseArrays")
         Map<Integer, Object> outputMap = new HashMap<>();
-        FloatBuffer outputBuffer = FloatBuffer.allocate(350000);
+        FloatBuffer outputBuffer = FloatBuffer.allocate(300000);
         outputMap.put(0, outputBuffer);
 
         int[][] inputs = new int[1][inputIds.length];
         inputs[0] = inputIds;
 
         Object[] input = new Object[]{inputs, new int[]{voice}, new float[]{speed}, new float[]{pitch}, new float[]{energy}};
-        long time = System.currentTimeMillis();
         model.runForMultipleInputsOutputs(input, outputMap);
-        Log.d(TAG, "time cost: " + (System.currentTimeMillis() - time));
         Log.i(TAG, "Spectrogram shape: " + Arrays.toString(model.getOutputTensor(0).shape()));
 
         int size = model.getOutputTensor(0).shape()[2];
@@ -64,7 +62,6 @@ public class FastSpeechModel {
         outputBuffer.rewind();
         outputBuffer.get(outputArray);
         spectrogram.loadArray(outputArray);
-
         return spectrogram;
     }
 }

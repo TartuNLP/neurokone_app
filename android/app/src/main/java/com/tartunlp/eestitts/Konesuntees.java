@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 import java.io.*;
+import java.util.concurrent.TimeUnit;
 
 public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
     private final String TAG = "Kõnesüntees";
@@ -212,7 +213,6 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
         mModule.setPitch(pitch);
         Log.i(TAG, "Prefs: Text(" + text + "), Voice(" + speakerId + "), Speed(" + speed + "), Pitch(" + pitch + ")");
 
-        //final String[] sentences = text.split(" . ");
         final List<String> sentences = mProcessor.splitSentences(text);
         for (String sentence : sentences) {
             int[] ids = mEncoder.textToIds(sentence);
@@ -233,10 +233,9 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
             return false;
         }
         TensorBuffer spectrogram = mModule.getMelSpectrogram(inputIds);
-        //Log.i(TAG, Arrays.toString(spectrogram.getFloatArray()));
         float[] outputArray = vocModule.getAudio(spectrogram);
 
-        byte[] mAudioBuffer = new byte[4 * outputArray.length + 1]; // +1 because less throws buffervoverflow
+        byte[] mAudioBuffer = new byte[4 * outputArray.length + 1]; // +1, fewer will throw buffervoverflow
         ByteBuffer buffer = ByteBuffer.wrap(mAudioBuffer).order(ByteOrder.LITTLE_ENDIAN);
 
         for (float v : outputArray) {
