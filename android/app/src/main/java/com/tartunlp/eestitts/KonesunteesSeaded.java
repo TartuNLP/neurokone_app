@@ -1,5 +1,6 @@
 package com.tartunlp.eestitts;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
@@ -13,7 +14,6 @@ import android.widget.Toast;
 
 public class KonesunteesSeaded extends Activity {
 
-    private RadioGroup mVoicesContainer;
     private View mProgress;
 
     public static volatile String voice;
@@ -26,7 +26,7 @@ public class KonesunteesSeaded extends Activity {
 
         mProgress = findViewById(R.id.progress_layout);
 
-        mVoicesContainer = (RadioGroup) findViewById(R.id.tts_voices);
+        RadioGroup mVoicesContainer = (RadioGroup) findViewById(R.id.tts_voices);
         String voice = PrefUtil.getTtsVoice(this);
         if (voice.equals(getString(R.string.label_mari))) {
             ((RadioButton)findViewById(R.id.mari)).setChecked(true);
@@ -100,7 +100,6 @@ public class KonesunteesSeaded extends Activity {
         });
     }
 
-
     private class InitTtsAsyncTask extends AsyncTask<String, Void, Void> {
 
         @Override
@@ -123,7 +122,7 @@ public class KonesunteesSeaded extends Activity {
 
             mProgress.setVisibility(View.GONE);
 
-            Toast.makeText(KonesunteesSeaded.this, "Valik tehtud!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(KonesunteesSeaded.this, R.string.saved, Toast.LENGTH_SHORT).show();
         }
-    };
+    }
 }

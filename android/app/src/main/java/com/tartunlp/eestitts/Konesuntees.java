@@ -8,29 +8,13 @@ import android.speech.tts.TextToSpeechService;
 import android.text.TextUtils;
 import android.util.Log;
 
-import android.content.res.AssetManager;
-
-import androidx.annotation.Nullable;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import org.tensorflow.lite.DataType;
-import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 import java.io.*;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.concurrent.TimeUnit;
 
 public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
     private final String TAG = "Kõnesüntees";
@@ -229,8 +213,7 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
         mModule.setPitch(pitch);
         Log.i(TAG, "Prefs: Text(" + text + "), Voice(" + speakerId + "), Speed(" + speed + "), Pitch(" + pitch + ")");
 
-        final String[] sentences = text.split(" . ");
-        //final String[] sentences = mProcessor.splitSentences(text);
+        final List<String> sentences = mProcessor.splitSentences(text);
         for (String sentence : sentences) {
             int[] ids = mEncoder.textToIds(sentence);
             // It is crucial to call either of callback.error() or callback.done() to ensure
@@ -250,14 +233,13 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
             return false;
         }
         TensorBuffer spectrogram = mModule.getMelSpectrogram(inputIds);
-        //Log.i(TAG, Arrays.toString(spectrogram.getFloatArray()));
         float[] outputArray = vocModule.getAudio(spectrogram);
 
-        byte[] mAudioBuffer = new byte[4 * outputArray.length + 1]; // +1 because less throws buffervoverflow
+        byte[] mAudioBuffer = new byte[4 * outputArray.length + 1]; // +1, fewer will throw buffervoverflow
         ByteBuffer buffer = ByteBuffer.wrap(mAudioBuffer).order(ByteOrder.LITTLE_ENDIAN);
 
-        for (int i = 0; i < outputArray.length; i++) {
-            buffer.putShort((short) Math.round(32768 * outputArray[i]));
+        for (float v : outputArray) {
+            buffer.putShort((short) Math.round(32768 * v));
         }
         // Get the maximum allowed size of data we can send across in audioAvailable.
         final int maxBufferSize = cb.getMaxBufferSize();
@@ -269,85 +251,4 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
         }
         return true;
     }
-
-    /*
-    
-    public static byte[] floatArray2IntByteArray(float[] values) {
-        /*
-        int[] intArray = new int[values.length];
-        for (int i = 0; i < values.length; i++) {
-            intArray[i] = Math.round(values[i]*2147483647);
-        }
-        values = null;
-        /
-        ByteBuffer buffer = ByteBuffer.allocate(4 * values.length).order(byteOrder);
-        for (float value : values) {
-            //buffer.putInt(value);
-            buffer.putFloat(value);
-        }
-        return buffer.array();
-    }
-
-    public float arrayMinOrMax(float[] array, boolean max) {
-        if (max) {
-            float maxF = -100F;
-            for (float v : array) {
-                maxF = Math.max(maxF, v);
-            }
-            return maxF;
-        }
-        else {
-            float minF = 100F;
-            for (float v : array) {
-                minF = Math.min(minF, v);
-            }
-            return minF;
-        }
-    }
-
-    private boolean generateOneSentenceOfAudio(int[] inputIds, SynthesisCallback cb) {
-        if (mStopRequested) {
-            return false;
-        }
-        TensorBuffer spectrogram = mModule.getMelSpectrogram(inputIds);
-        float[] specArray = spectrogram.getFloatArray();
-        Log.i(TAG, "spec len: " + specArray.length);
-        /*for (int i = 0; i <= specArray.length/80; i++) {
-            Log.i(TAG, Arrays.toString(Arrays.copyOfRange(specArray, 80 * i, 80 * (i + 1))));
-        }/
-        float[] outputArray = vocModule.getAudio(spectrogram);
-        //Log.i(TAG, "min: " + arrayMinOrMax(outputArray, false) + ", max: " + arrayMinOrMax(outputArray, true));
-        Log.i(TAG, "audio len: " + outputArray.length);
-        /*for (int i = 0; i <= outputArray.length/100; i++) {
-            if (outputArray.length < 100*(i+1)) {
-                Log.i(TAG, Arrays.toString(Arrays.copyOfRange(outputArray, 100 * i, outputArray.length)));
-            } else {
-                Log.i(TAG, Arrays.toString(Arrays.copyOfRange(outputArray, 100 * i, 100 * (i + 1))));
-            }
-        }/
-        Log.i(TAG, "end");
-        byte[] audioArray = floatArray2IntByteArray(outputArray);
-        //Log.i(TAG, "len: " + audioArray.length + "; array: " + Arrays.toString(audioArray));
-
-        // Get the maximum allowed size of data we can send across in audioAvailable.
-        final int maxBufferSize = cb.getMaxBufferSize();
-        int offset = 0;
-        while (offset < audioArray.length) {
-            int bytesToWrite = Math.min(maxBufferSize, audioArray.length - offset);
-            if (cb.audioAvailable(audioArray, offset, bytesToWrite) == TextToSpeech.ERROR) {
-                mStopRequested = true;
-                return false;
-            }
-            offset += bytesToWrite;
-        }
-        return true;
-    }
-
-    */
 }
-
-/*
-
-https://github.com/Miserlou/Android-SDK-Samples/blob/master/TtsEngine/src/com/example/android/ttsengine/RobotSpeakTtsService.java
-
-*/

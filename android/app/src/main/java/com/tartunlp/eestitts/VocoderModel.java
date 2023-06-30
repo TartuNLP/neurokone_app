@@ -18,12 +18,10 @@ public class VocoderModel {
         model.resizeInput(0, input.getShape());
         model.allocateTensors();
 
-        FloatBuffer outputBuffer = FloatBuffer.allocate(350000);
+        FloatBuffer outputBuffer = FloatBuffer.allocate(300000);
 
-        long time = System.currentTimeMillis();
         model.run(input.getBuffer(), outputBuffer);
         String TAG = "Vocoder";
-        Log.d(TAG, "time cost: " + (System.currentTimeMillis() - time));
         Log.i(TAG, "pikkus: " + outputBuffer.position());
 
         float[] audioArray = new float[outputBuffer.position()];

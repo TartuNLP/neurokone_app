@@ -1,3 +1,4 @@
+import 'package:eestitts/ui/page_view.dart';
 import 'package:logger/logger.dart';
 import 'package:eestitts/synth/system_channel.dart';
 import 'package:eestitts/ui/header.dart';
@@ -7,8 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class LanguageSelectionPage extends StatefulWidget {
-  final List<String> voices =
-      Variables.voices.map((Voice voice) => voice.getName()).toList();
+  final List<Voice> voices = Variables.voices;
   late final Map<String, String> langText;
   final String lang;
   final Function switchLangs;
@@ -25,62 +25,48 @@ class LanguageSelectionPage extends StatefulWidget {
 
 class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
   var logger = Logger();
-  late List<String> currentDefaults;
+  late List<Voice> currentDefaults;
 
   @override
   void initState() {
     super.initState();
-    this.currentDefaults =
-        widget.channel.getDefaultVoices().map((e) => e as String).toList();
+    this.currentDefaults = widget.channel.getDefaultVoices();
   }
 
   Widget build(BuildContext context) {
     switch (defaultTargetPlatform) {
-      /*
       case TargetPlatform.iOS:
-        return UiKitView(
-          viewType: viewType,
-          layoutDirection: TextDirection.ltr,
-          creationParams: creationParams,
-          creationParamsCodec: const StandardMessageCodec(),
-        );*/
-      case TargetPlatform.iOS:
-        return Scaffold(
-            backgroundColor: const Color.fromARGB(255, 238, 238, 238),
-            appBar: AppBar(
-              automaticallyImplyLeading: false, //disables back button
-              backgroundColor: Colors.white,
-              shadowColor: Colors.white,
-              title: Header(widget.switchLangs, widget.lang),
-            ),
-            body: Column(
-              children: [
-                Container(
-                  height: MediaQuery.of(context).size.height - 150,
-                  width: MediaQuery.of(context).size.width,
-                  child: ListView.builder(
-                    itemCount: widget.voices.length,
-                    itemBuilder: (context, index) => ListTile(
-                      onTap: () => _toggleVoice(index),
-                      title: Container(
-                          child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(widget.voices[index]),
-                          Text(currentDefaults.contains(widget.voices[index])
-                              ? "✓"
-                              : ""),
-                        ],
-                      )),
-                    ),
+        return NewPage.createScaffoldView(
+          appBarTitle: Header(widget.switchLangs, widget.lang),
+          body: Column(
+            children: [
+              Container(
+                height: MediaQuery.of(context).size.height - 150,
+                width: MediaQuery.of(context).size.width,
+                child: ListView.builder(
+                  itemCount: widget.voices.length,
+                  itemBuilder: (context, index) => ListTile(
+                    onTap: () => _toggleVoice(index),
+                    title: Container(
+                        child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(widget.voices[index].getName()),
+                        Text(currentDefaults.contains(widget.voices[index])
+                            ? "✓"
+                            : ""),
+                      ],
+                    )),
                   ),
                 ),
-                TextButton(
-                  child: Text(widget.langText['Selected']!),
-                  onPressed: _confirm,
-                )
-              ],
-            ));
+              ),
+              TextButton(
+                child: Text(widget.langText['selected']!),
+                onPressed: _confirm,
+              )
+            ],
+          ),
+        );
       default:
         throw UnsupportedError('Unsupported platform view');
     }
@@ -88,11 +74,16 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
 
   _toggleVoice(int index) {
     logger.d("id:" + index.toString());
-    String voice = widget.voices[index];
+    Voice voice = widget.voices[index];
     if (currentDefaults.contains(voice)) {
-      setState(() {
-        currentDefaults.remove(voice);
-      });
+      for (Voice defaultVoice in currentDefaults) {
+        if (defaultVoice == voice) {
+          setState(() {
+            currentDefaults.remove(voice);
+          });
+          break;
+        }
+      }
     } else {
       setState(() {
         currentDefaults.add(voice);
@@ -103,6 +94,6 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
 
   _confirm() async {
     widget.channel.save();
-    Navigator.pop(context /*, currentDefaults*/);
+    Navigator.pop(context);
   }
 }

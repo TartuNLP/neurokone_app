@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 class Voice {
   final String _name;
-  final MaterialColor _color;
+  final Color _color;
   final String _icon;
 
   String getName() {
     return this._name;
   }
 
-  MaterialColor getColor() {
+  Color getColor() {
     return this._color;
   }
 

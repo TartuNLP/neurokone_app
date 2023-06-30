@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
-import 'package:dropdown_button2/dropdown_button2.dart';
+import 'dart:math';
+import 'package:eestitts/ui/page_view.dart';
 import 'package:eestitts/synth/system_channel.dart';
 import 'package:eestitts/ui/header.dart';
 import 'package:eestitts/ui/voice.dart';
@@ -7,26 +8,20 @@ import 'package:eestitts/synth/tts.dart';
 import 'package:eestitts/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lottie/lottie.dart';
 import 'package:android_intent_plus/android_intent.dart';
+import 'package:is_first_run/is_first_run.dart';
 
 class MainPage extends StatefulWidget {
-  //final String title;
   final String lang;
   late final Map<String, String> langText;
   final Function switchLangs;
   final SystemChannel channel;
-  //final Function changeColors;
-  final List<Voice> voices = Variables.voices;
 
   MainPage({
     Key? key,
-    //required this.title,
     required this.lang,
     required this.switchLangs,
     required this.channel,
-    //required this.changeColors,
   }) : super(key: key) {
     this.langText = Variables.langs[this.lang]!;
   }
@@ -37,7 +32,7 @@ class MainPage extends StatefulWidget {
 
 class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Initial voice data.
-  Voice _currentVoice = const Voice('Mari', Colors.red, '1');
+  Voice _currentNativeVoice = Variables.voices[0];
   double voiceTileHeight = 48;
 
   //Speed of the synthetic voice.
@@ -61,7 +56,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    //color = _currentVoice.getColor();
     this._textEditingController = TextEditingController();
     this._textEditingController.addListener(() {
       setState(() {
@@ -69,22 +63,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       });
     });
     _initTts();
-    //this.enabledSystemVoices =
-    //    widget.channel.enabledVoices.map((e) => e as String).toList();
     WidgetsBinding.instance.addObserver(this);
+
+    _firstTimeInstructions();
   }
 
-  //Loads tts engine
-  void _initTts() {
-    tts = Tts(isIOS);
-    if (isSystemVoice) {
-      //initVoice();
-      tts.initSystemTts();
-      tts.setDefaultEngine();
-      _setHandlers();
-    } else {
-      tts.initTtsNative();
-    }
+  //Loads tts engines
+  _initTts() async {
+    tts = Tts(this.isIOS);
+
+    // loads native model
+    tts.initTtsNative();
+
+    // loads system default model
+    tts.loadSystemDefaultEngine();
+    _setHandlers();
   }
 
   //Sets the handlers for the system's engine
@@ -118,11 +111,18 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     });
   }
 
+  _firstTimeInstructions() async {
+    if (await IsFirstRun.isFirstRun()) {
+      Navigator.pushNamed(context, 'instructions');
+    }
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        if (isSystemVoice) tts.setDefaultEngine();
+        tts.loadSystemDefaultEngine();
+        setState(() {});
         print("app in resumed");
         break;
       case AppLifecycleState.inactive:
@@ -152,16 +152,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Lastly, speak/predict and play button.
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 238, 238, 238),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        shadowColor: Colors.white,
-        title: Header(widget.switchLangs, widget.lang), //_appBar(),
-      ),
+    return NewPage.createScaffoldView(
+      appBarTitle: Header(widget.switchLangs, widget.lang),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(),
@@ -169,7 +164,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _radioEngines(),
+                  _ttsEngineChoice(),
                   _speedControl(),
                   _inputTextField(),
                   _speakStopButtons(),
@@ -182,170 +177,151 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  List<Voice> _namesToVoices(List<String> names) {
-    List<Voice> voices = [];
-    for (Voice voice in widget.voices) {
-      if (names.contains(voice.getName())) voices.add(voice);
-    }
-    return voices;
-  }
-
   //Toggle switch between the native and system's tts engine.
-  _radioEngines() {
+  _ttsEngineChoice() {
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ListTile(
-          title: _dropDownVoices(false),
-          leading: Radio<bool>(
-            fillColor: MaterialStateColor.resolveWith((states) => Colors.green),
-            focusColor:
-                MaterialStateColor.resolveWith((states) => Colors.green),
-            value: false,
-            groupValue: isSystemVoice,
-            onChanged: (bool? value) {
-              setState(() {
-                isSystemVoice = value!;
-              });
-              _initTts();
-            },
-          ),
+        Text(
+          widget.langText['engine']!,
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
-        ListTile(
-          title:
-              isIOS ? _iosDropdownAndSelection() : _androidTtsSettingsButton(),
-          leading: Radio<bool>(
-            fillColor: MaterialStateColor.resolveWith((states) => Colors.green),
-            focusColor:
-                MaterialStateColor.resolveWith((states) => Colors.green),
-            value: true,
-            groupValue: isSystemVoice,
-            onChanged: (bool? value) {
-              setState(() {
-                isSystemVoice = value!;
-              });
-              _initTts();
-            },
-          ),
+        Flex(
+          direction: Axis.horizontal,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            _radioTile(_dropDownVoices(), false),
+            _radioTile(_ttsSettingsButton(), true),
+          ],
         ),
       ],
+    );
+  }
+
+  //Text-to-speech voice option
+  _radioTile(title, initialValue) {
+    return Expanded(
+      flex: 2,
+      child: ListTile(
+        contentPadding: EdgeInsets.all(10),
+        title: title,
+        horizontalTitleGap: 0,
+        minLeadingWidth: 36,
+        leading: Radio<bool>(
+          visualDensity: const VisualDensity(
+            horizontal: VisualDensity.minimumDensity,
+            vertical: VisualDensity.minimumDensity,
+          ),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          fillColor: MaterialStateColor.resolveWith((states) => Colors.green),
+          focusColor: MaterialStateColor.resolveWith((states) => Colors.green),
+          value: initialValue,
+          groupValue: this.isSystemVoice,
+          onChanged: (bool? value) {
+            setState(() {
+              this.isSystemVoice = value!;
+            });
+          },
+        ),
+      ),
     );
   }
 
   //Dropdown list of tts engine's voices.
-  _dropDownVoices(bool system) {
+  _dropDownVoices() {
     return DropdownButtonHideUnderline(
       child: ButtonTheme(
-        minWidth: 145,
-        //alignedDropdown: true,
-        child: DropdownButton2(
-          dropdownStyleData: DropdownStyleData(
-              elevation: 16,
-              decoration: BoxDecoration(color: Colors.transparent)),
-          value: _currentVoice,
-          items: widget
-              .voices //(system ? _namesToVoices(enabledSystemVoices) : widget.voices)
-              .map((Voice voice) => DropdownMenuItem(
-                    value: voice,
-                    child: _voiceBox(voice),
-                  ))
-              .toList(),
-          selectedItemBuilder: (BuildContext ctxt) {
-            return widget
-                .voices //(system ? _namesToVoices(enabledSystemVoices) : widget.voices)
-                .map<Widget>((Voice voice) {
-              return DropdownMenuItem(child: _voiceBox(voice), value: voice);
-            }).toList();
-          },
-          onChanged: (value) => setState(() {
-            _currentVoice = value as Voice;
-          }),
-        ),
-      ),
-    );
-    /*
-        PopupMenuButton(
+        child: PopupMenuButton(
           color: Colors.transparent,
-          offset: Offset(
-              0, (widget.voices.indexOf(_currentVoice) + 1) * voiceTileHeight),
-          elevation: 24,
-          initialValue: _currentVoice,
-          child: _voiceBox(_currentVoice, arrow: true),
+          offset: Offset(0,
+              Variables.voices.indexOf(_currentNativeVoice) * voiceTileHeight),
+          elevation: 16,
+          constraints: BoxConstraints(
+            maxWidth: min(MediaQuery.of(context).size.width * 0.5, 200),
+          ),
+          initialValue: _currentNativeVoice,
+          child: _voiceBox(_currentNativeVoice, false),
           // Callback that sets the selected popup menu item.
           onSelected: (item) {
             setState(() {
-              _currentVoice = item as Voice;
+              _currentNativeVoice = item as Voice;
             });
           },
-          itemBuilder: (context) => widget.voices
+          itemBuilder: (context) => Variables.voices
               .map((Voice voice) => PopupMenuItem(
+                    textStyle: TextStyle(),
+                    padding: EdgeInsets.all(0),
                     value: voice,
-                    child: _voiceBox(voice),
+                    child: _voiceBox(voice, true),
                   ))
               .toList(),
-        ),*/
+        ),
+      ),
+    );
   }
 
   //Component that represents a voice in the dropdown list.
-  _voiceBox(Voice voice) {
+  _voiceBox(Voice voice, bool hasSvg) {
     return Container(
       decoration: BoxDecoration(
         color: voice.getColor(),
         borderRadius: const BorderRadius.all(
-          Radius.circular(10),
+          Radius.circular(14),
         ),
       ),
       //height: voiceTileHeight,
-      constraints: BoxConstraints.expand(width: 145, height: 40),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Lottie.asset('assets/icons_logos/${voice.getIcon()}.json',
-              animate: true),
-          Text(
-            voice.getName(),
-            overflow: TextOverflow.visible,
-          ),
-          /*Visibility(
-            child: Icon(Icons.arrow_drop_down),
-            visible: arrow,
-          ),*/
-        ],
-      ),
+      constraints: BoxConstraints.expand(
+          width: min(MediaQuery.of(context).size.width * 0.5, 200),
+          height: voiceTileHeight),
+      child: _boxContents(voice, hasSvg),
     );
   }
 
-  _iosDropdownAndSelection() {
+  //Contents in the voice representing box
+  _boxContents(Voice voice, bool hasSvg) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment:
+          hasSvg ? MainAxisAlignment.start : MainAxisAlignment.center,
       children: [
-        IconButton(
-            onPressed: _openCustomTtsSelect,
-            icon: Icon(IconData(0xe57f, fontFamily: 'MaterialIcons'))),
-        //_dropDownVoices(true),
+        if (hasSvg) Variables.voiceIcon(voice),
+        Text(
+          voice.getName(),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black54,
+          ),
+          overflow: TextOverflow.visible,
+        ),
       ],
     );
   }
 
-  //Opens a view on iOS where custom speech synthesis engines can be enabled.
-  _openCustomTtsSelect() async {
-    try {
-      List newVoices = await Navigator.pushNamed(context, '/select') as List;
-    } catch (e) {}
-  }
-
   //Takes the user to Android 'Text-to-speech output' settings.
-  _androidTtsSettingsButton() {
-    return TextButton(
-      child: Text(widget.langText['Choose']!),
-      onPressed: _openAndroidTtsSettings,
+  _ttsSettingsButton() {
+    return SizedBox(
+      height: voiceTileHeight,
+      child: TextButton(
+        child: Text(
+          widget.langText['choose']!,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13),
+        ),
+        onPressed: () async {
+          isIOS
+              ? await Navigator.pushNamed(context, 'select')
+              : await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS')
+                  .launch();
+        },
+        style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all<Color>(
+                Color.fromARGB(255, 208, 225, 255)),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ))),
+      ),
     );
-  }
-
-  //Opens Android Text-to-Speech output settings screen.
-  _openAndroidTtsSettings() async {
-    await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS').launch();
   }
 
   //A slider for voice speaking speed with minimum 0.5 and maximum 2.0 value.
@@ -354,44 +330,39 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         Text(
-          widget.langText['Tempo']!,
+          widget.langText['tempo']!,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        SizedBox(
-          width: 55,
-          child: Container(
-            alignment: Alignment.centerRight,
-            child: SvgPicture.asset(
-              'assets/icons_logos/snail-clean.svg',
-              color: Colors.blue, //this.color,
-              //theme: SvgTheme(currentColor: _currentVoice.getColor()),
-            ),
-          ),
-        ),
-        Expanded(
-          child: Slider(
-            thumbColor: Colors
-                .blue, //_currentVoice.getColor(), //const Color.fromARGB(255, 49, 133, 255),
-            min: 0.5,
-            max: 2.0,
-            value: _speed,
-            onChanged: (value) => setState(() {
-              _speed = value;
-            }),
-          ),
-        ),
-        SizedBox(
-          width: 55,
-          child: Container(
-            alignment: Alignment.centerLeft,
-            child: SvgPicture.asset(
-              'assets/icons_logos/horse-clean.svg',
-              color: Colors.blue, //this.color,
-              //theme: SvgTheme(currentColor: _currentVoice.getColor()),
-            ),
-          ),
-        ),
+        _sliderEdgeIcon(Variables.slowTempoIcon, Alignment.centerRight),
+        _tempoSlider(),
+        _sliderEdgeIcon(Variables.fastTempoIcon, Alignment.centerLeft),
       ],
+    );
+  }
+
+  //Icon indicating minimum or maximum speed
+  _sliderEdgeIcon(icon, alignment) {
+    return SizedBox(
+      width: 55,
+      child: Container(
+        alignment: alignment,
+        child: icon,
+      ),
+    );
+  }
+
+  _tempoSlider() {
+    return Expanded(
+      child: Slider(
+        thumbColor: Colors
+            .blue, //_currentVoice.getColor(), //const Color.fromARGB(255, 49, 133, 255),
+        min: 0.5,
+        max: 2.0,
+        value: _speed,
+        onChanged: (value) => setState(() {
+          _speed = value;
+        }),
+      ),
     );
   }
 
@@ -405,23 +376,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
           maxLines: 25,
           controller: _textEditingController,
           decoration: InputDecoration(
-              hintText: widget.langText['Hint'],
+              hintText: widget.langText['hint'],
               suffixIcon: _fieldText.isNotEmpty
                   ? Column(
                       children: [
-                        IconButton(
-                          padding: const EdgeInsets.all(0),
-                          onPressed: () => setState(() {
-                            _textEditingController.clear();
-                          }),
-                          icon: const Icon(Icons.clear),
-                        ),
-                        IconButton(
-                          onPressed: () => Clipboard.setData(
-                            ClipboardData(text: _fieldText),
-                          ),
-                          icon: const Icon(Icons.copy),
-                        )
+                        _clearButton(),
+                        _copyButton(),
                       ],
                     )
                   : null),
@@ -430,53 +390,80 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  //Speak button that triggers the models to synthesize audio from the input text.
-  //Button is enabled only when there is text in the textfield.
-  //Button is the same color as the selected voice from dropdown.
+  _clearButton() {
+    return IconButton(
+      padding: const EdgeInsets.all(0),
+      onPressed: () => setState(() {
+        _textEditingController.clear();
+      }),
+      icon: const Icon(Icons.clear),
+    );
+  }
+
+  _copyButton() {
+    return IconButton(
+      onPressed: () => Clipboard.setData(
+        ClipboardData(text: _fieldText),
+      ),
+      icon: const Icon(Icons.copy),
+    );
+  }
+
   _speakStopButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        TextButton(
-          style: ButtonStyle(
-            foregroundColor: MaterialStateProperty.all(
-                _fieldText.isNotEmpty ? Colors.white : Colors.grey),
-            backgroundColor: MaterialStateProperty.all<Color>(
-                isSystemVoice ? Colors.black : _currentVoice.getColor()),
-            fixedSize:
-                MaterialStateProperty.all<Size>(const Size.fromWidth(100.0)),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18.0),
-                //side: const BorderSide(color: Colors.black12),
-              ),
-            ),
-          ),
-          onPressed: _fieldText.isNotEmpty ? _speak : null,
-          child: Text(
-            widget.langText['Speak']!,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-        //if (!isIOS)
-        TextButton(
-          onPressed: _stop,
-          child: Text(widget.langText['Stop']!),
-        ),
+        _speakButton(),
+        _stopButton(),
       ],
+    );
+  }
+
+  //Speak button that triggers the models to synthesize audio from the input text.
+  //Speak button is enabled only when there is text in the textfield.
+  //Speak button is the same color as the selected voice from dropdown.
+  _speakButton() {
+    return TextButton(
+      style: ButtonStyle(
+        foregroundColor: MaterialStateProperty.all(
+            _fieldText.isNotEmpty ? Colors.white : Colors.grey),
+        backgroundColor: MaterialStateProperty.all<Color>(
+            isSystemVoice ? Colors.black : _currentNativeVoice.getColor()),
+        fixedSize: MaterialStateProperty.all<Size>(const Size.fromWidth(100.0)),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.0),
+          ),
+        ),
+      ),
+      onPressed: _fieldText.isNotEmpty ? _speak : null,
+      child: Text(
+        widget.langText['speak']!,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
     );
   }
 
   //Executes the text-to-speech.
   Future _speak() async {
     if (!isSystemVoice) isNativePlaying = true;
-    tts.speak(
-        _fieldText,
-        _speed,
-        isSystemVoice,
-        isSystemVoice
-            ? _currentVoice.getName()
-            : widget.voices.indexOf(_currentVoice));
+    tts.speak(_fieldText, _speed, isSystemVoice,
+        isSystemVoice ? null : Variables.voices.indexOf(_currentNativeVoice));
+  }
+
+  //Button to stop ongoing synthesizing
+  _stopButton() {
+    return TextButton(
+      style: ButtonStyle(
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.0),
+          ),
+        ),
+      ),
+      onPressed: _stop,
+      child: Text(widget.langText['stop']!),
+    );
   }
 
   //Stops the synthesis.
@@ -485,7 +472,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       var result = await tts.systemTts.stop();
       if (result == 1) setState(() => isSystemPlaying = false);
     } else {
-      tts.nativeTts!.audioPlayer.stopAudio();
+      tts.nativeTts.audioPlayer.stopAudio();
       if (isNativePlaying) tts.stopNative = true;
       setState(() {
         isNativePlaying = false;
