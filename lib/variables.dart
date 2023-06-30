@@ -20,7 +20,7 @@ class Variables {
       'instructionTextAndroid':
           'Süsteemi kõnesünteesi seadetesse saab liikuda läbi rakenduse vajutades parempoolset sünteesivaliku nuppu "Süsteemi hääl" või avades valikud paremalt ülevalt nurgast ja vajutades "Kõnesünteesi seaded".\nRakenduseväliselt saab sinna liikuda ka minnes Seaded -> Süsteem -> Keel ja sisend -> (Täpsemalt ->) alamkategooria Kõne -> Kõnesünteesi väljund.',
       'instructionTextiOS':
-          'Süsteemi kõnesünteesi häält saab muuta liikudes seadetesse:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nning valides soovitud kõneleja.',
+          'Meie hääli saab süsteemi lisada vajutades parempoolset sünteesivaliku nuppu "Süsteemi hääl" ning seal vajutades tahetud häältele. Süsteemi vaikimisi kõnesünteesi häält saab muuta liikudes seadetesse:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nning valides soovitud kõneleja.',
       'understood': 'Sain aru',
       'choose': 'Süsteemi hääl',
       'speak': 'Räägi',
@@ -44,7 +44,7 @@ class Variables {
       'instructionTextAndroid':
           'The system\'s text-to-speech settings can be opened through this app by tapping on the right synthesizer option button "System voice" or by opening the menu on the upper-right corner and tapping "Text-to-speech settings".\nTo access text-to-speech settings externally, go to Settings -> System -> Languages & input -> (Advanced ->) subcategory Speech -> Text-to-speech output.',
       'instructionTextiOS':
-          'The system text-to-speech voice can be changed by going to:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nand tapping on the desired voice.',
+          'Our voices can be added to the system by tapping on the right synthesizer option button "System voice" and toggling the desired voices by tapping on them. The system text-to-speech voice can be changed by going to:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nand tapping on the desired voice.',
       'understood': 'I understand',
       'choose': 'System voice',
       'speak': 'Speak',
