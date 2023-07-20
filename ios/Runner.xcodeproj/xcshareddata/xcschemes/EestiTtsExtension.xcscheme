@@ -67,7 +67,7 @@
       launchAutomaticallySubstyle = "2">
       <RemoteRunnable
          runnableDebuggingMode = "0"
-         BundleIdentifier = "group.com.tartunlp.eestitts"
+         BundleIdentifier = "group.com.tartunlp.neurokone"
          RemotePath = "/var/containers/Bundle/Application/A4FCB13B-02AF-4208-912D-9F4A346ECE16/Runner.app">
       </RemoteRunnable>
       <MacroExpansion>

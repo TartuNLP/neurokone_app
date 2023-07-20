@@ -1,7 +1,7 @@
 import 'package:logger/logger.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:eestitts/synth/native_tts.dart';
-import 'package:eestitts/synth/est_processor.dart';
+import 'package:neurokone/synth/native_tts.dart';
+import 'package:neurokone/synth/est_processor.dart';
 
 class Tts {
   /////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@ class Tts {
   late NativeTts nativeTts;
   late FlutterTts systemTts;
   bool stopNative = false;
-  String? engine;
+  String engine = '';
 
   Logger logger = Logger();
 
@@ -45,12 +45,8 @@ class Tts {
       }
     } else {
       String newEngine = await this.systemTts.getDefaultEngine;
-      this.logger.d(newEngine);
-      if (this.engine != newEngine) {
-        this.engine = newEngine;
-        this.logger.d('TtsEngine:' + this.engine.toString());
-        this.systemTts.setEngine(this.engine!);
-      }
+      this.logger.d('TtsEngine:' + newEngine);
+      this.engine = newEngine;
     }
   }
 
@@ -64,7 +60,9 @@ class Tts {
   }
 
   _systemSynthesis(String text, double speed) async {
+    await this.systemTts.setEngine(this.engine);
     await this.systemTts.setLanguage(this.lang);
+    print("Speed: " + (speed/2).toString());
     await this.systemTts.setSpeechRate(speed / 2);
     await this.systemTts.speak(text);
   }

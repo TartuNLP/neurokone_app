@@ -43,7 +43,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "com.tartunlp.eestitts"
+        applicationId "com.tartunlp.neurokone"
         minSdkVersion 21 //flutter.minSdkVersion
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 28 //flutter.targetSdkVersion

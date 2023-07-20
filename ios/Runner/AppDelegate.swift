@@ -5,7 +5,7 @@ import AVFoundation
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
-  let defaults = UserDefaults(suiteName: "group.com.tartunlp.eestitts")
+  let defaults = UserDefaults(suiteName: "group.com.tartunlp.neurokone")
   let mainBundle = Bundle.main
 
   override func application(
@@ -19,7 +19,7 @@ import AVFoundation
     //addModelPath(assetPath: "assets/hifigan-est.tflite", key: "vocoder", controller: flutterController!)
     addModelPath(assetPath: "assets/hifigan-est.v2.tflite", key: "vocoder", controller: flutterController!)
 
-    let methodChannel = FlutterMethodChannel(name: "com.tartunlp.eestitts", binaryMessenger: flutterController!.binaryMessenger) //binaryMessenger: rootViewController as! FlutterBinaryMessenger
+    let methodChannel = FlutterMethodChannel(name: "com.tartunlp.neurokone", binaryMessenger: flutterController!.binaryMessenger) //binaryMessenger: rootViewController as! FlutterBinaryMessenger
     methodChannel.setMethodCallHandler(handleMethodCalls)
 
     GeneratedPluginRegistrant.register(with: self)

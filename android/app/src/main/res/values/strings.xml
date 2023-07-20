@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name" translatable="false">eestitts</string>
-    <string name="service_name" translatable="false">Eesti TTS</string>
+    <string name="app_name" translatable="false">Neurokõne</string>
+    <string name="service_name" translatable="false">TartuNLP Neurokõne</string>
 
     <string name="sample_text" translatable="false">Tere! Mina olen juturobot.</string>
     <string name="voice_title">Synthesize speech</string>
