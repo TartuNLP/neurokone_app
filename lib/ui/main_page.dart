@@ -1,11 +1,11 @@
 import 'dart:io' show Platform;
 import 'dart:math';
-import 'package:eestitts/ui/page_view.dart';
-import 'package:eestitts/synth/system_channel.dart';
-import 'package:eestitts/ui/header.dart';
-import 'package:eestitts/ui/voice.dart';
-import 'package:eestitts/synth/tts.dart';
-import 'package:eestitts/variables.dart';
+import 'package:neurokone/ui/page_view.dart';
+import 'package:neurokone/synth/system_channel.dart';
+import 'package:neurokone/ui/header.dart';
+import 'package:neurokone/ui/voice.dart';
+import 'package:neurokone/synth/tts.dart';
+import 'package:neurokone/variables.dart' as Variables;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:android_intent_plus/android_intent.dart';
@@ -329,14 +329,23 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Text(
-          widget.langText['tempo']!,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        _tempoButton(),
         _sliderEdgeIcon(Variables.slowTempoIcon, Alignment.centerRight),
         _tempoSlider(),
         _sliderEdgeIcon(Variables.fastTempoIcon, Alignment.centerLeft),
       ],
+    );
+  }
+
+  _tempoButton() {
+    return TextButton(
+      onPressed: () => setState(() {
+        this._speed = 1.0;
+      }),
+      child: Text(
+        widget.langText['tempo']!,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
     );
   }
 

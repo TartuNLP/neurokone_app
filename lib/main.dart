@@ -1,8 +1,8 @@
-import 'package:eestitts/synth/system_channel.dart';
-import 'package:eestitts/ui/about_page.dart';
-import 'package:eestitts/ui/main_page.dart';
-import 'package:eestitts/ui/selection_page.dart';
-import 'package:eestitts/ui/instructions_page.dart';
+import 'package:neurokone/synth/system_channel.dart';
+import 'package:neurokone/ui/about_page.dart';
+import 'package:neurokone/ui/main_page.dart';
+import 'package:neurokone/ui/selection_page.dart';
+import 'package:neurokone/ui/instructions_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {

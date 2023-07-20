@@ -1,8 +1,8 @@
 import 'package:logger/logger.dart';
-import 'package:eestitts/synth/text_encoder.dart';
-import 'package:eestitts/synth/native_models/fastspeech.dart';
-import 'package:eestitts/synth/native_models/vocoder.dart';
-import 'package:eestitts/synth/audio_player.dart';
+import 'package:neurokone/synth/text_encoder.dart';
+import 'package:neurokone/synth/native_models/fastspeech.dart';
+import 'package:neurokone/synth/native_models/vocoder.dart';
+import 'package:neurokone/synth/audio_player.dart';
 
 class NativeTts {
   Logger logger = Logger();

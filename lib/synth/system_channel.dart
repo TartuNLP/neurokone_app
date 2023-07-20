@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:eestitts/ui/voice.dart';
+import 'package:neurokone/ui/voice.dart';
 import 'package:logger/logger.dart';
-import 'package:eestitts/variables.dart';
+import 'package:neurokone/variables.dart' as Variables;
 import 'package:flutter/services.dart';
 
 class SystemChannel {

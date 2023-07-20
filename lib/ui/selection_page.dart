@@ -1,9 +1,9 @@
-import 'package:eestitts/ui/page_view.dart';
+import 'package:neurokone/ui/page_view.dart';
 import 'package:logger/logger.dart';
-import 'package:eestitts/synth/system_channel.dart';
-import 'package:eestitts/ui/header.dart';
-import 'package:eestitts/ui/voice.dart';
-import 'package:eestitts/variables.dart';
+import 'package:neurokone/synth/system_channel.dart';
+import 'package:neurokone/ui/header.dart';
+import 'package:neurokone/ui/voice.dart';
+import 'package:neurokone/variables.dart' as Variables;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 

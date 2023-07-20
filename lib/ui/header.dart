@@ -1,7 +1,7 @@
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:eestitts/variables.dart';
+import 'package:neurokone/variables.dart' as Variables;
 import 'dart:io' show Platform;
 
 class Header extends StatelessWidget {
