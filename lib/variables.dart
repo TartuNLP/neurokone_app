@@ -29,7 +29,7 @@ const Map<String, Map<String, String>> langs = {
     'dropdown': 'Vali hääl',
     'hint': 'Kirjuta siia...',
     'tempo': 'Tempo',
-    'selected': 'Lubatud Keeled',
+    'selected': 'Luba hääled',
   },
   'English': {
     'loading': 'Models loading...',
@@ -53,7 +53,7 @@ const Map<String, Map<String, String>> langs = {
     'dropdown': 'Choose voice',
     'hint': 'Write here...',
     'tempo': 'Tempo',
-    'selected': 'Enabled Languages',
+    'selected': 'Enable voices',
   }
 };
 
