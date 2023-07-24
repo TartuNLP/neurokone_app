@@ -1,12 +1,8 @@
 package com.tartunlp.neurokone;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;

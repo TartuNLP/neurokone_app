@@ -18,8 +18,4 @@ public class KoneSunteesiApp extends Application {
             KoneSunteesiApp.storageContext = appContext;
         }
     }
-
-    public static Context getStorageContext() {
-        return KoneSunteesiApp.storageContext;
-    }
 }

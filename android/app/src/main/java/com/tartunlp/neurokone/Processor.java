@@ -1,9 +1,6 @@
 package com.tartunlp.neurokone;
 
 import android.util.Log;
-
-import androidx.annotation.Nullable;
-
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.ArrayList;

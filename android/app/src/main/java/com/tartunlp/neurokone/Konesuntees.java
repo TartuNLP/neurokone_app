@@ -14,10 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
-import java.io.*;
-
-import io.flutter.FlutterInjector;
-import io.flutter.embedding.engine.loader.FlutterLoader;
 
 public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
     private final String TAG = "Kõnesüntees";
@@ -37,8 +33,6 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
     private final Encoder mEncoder = new Encoder();
     private FastSpeechModel mModule;
     private VocoderModel vocModule;
-
-    //private int voice = 0;
     private final List<String> voices = Arrays.asList("Mari", "Tambet", "Liivika", "Kalev", "Külli", "Meelis", "Albert", "Indrek", "Vesta", "Peeter");
     
 
@@ -164,11 +158,10 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
         // in 16bit PCM mono.
         callback.start(SAMPLING_RATE_HZ, audioFormat, 1);
 
-        /*
         if (mStopRequested) {
             callback.done();
             return;
-        }*/
+        }
         mStopRequested = false;
 
         int speakerId = voices.indexOf(PrefUtil.getTtsVoice(this));
@@ -206,6 +199,10 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
             threadList.add(thread);
         }
         while (!threadList.isEmpty()) {
+            if (mStopRequested) {
+                mStopRequested = false;
+                return false;
+            }
             threadList.get(0).join();
             threadList.remove(0);
         }

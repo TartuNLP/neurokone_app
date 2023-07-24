@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:neurokone/variables.dart' as Variables;
@@ -9,6 +8,9 @@ import 'package:neurokone/synth/est_processor.dart';
 import 'package:path_provider/path_provider.dart';
 
 class Tts {
+  final bool isIOS;
+  String lang = 'et-EE';
+
   /////////////////////////////////////////////////////////
   // FlutterTts uses Android system's text-to-speech engine
   // and so for this application works only for Android.
@@ -16,10 +18,9 @@ class Tts {
   // NativeTts uses application's native text-to-speech
   // implementation, supports both Android and iOS.
   /////////////////////////////////////////////////////////
-  final bool isIOS;
-  String lang = 'et-EE';
   late NativeTts nativeTts;
   late FlutterTts systemTts;
+  
   bool stopNative = false;
   String engine = '';
 
