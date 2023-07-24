@@ -15,8 +15,9 @@ import java.util.Arrays;
 import java.util.List;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 import java.io.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import io.flutter.FlutterInjector;
+import io.flutter.embedding.engine.loader.FlutterLoader;
 
 public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
     private final String TAG = "Kõnesüntees";
@@ -84,45 +85,6 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
         return TextToSpeech.LANG_NOT_SUPPORTED;
     }
 
-    private String copyFile(String strOutFileName) {
-        Log.d(TAG, "Searching for model file...");
-        File file = getFilesDir();
-
-        String tmpFile = file.getAbsolutePath() + "/" + strOutFileName;
-        File f = new File(tmpFile);
-        if (f.exists()) {
-            Log.d(TAG, "File exists: " + f.getAbsolutePath());
-            return f.getAbsolutePath();
-        }
-
-        Log.d(TAG, strOutFileName + " not found. Copying model from app assets...");
-
-        //FlutterLoader loader = FlutterInjector.instance().flutterLoader();
-        //loader.startInitialization(getApplicationContext());
-        //loader.ensureInitializationComplete(getApplicationContext(), new String[] {});
-        //String key = loader.getLookupKeyForAsset("assets/mobilenetv3.ptl");
-        
-        //AssetManager assetManager = registrar.context().getAssets();
-        //String key = registrar.lookupKeyForAsset("assets/" + strOutFileName);
-        //AssetFileDescriptor fd = assetManager.openFd(key);
-
-        try (OutputStream myOutput = new FileOutputStream(f);
-             InputStream myInput = getAssets().open(strOutFileName)
-             /*InputStream myInput = fd.createInputStream()*/) {
-            byte[] buffer = new byte[1024];
-            int length = myInput.read(buffer);
-            while (length > 0) {
-                myOutput.write(buffer, 0, length);
-                length = myInput.read(buffer);
-            }
-            myOutput.flush();
-            Log.d(TAG, "Copy task successful.");
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to copy file " + strOutFileName, e);
-        }
-        return f.getAbsolutePath();
-    }
-
     /*
      * Note that this method is synchronized, as is onSynthesizeText because
      * onLoadLanguage can be called from multiple threads (while onSynthesizeText
@@ -145,8 +107,10 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
             }
         }
         if (!isInit) {
-            String synthModelPath = copyFile("fastspeech2-" + lang + ".tflite");
-            String vocModelPath = copyFile("hifigan-" + lang + ".v2.tflite");
+            String synthModelPath = getFilesDir().getAbsolutePath() + String.format("/fastspeech2-%s.tflite", lang);
+            Log.i(TAG, synthModelPath);
+            String vocModelPath = getFilesDir().getAbsolutePath() + String.format("/hifigan-%s.v2.tflite", lang);
+            Log.i(TAG, vocModelPath);
             try {
                 mModule = new FastSpeechModel(synthModelPath);
                 isInit = true;

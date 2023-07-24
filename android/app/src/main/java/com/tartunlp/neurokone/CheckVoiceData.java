@@ -17,15 +17,18 @@ package com.tartunlp.neurokone;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
-import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /*
  * Checks if the voice data is present.
@@ -35,6 +38,7 @@ public class CheckVoiceData extends Activity {
 
     private static final String[] SUPPORTED_LANGUAGES = { "est-EST" };
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,11 +82,12 @@ public class CheckVoiceData extends Activity {
      * If for example, engine data was downloaded or installed on external storage,
      * this check would make much more sense.
      */
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private boolean isDataInstalled(String lang) {
-        String synthName = "fastspeech2-" + lang.split("-")[0] + ".tflite";
-        //String vocName = "hifigan-" + lang.split("-")[0] + ".v2.tflite";
+        String synthPath = "fastspeech2-" + lang.split("-")[0] + ".tflite";
+        //String vocPath = getFilesDir().getAbsolutePath() + "/hifigan-" + lang.split("-")[0] + ".v2.tflite";
         try {
-            InputStream is = getAssets().open(synthName);
+            InputStream is = Files.newInputStream(new File(getFilesDir().getAbsolutePath() + "/" + synthPath).toPath());
 
             if (is != null) {
                 is.close();
@@ -90,7 +95,7 @@ public class CheckVoiceData extends Activity {
                 return false;
             }
         } catch (IOException e) {
-            Log.w(TAG, "Unable to find data for: " + synthName + ", exception: " + e);
+            Log.w(TAG, "Unable to find data for: " + synthPath + ", exception: " + e);
             return false;
         }
 
