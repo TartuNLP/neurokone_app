@@ -5,8 +5,6 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
-
 public class PrefUtil {
     private static final String TTS_VOICE = "app.voice";
 

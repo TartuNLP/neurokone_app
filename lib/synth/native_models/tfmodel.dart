@@ -15,26 +15,6 @@ class TfModel {
   loadModel() async {
     this.mModule = await Interpreter.fromAsset(this.modulePath);
     this.logger.d(modulePath);
-    /*
-    for (Tensor tensor in mModule.getInputTensors()) {
-      logger.d('$TAG (in): ' +
-          'name:' +
-          tensor.name +
-          ', shape:' +
-          tensor.shape.toString() +
-          ', type:' +
-          tensor.type.toString());
-    }
-    for (Tensor tensor in mModule.getOutputTensors()) {
-      logger.d('$TAG (out): ' +
-          'name:' +
-          tensor.name +
-          ', shape:' +
-          tensor.shape.toString() +
-          ', type:' +
-          tensor.type.toString());
-    }
-    */
   }
 
   //Performs inference on the model and returns model's output as Tensor.
