@@ -5,6 +5,9 @@ import 'package:lottie/lottie.dart';
 
 final String packageName = 'com.tartunlp.neurokone';
 
+final String synthModel = 'fastspeech2-est';
+final String vocModel = 'hifigan-est.v2';
+
 //Defaults for Estonian and English UI.
 const Map<String, Map<String, String>> langs = {
   'Eesti': {

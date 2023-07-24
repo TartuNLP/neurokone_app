@@ -1,5 +1,6 @@
 import 'package:logger/logger.dart';
 import 'package:neurokone/synth/text_encoder.dart';
+import 'package:neurokone/variables.dart' as Variables;
 import 'package:neurokone/synth/native_models/fastspeech.dart';
 import 'package:neurokone/synth/native_models/vocoder.dart';
 import 'package:neurokone/synth/audio_player.dart';
@@ -17,9 +18,9 @@ class NativeTts {
 
   int fileId = 0;
 
-  NativeTts(String modelName, String vocName, bool isIOS) {
-    this._synth = FastSpeech(modelName);
-    this._vocoder = Vocoder(vocName);
+  NativeTts() {
+    this._synth = FastSpeech(Variables.synthModel);
+    this._vocoder = Vocoder(Variables.vocModel);
   }
 
   //Text preprocessing, models' inference and playing of the resulting audio

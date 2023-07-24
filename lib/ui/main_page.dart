@@ -72,9 +72,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _initTts() async {
     tts = Tts(this.isIOS);
 
-    // loads native model
-    tts.initTtsNative();
-
     // loads system default model
     tts.loadSystemDefaultEngine();
     _setHandlers();
