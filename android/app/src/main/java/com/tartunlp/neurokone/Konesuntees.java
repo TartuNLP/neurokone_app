@@ -7,7 +7,6 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeechService;
 import android.text.TextUtils;
 import android.util.Log;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -15,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
-public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
+public class Konesuntees extends TextToSpeechService {
     private final String TAG = "Kõnesüntees";
     /*
      * This is the sampling rate of our output audio. This engine outputs
@@ -102,9 +101,9 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
         }
         if (!isInit) {
             String synthModelPath = getFilesDir().getAbsolutePath() + String.format("/fastspeech2-%s.tflite", lang);
-            Log.i(TAG, synthModelPath);
+            Log.d(TAG, "Synthesizer model: " + synthModelPath);
             String vocModelPath = getFilesDir().getAbsolutePath() + String.format("/hifigan-%s.v2.tflite", lang);
-            Log.i(TAG, vocModelPath);
+            Log.d(TAG, "Vocoder model: " + vocModelPath);
             try {
                 mModule = new FastSpeechModel(synthModelPath);
                 isInit = true;
@@ -170,7 +169,7 @@ public class Konesuntees extends TextToSpeechService {  //FlutterPlugin
         mModule.setSpeed(speed);
         float pitch = (float) request.getPitch() / 100;
         mModule.setPitch(pitch);
-        Log.i(TAG, "Prefs: Text(" + text + "), Voice(" + speakerId + "), Speed(" + speed + "), Pitch(" + pitch + ")");
+        Log.i(TAG, "TTS request parameters: Text(" + text + "), Voice(" + speakerId + "), Speed(" + speed + "), Pitch(" + pitch + ")");
 
         // It is crucial to call either of callback.error() or callback.done() to ensure
         // that audio / other resources are released as soon as possible.

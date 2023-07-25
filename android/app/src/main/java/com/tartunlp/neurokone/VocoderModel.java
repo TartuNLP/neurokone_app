@@ -24,7 +24,7 @@ public class VocoderModel {
 
         this.model.run(input.getBuffer(), outputBuffer);
         String TAG = "Vocoder";
-        Log.i(TAG, "pikkus: " + outputBuffer.position());
+        Log.d(TAG, "Audio length in floats: " + outputBuffer.position());
 
         float[] audioArray = new float[outputBuffer.position()];
         outputBuffer.rewind();

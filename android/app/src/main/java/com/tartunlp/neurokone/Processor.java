@@ -579,6 +579,9 @@ class Processor {
         while ((matcher = sentencesSplit.matcher(remainingText)).find(currentSentId)) {
             String sentence = remainingText.substring(currentSentId, matcher.start());
             currentSentId = matcher.end();
+
+            // With sentence splitting (in case of low memory)
+            /*
             int currentCharId = 0;
             int lastSplitId = 0;
             Matcher splitmatcher;
@@ -600,6 +603,12 @@ class Processor {
             }
             String sentToAdd = processSentence(sentence.substring(lastSplitId).replaceAll(sentenceStrip, "") + '.');
             if (sentToAdd.matches(".*[a-z].*")) sentences.add(sentToAdd);
+            */
+
+            // Without splitting sentences
+            String processedSentence = processSentence(sentence);
+            if (processedSentence.matches(".*[a-z].*")) sentences.add(processedSentence);
+            //
         }
         return sentences;
     }

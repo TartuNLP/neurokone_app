@@ -19,7 +19,7 @@ public class GetSampleText extends Activity {
         Intent i = getIntent();
         String language = i.getExtras().getString("language");
 
-        Log.i(TAG , "GetSampleText language: " + language);
+        Log.d(TAG , "GetSampleText language: " + language);
 
         if (language.equalsIgnoreCase("et") || language.equalsIgnoreCase("est")) {
             returnData.putExtra("sampleText", getString(R.string.sample_text)/*.replace("juturobot", PrefUtil.getTtsVoice(this))*/);
