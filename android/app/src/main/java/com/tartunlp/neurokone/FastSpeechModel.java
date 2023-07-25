@@ -55,7 +55,7 @@ public class FastSpeechModel {
         this.model.runForMultipleInputsOutputs(input, outputMap);
 
         int[] shape = this.model.getOutputTensor(0).shape();
-        Log.i(TAG, "Spectrogram shape: " + Arrays.toString(shape));
+        Log.d(TAG, "Spectrogram shape: " + Arrays.toString(shape));
 
         int[] newShape = {1, outputBuffer.position() / shape[2], shape[2]};
         TensorBuffer spectrogram = TensorBuffer.createFixedSize(newShape, DataType.FLOAT32);
