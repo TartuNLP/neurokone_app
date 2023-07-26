@@ -14,12 +14,10 @@ import AVFoundation
   ) -> Bool {
     let flutterController = window?.rootViewController as? FlutterViewController
 
-    //addModelPath(assetPath: "assets/fastspeech2-est_quant.tflite", key: "synthesizer", controller: flutterController!)
     addModelPath(assetPath: "assets/fastspeech2-est.tflite", key: "synthesizer", controller: flutterController!)
-    //addModelPath(assetPath: "assets/hifigan-est.tflite", key: "vocoder", controller: flutterController!)
     addModelPath(assetPath: "assets/hifigan-est.v2.tflite", key: "vocoder", controller: flutterController!)
 
-    let methodChannel = FlutterMethodChannel(name: "com.tartunlp.neurokone", binaryMessenger: flutterController!.binaryMessenger) //binaryMessenger: rootViewController as! FlutterBinaryMessenger
+    let methodChannel = FlutterMethodChannel(name: "com.tartunlp.neurokone", binaryMessenger: flutterController!.binaryMessenger)
     methodChannel.setMethodCallHandler(handleMethodCalls)
 
     GeneratedPluginRegistrant.register(with: self)
@@ -42,16 +40,6 @@ import AVFoundation
         defaults?.set(arguments!, forKey: "voices")
         AVSpeechSynthesisProviderVoice.updateSpeechVoices()
         result("Success!")
-      /*
-      case "getDefaultLangs":
-        result(defaults?.value(forKey: "langs") as? [String] ?? [])
-      case "setDefaultLangs":
-        let arguments = call.arguments as? [String]
-        print("Enabling languages: " + arguments!.description)
-        groupData?.set(arguments!, forKey: "langs")
-        AVSpeechSynthesisProviderVoice.updateSpeechVoices()
-        result("Success!")
-      */
       default:
         result(FlutterMethodNotImplemented)
     }
