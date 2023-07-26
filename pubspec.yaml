@@ -1,5 +1,5 @@
 name: neurokone
-description: A new Flutter project.
+description: Eestikeelse kõnesünteesi rakendus.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -24,8 +24,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.2
-  dropdown_button2: ^2.0.0
   tflite_flutter: ^0.9.0
   unorm_dart: ^0.2.0
   audioplayers: ^3.0.1

@@ -58,10 +58,6 @@
 		247E13F89DD419A6BB0BABC4 /* Pods-EestiTtsExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EestiTtsExtension.release.xcconfig"; path = "Target Support Files/Pods-EestiTtsExtension/Pods-EestiTtsExtension.release.xcconfig"; sourceTree = "<group>"; };
 		255AF48D29E717D10036665F /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		255AF48F29E71A510036665F /* EestiTtsExtension.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = EestiTtsExtension.entitlements; sourceTree = "<group>"; };
-		258D12F429E96E8D005C0305 /* TensorFlowLite.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TensorFlowLite.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		258D12F829E96FC6005C0305 /* TensorFlowLite.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TensorFlowLite.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		258D12FB29E973A2005C0305 /* TensorFlowLite.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TensorFlowLite.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		258D130129E98DB8005C0305 /* TensorFlowLite.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TensorFlowLite.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		25B7B42E29E58DAA00F5494E /* EestiTtsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = EestiTtsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		25B7B43029E58DAA00F5494E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		25B7B44529E58DAA00F5494E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -207,10 +203,6 @@
 		AA777AFD3B6B2AF061748624 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				258D130129E98DB8005C0305 /* TensorFlowLite.framework */,
-				258D12FB29E973A2005C0305 /* TensorFlowLite.framework */,
-				258D12F829E96FC6005C0305 /* TensorFlowLite.framework */,
-				258D12F429E96E8D005C0305 /* TensorFlowLite.framework */,
 				8590148660937F696CA5CCD6 /* Pods_Runner.framework */,
 				F4331487472A43AB41F622D1 /* Pods_EestiTtsExtension.framework */,
 			);

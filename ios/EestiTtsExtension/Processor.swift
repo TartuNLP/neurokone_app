@@ -613,6 +613,7 @@ class Processor {
             var startId = sentence.startIndex
             while let splitMatch = sentence[startId...].firstMatch(of: sentenceSplit) {
                 if sentence.distance(from: sentence.startIndex, to: splitMatch.range.lowerBound) > 30 && sentence.distance(from: splitMatch.range.upperBound, to: sentence.endIndex) > 30 {
+                    
                     // if lookahead doesn't work
                     sentences.append(processSentence(String(sentence[..<splitMatch.range.upperBound])))
                     sentence = String(sentence[splitMatch.range.upperBound...])
@@ -621,6 +622,7 @@ class Processor {
                     // if lookahead works
                     //sentences.append(String(sentence[..<splitMatch.range.lowerBound]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
                     //sentence = String(sentence[splitMatch.range.lowerBound])
+                    
                 } else {
                     startId = splitMatch.range.upperBound
                 }
