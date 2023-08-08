@@ -5,8 +5,6 @@
     <string name="service_name" translatable="false">TartuNLP Neurokõne</string>
 
     <string name="sample_text" translatable="false">Tere! Mina olen juturobot.</string>
-    <string name="voice_title">Synthesize speech</string>
-    <string name="voice_summary">Synthesize estonian speech in 10 different voices.</string>
     <string name="tts_settings_label">Voices</string>
 
     <string name="label_mari" translatable="false">Mari</string>

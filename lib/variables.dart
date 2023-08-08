@@ -1,7 +1,6 @@
 import 'package:neurokone/ui/voice.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:lottie/lottie.dart';
 
 final String packageName = 'com.tartunlp.neurokone';
 
@@ -25,6 +24,7 @@ const Map<String, Map<String, String>> langs = {
         'Meie hääli saab süsteemi lisada vajutades parempoolset sünteesivaliku nuppu "Süsteemi hääl" ning seal vajutades tahetud häältele. Süsteemi vaikimisi kõnesünteesi häält saab muuta liikudes seadetesse:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nning valides soovitud kõneleja.',
     'understood': 'Sain aru',
     'choose': 'Süsteemi hääl',
+    'copy': 'Tekst kopeeritud!',
     'speak': 'Räägi',
     'stop': 'Peata',
     'slow': 'Aeglane',
@@ -49,6 +49,7 @@ const Map<String, Map<String, String>> langs = {
         'Our voices can be added to the system by tapping on the right synthesizer option button "System voice" and toggling the desired voices by tapping on them. The system text-to-speech voice can be changed by going to:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nand tapping on the desired voice.',
     'understood': 'I understand',
     'choose': 'System voice',
+    'copy': 'Text copied!',
     'speak': 'Speak',
     'stop': 'Stop',
     'slow': 'Slow',
@@ -60,9 +61,6 @@ const Map<String, Map<String, String>> langs = {
   }
 };
 
-voiceIcon(Voice voice) =>
-    Lottie.asset('assets/icons_logos/${voice.getIcon()}.json', animate: true);
-
 const Map<String, Color> colors = {
   'cyan': Color(0xff4cb6ac),
   'red': Color(0xffef6650),
@@ -72,21 +70,16 @@ const Map<String, Color> colors = {
 
 //Voice data: speakers, their background colors and decoration icon file names.
 final List<Voice> voices = [
-  Voice('Mari', colors['red']!, '1'),
-  Voice('Tambet', colors['purple']!, '2'),
-  Voice('Liivika', colors['yellow']!, '3'),
-  Voice('Kalev', colors['cyan']!, '4'),
-  Voice('Külli', colors['red']!, '3'),
-  Voice('Meelis', colors['purple']!, '2'),
-  Voice('Albert', colors['yellow']!, '1'),
-  Voice('Indrek', colors['cyan']!, '3'),
-  Voice('Vesta', colors['red']!, '2'),
-  Voice('Peeter', colors['purple']!, '4'),
-  /*made up voices*/
-  //Voice('Maris', colors['purple']!, '1'),
-  //Voice('Tambets', colors['red']!, '2'),
-  //Voice('Liivikas', colors['cyan']!, '3'),
-  //Voice('Kalevs', colors['yellow']!, '4'),
+  Voice('Mari', colors['red']!),
+  Voice('Tambet', colors['purple']!),
+  Voice('Liivika', colors['yellow']!),
+  Voice('Kalev', colors['cyan']!),
+  Voice('Külli', colors['red']!),
+  Voice('Meelis', colors['purple']!),
+  Voice('Albert', colors['yellow']!),
+  Voice('Indrek', colors['cyan']!),
+  Voice('Vesta', colors['red']!),
+  Voice('Peeter', colors['purple']!),
 ];
 
 final SvgPicture slowTempoIcon = SvgPicture.asset(
