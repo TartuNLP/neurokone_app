@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'dart:math';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:neurokone/ui/page_view.dart';
 import 'package:neurokone/synth/system_channel.dart';
 import 'package:neurokone/ui/header.dart';
@@ -237,11 +238,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
             maxWidth: min(MediaQuery.of(context).size.width * 0.5, 200),
           ),
           initialValue: _currentNativeVoice,
-          child: _voiceBox(_currentNativeVoice, false),
+          child: _voiceBox(_currentNativeVoice),
           // Callback that sets the selected popup menu item.
           onSelected: (item) {
             setState(() {
-              _currentNativeVoice = item as Voice;
+              _currentNativeVoice = item;
             });
           },
           itemBuilder: (context) => Variables.voices
@@ -249,7 +250,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
                     textStyle: TextStyle(),
                     padding: EdgeInsets.all(0),
                     value: voice,
-                    child: _voiceBox(voice, true),
+                    child: _voiceBox(voice),
                   ))
               .toList(),
         ),
@@ -258,7 +259,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   //Component that represents a voice in the dropdown list.
-  _voiceBox(Voice voice, bool hasSvg) {
+  _voiceBox(Voice voice) {
     return Container(
       decoration: BoxDecoration(
         color: voice.getColor(),
@@ -270,17 +271,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       constraints: BoxConstraints.expand(
           width: min(MediaQuery.of(context).size.width * 0.5, 200),
           height: voiceTileHeight),
-      child: _boxContents(voice, hasSvg),
+      child: _boxContents(voice),
     );
   }
 
   //Contents in the voice representing box
-  _boxContents(Voice voice, bool hasSvg) {
+  _boxContents(Voice voice) {
     return Row(
-      mainAxisAlignment:
-          hasSvg ? MainAxisAlignment.start : MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (hasSvg) Variables.voiceIcon(voice),
         Text(
           voice.getName(),
           style: TextStyle(
@@ -377,20 +376,45 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return Center(
       child: SizedBox(
         //width: MediaQuery.of(context).size.width * 0.9,
-        child: TextField(
-          minLines: 4,
-          maxLines: 25,
-          controller: _textEditingController,
-          decoration: InputDecoration(
-              hintText: widget.langText['hint'],
-              suffixIcon: _fieldText.isNotEmpty
-                  ? Column(
-                      children: [
-                        _clearButton(),
-                        _copyButton(),
-                      ],
-                    )
-                  : null),
+        child: Stack(
+          children: [
+            TextField(
+              minLines: 7,
+              maxLines: 25,
+              controller: _textEditingController,
+              decoration: InputDecoration(
+                hintText: widget.langText['hint'],
+                fillColor: Colors.white,
+                filled: true,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  borderSide: BorderSide(
+                    color: Color.fromARGB(0, 0, 0, 0),
+                    width: 2.0,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(16)),
+                  borderSide: BorderSide(
+                    color: Color.fromARGB(102, 77, 182, 172),
+                    width: 2.0,
+                  ),
+                ),
+              ),
+            ),
+            if (_fieldText.isNotEmpty)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: _clearButton(),
+              ),
+            if (_fieldText.isNotEmpty)
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: _copyButton(),
+              )
+          ],
         ),
       ),
     );
@@ -402,16 +426,17 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       onPressed: () => setState(() {
         _textEditingController.clear();
       }),
-      icon: const Icon(Icons.clear),
+      icon: const Icon(Icons.clear, color: Colors.black54),
+      splashRadius: 10,
     );
   }
 
   _copyButton() {
     return IconButton(
-      onPressed: () => Clipboard.setData(
-        ClipboardData(text: _fieldText),
-      ),
-      icon: const Icon(Icons.copy),
+      onPressed: () => Clipboard.setData(ClipboardData(text: _fieldText)).then(
+          (result) => Fluttertoast.showToast(msg: widget.langText['copy']!)),
+      icon: const Icon(Icons.copy, color: Colors.black54),
+      splashRadius: 10,
     );
   }
 
@@ -431,10 +456,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _speakButton() {
     return TextButton(
       style: ButtonStyle(
-        foregroundColor: MaterialStateProperty.all(
-            _fieldText.isNotEmpty ? Colors.white : Colors.grey),
+        foregroundColor: MaterialStateProperty.all(Colors.white),
         backgroundColor: MaterialStateProperty.all<Color>(
-            isSystemVoice ? Colors.black : _currentNativeVoice.getColor()),
+            (isSystemVoice ? Colors.black : _currentNativeVoice.getColor())
+                .withOpacity(_fieldText.isNotEmpty ? 1 : 0.5)),
         fixedSize: MaterialStateProperty.all<Size>(const Size.fromWidth(100.0)),
         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
