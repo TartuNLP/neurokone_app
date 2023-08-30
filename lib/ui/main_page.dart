@@ -150,23 +150,31 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Lastly, speak/predict and play button.
   @override
   Widget build(BuildContext context) {
-    return NewPage.createScaffoldView(
-      appBarTitle: Header(widget.switchLangs, widget.lang),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  _ttsEngineChoice(),
-                  _speedControl(),
-                  _inputTextField(),
-                  _speakStopButtons(),
-                ],
+    return GestureDetector(
+      onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
+      },
+      child: NewPage.createScaffoldView(
+        appBarTitle: Header(widget.switchLangs, widget.lang),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _ttsEngineChoice(),
+                    _speedControl(),
+                    _inputTextField(),
+                    _speakStopButtons(),
+                  ],
+                ),
               ),
             ),
           ),
