@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 final String packageName = 'com.tartunlp.neurokone';
+final String appVersion = 'Neurokõne v1.0.3';
 
 final String synthModel = 'fastspeech2-est';
 final String vocModel = 'hifigan-est.v2';

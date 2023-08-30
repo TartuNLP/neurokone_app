@@ -35,6 +35,15 @@ class _InstructionsPageState extends State<InstructionsPage> {
           ),
         ),
       ),
+      bottom: Row(
+        children: [
+          Spacer(),
+          Text(
+            Variables.appVersion,
+            style: TextStyle(fontSize: 14),
+          )
+        ],
+      ),
     );
   }
 
