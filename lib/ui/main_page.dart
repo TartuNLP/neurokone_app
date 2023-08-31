@@ -150,23 +150,31 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Lastly, speak/predict and play button.
   @override
   Widget build(BuildContext context) {
-    return NewPage.createScaffoldView(
-      appBarTitle: Header(widget.switchLangs, widget.lang),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  _ttsEngineChoice(),
-                  _speedControl(),
-                  _inputTextField(),
-                  _speakStopButtons(),
-                ],
+    return GestureDetector(
+      onTap: () {
+        FocusScopeNode currentFocus = FocusScope.of(context);
+        if (!currentFocus.hasPrimaryFocus) {
+          currentFocus.unfocus();
+        }
+      },
+      child: NewPage.createScaffoldView(
+        appBarTitle: Header(widget.switchLangs, widget.lang),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _ttsEngineChoice(),
+                    _speedControl(),
+                    _inputTextField(),
+                    _speakStopButtons(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -238,7 +246,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
             maxWidth: min(MediaQuery.of(context).size.width * 0.5, 200),
           ),
           initialValue: _currentNativeVoice,
-          child: _voiceBox(_currentNativeVoice),
+          child: _voiceBox(_currentNativeVoice, arrow: true),
           // Callback that sets the selected popup menu item.
           onSelected: (item) {
             setState(() {
@@ -259,7 +267,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   //Component that represents a voice in the dropdown list.
-  _voiceBox(Voice voice) {
+  _voiceBox(Voice voice, {bool arrow = false}) {
     return Container(
       decoration: BoxDecoration(
         color: voice.getColor(),
@@ -271,26 +279,35 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       constraints: BoxConstraints.expand(
           width: min(MediaQuery.of(context).size.width * 0.5, 200),
           height: voiceTileHeight),
-      child: _boxContents(voice),
+      child: _boxContents(voice, arrow),
     );
   }
 
   //Contents in the voice representing box
-  _boxContents(Voice voice) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          voice.getName(),
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black54,
-          ),
-          overflow: TextOverflow.visible,
+  _boxContents(Voice voice, bool arrow) {
+    Center speaker = Center(
+      child: Text(
+        voice.getName(),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: 15,
+          //fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
-      ],
+        overflow: TextOverflow.visible,
+      ),
     );
+    if (arrow) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Container(),
+          speaker,
+          Icon(Icons.arrow_drop_down),
+        ],
+      );
+    } else
+      return speaker;
   }
 
   //Takes the user to Android 'Text-to-speech output' settings.
@@ -340,7 +357,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       }),
       child: Text(
         widget.langText['tempo']!,
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -460,7 +480,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         backgroundColor: MaterialStateProperty.all<Color>(
             (isSystemVoice ? Colors.black : _currentNativeVoice.getColor())
                 .withOpacity(_fieldText.isNotEmpty ? 1 : 0.5)),
-        fixedSize: MaterialStateProperty.all<Size>(const Size.fromWidth(100.0)),
+        fixedSize: MaterialStateProperty.all<Size>(const Size.fromWidth(120.0)),
         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18.0),
@@ -470,7 +490,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       onPressed: _fieldText.isNotEmpty ? _speak : null,
       child: Text(
         widget.langText['speak']!,
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: 15,
+        ),
       ),
     );
   }
@@ -493,7 +515,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         ),
       ),
       onPressed: _stop,
-      child: Text(widget.langText['stop']!),
+      child: Text(
+        widget.langText['stop']!,
+        style: TextStyle(
+          fontSize: 15,
+        ),
+      ),
     );
   }
 
