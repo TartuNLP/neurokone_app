@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class NewPage {
   static Scaffold createScaffoldView(
-      {required Widget appBarTitle, required Widget body, Widget? bottom}) {
+      {required Widget appBarTitle, required Widget body, Widget? scrollButton, Widget? bottom}) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 238, 238, 238),
       appBar: AppBar(
@@ -12,6 +12,7 @@ class NewPage {
         title: appBarTitle,
       ),
       body: body,
+      floatingActionButton: scrollButton,
       bottomSheet: bottom,
     );
   }

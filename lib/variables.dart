@@ -18,7 +18,7 @@ const Map<String, Map<String, String>> langs = {
     'back': 'Tagasi',
     'instructions': 'Juhised',
     'introductionText':
-        'Vali sünteeshääl, kirjuta midagi alla lahtrisse ning saad kuulata sünteesitud kõne!\n\nVasakpoolse sünteeshääle valiku puhul saad valida, kes meie häältest teksti esitab.\nParempoolse valiku puhul tuleb mootori ja selle häälte muutmiseks suunduda süsteemi kõnesünteesi seadetesse.',
+        'Vali sünteeshääl, kirjuta midagi alla lahtrisse ning saad kuulata sünteesitud kõne.\n\nVasakpoolse sünteeshääle valiku puhul saad valida, kes meie häältest teksti esitab.\nParempoolse valiku puhul tuleb mootori ja selle häälte muutmiseks suunduda süsteemi kõnesünteesi seadetesse.',
     'instructionTextAndroid':
         'Süsteemi kõnesünteesi seadetesse saab liikuda läbi rakenduse vajutades parempoolset sünteesivaliku nuppu "Süsteemi hääl" või avades valikud paremalt ülevalt nurgast ja vajutades "Kõnesünteesi seaded".\nRakenduseväliselt saab sinna liikuda ka minnes Seaded -> Süsteem -> Keel ja sisend -> (Täpsemalt ->) alamkategooria Kõne -> Kõnesünteesi väljund.',
     'instructionTextiOS':
@@ -43,7 +43,7 @@ const Map<String, Map<String, String>> langs = {
     'back': 'Back',
     'instructions': 'Instructions',
     'introductionText':
-        'Choose a speech synthesis engine, write something into the textfield below and you can listen to synthesized speech!\n\nChoosing the left text-to-speech option, you can change the speaking voice from the dropdown that opens by tapping on the current voice. Choosing the right option, in order to change the default engine and its options, you will need to head to the system\'s text-to-speech settings.',
+        'Choose a speech synthesis engine, write something into the textfield below and you can listen to synthesized speech.\n\nChoosing the left text-to-speech option, you can change the speaking voice from the dropdown that opens by tapping on the current voice. Choosing the right option, in order to change the default engine and its options, you will need to head to the system\'s text-to-speech settings.',
     'instructionTextAndroid':
         'The system\'s text-to-speech settings can be opened through this app by tapping on the right synthesizer option button "System voice" or by opening the menu on the upper-right corner and tapping "Text-to-speech settings".\nTo access text-to-speech settings externally, go to Settings -> System -> Languages & input -> (Advanced ->) subcategory Speech -> Text-to-speech output.',
     'instructionTextiOS':
