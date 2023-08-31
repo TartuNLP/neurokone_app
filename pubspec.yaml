@@ -51,4 +51,5 @@ flutter:
 
   assets:
     - assets/icons_logos/
+    - assets/tutorials/
     - assets/

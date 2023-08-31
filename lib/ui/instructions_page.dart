@@ -16,9 +16,10 @@ class InstructionsPage extends StatefulWidget {
 
 class _InstructionsPageState extends State<InstructionsPage> {
   final ScrollController _scrollController = ScrollController();
-  bool _showFab = true;
+  bool _showFab = false;
   Duration _animationDuration = Duration(milliseconds: 200);
-  
+  AssetImage? _tutorialImage;
+
   @override
   Widget build(BuildContext context) {
     return NewPage.createScaffoldView(
@@ -54,13 +55,13 @@ class _InstructionsPageState extends State<InstructionsPage> {
 
   @override
   void initState() {
-    super.initState();
     _scrollController.addListener(() {
       setState(() {
         _showFab = !(_scrollController.position.maxScrollExtent ==
             _scrollController.position.pixels);
       });
     });
+    super.initState();
   }
 
   _introductionText() {
@@ -78,10 +79,48 @@ class _InstructionsPageState extends State<InstructionsPage> {
   }
 
   _androidInstructions() {
-    return Text(
-      Variables.langs[widget.lang]!['instructionTextAndroid']!,
-      style: TextStyle(fontSize: 17),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _alertButton('enableEngineApp'),
+        _alertButton('enableEngineSettings'),
+        _alertButton('configureEngine')
+      ],
     );
+  }
+
+  _alertButton(String key) {
+    String gifPath = Variables.langs[widget.lang]![key]!;
+    String text = Variables.langs[widget.lang]![key + 'Text']!;
+    return TextButton(
+        onPressed: () {
+          Widget okButton = TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _tutorialImage!.evict();
+              });
+          _tutorialImage = AssetImage(
+            gifPath,
+            //width: MediaQuery.of(context).size.width / 2,
+          );
+          AlertDialog popup = AlertDialog(
+            elevation: 24,
+            backgroundColor: Colors.transparent,
+            contentPadding: EdgeInsets.all(0),
+            content: Container(
+              child: Image(
+                image: _tutorialImage!,
+                width: MediaQuery.of(context).size.width / 2,
+              ),
+            ),
+            actionsPadding: EdgeInsets.all(0),
+            actions: [okButton],
+          );
+          showDialog(context: context, builder: (_) => popup)
+              .then((value) => _tutorialImage!.evict());
+        },
+        child: Text(text));
   }
 
   _proceedButton() {
