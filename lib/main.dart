@@ -26,6 +26,7 @@ class _TtsAppState extends State<TtsApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'TartuNLP',
       theme: ThemeData(
         primarySwatch: this.themeColor,
