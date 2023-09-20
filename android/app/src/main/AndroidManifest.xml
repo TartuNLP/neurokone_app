@@ -50,7 +50,8 @@
 
         <!--Language, pitch and speed data-->
         <activity android:name=".CheckVoiceData"
-            android:theme="@android:style/Theme.NoDisplay">
+            android:theme="@android:style/Theme.NoDisplay"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.speech.tts.engine.CHECK_TTS_DATA" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -73,7 +74,8 @@
         <!--Text to speech service sample text synthesis-->
         <activity
             android:name=".GetSampleText"
-            android:theme="@android:style/Theme.NoDisplay">
+            android:theme="@android:style/Theme.NoDisplay"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.speech.tts.engine.GET_SAMPLE_TEXT" />
 

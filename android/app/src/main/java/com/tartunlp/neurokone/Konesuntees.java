@@ -127,12 +127,13 @@ public class Konesuntees extends TextToSpeechService {
     
     @Override
     protected void onStop() {
-        mStopRequested = true;
+        this.mStopRequested = true;
     }
 
     @Override
     protected synchronized void onSynthesizeText(SynthesisRequest request,
             SynthesisCallback callback) {
+        this.mStopRequested = false;
         if (request == null) return;
         // Note that we call onLoadLanguage here since there is no guarantee
         // that there would have been a prior call to this function.
@@ -157,11 +158,10 @@ public class Konesuntees extends TextToSpeechService {
         // in 16bit PCM mono.
         callback.start(SAMPLING_RATE_HZ, audioFormat, 1);
 
-        if (mStopRequested) {
+        if (this.mStopRequested) {
             callback.done();
             return;
         }
-        mStopRequested = false;
 
         int speakerId = voices.indexOf(PrefUtil.getTtsVoice(this));
         mModule.setVoice(speakerId);
@@ -198,8 +198,7 @@ public class Konesuntees extends TextToSpeechService {
             threadList.add(thread);
         }
         while (!threadList.isEmpty()) {
-            if (mStopRequested) {
-                mStopRequested = false;
+            if (this.mStopRequested) {
                 return false;
             }
             threadList.get(0).join();

@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "tflite_app_flutter",
+            "name": "neurokone",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "tflite_app_flutter (profile mode)",
+            "name": "neurokone (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "tflite_app_flutter (release mode)",
+            "name": "neurokone (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
