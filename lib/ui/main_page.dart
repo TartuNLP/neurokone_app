@@ -340,23 +340,32 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //A slider for voice speaking speed with minimum 0.5 and maximum 2.0 value.
   _speedControl() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _tempoButton(),
-        _sliderEdgeIcon(Variables.slowTempoIcon, Alignment.centerRight),
+        _tempoText(),
         _tempoSlider(),
-        _sliderEdgeIcon(Variables.fastTempoIcon, Alignment.centerLeft),
+        _resetButton(),
       ],
     );
   }
 
-  _tempoButton() {
+  _tempoText() {
+    return Text(
+      widget.langText['tempo']!,
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  _resetButton() {
     return TextButton(
       onPressed: () => setState(() {
         this._speed = 1.0;
       }),
       child: Text(
-        widget.langText['tempo']!,
+        widget.langText['reset']!,
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -365,29 +374,47 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  //Icon indicating minimum or maximum speed
-  _sliderEdgeIcon(icon, alignment) {
-    return SizedBox(
-      width: 55,
-      child: Container(
-        alignment: alignment,
-        child: icon,
+  _tempoSlider() {
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.5,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          //_sliderEdgeIcon(Variables.slowTempoIcon, Alignment.centerRight),
+          Variables.slowTempoIcon,
+          Expanded(
+            child: SliderTheme(
+              data: SliderThemeData(
+                overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
+              ),
+              child: Slider(
+                thumbColor: Colors
+                    .blue, //_currentVoice.getColor(), //const Color.fromARGB(255, 49, 133, 255),
+                min: 0.5,
+                max: 2.0,
+                value: _speed,
+                label: widget.langText['slider']! + ' ' + _speed.toString(),
+                onChanged: (value) => setState(() {
+                  _speed = value;
+                }),
+                semanticFormatterCallback: (double value) {
+                  return '${widget.langText['slider']!} ${(value * 100).round()}%';
+                },
+              ),
+            ),
+          ),
+          //_sliderEdgeIcon(Variables.fastTempoIcon, Alignment.centerLeft),
+          Variables.fastTempoIcon,
+        ],
       ),
     );
   }
 
-  _tempoSlider() {
-    return Expanded(
-      child: Slider(
-        thumbColor: Colors
-            .blue, //_currentVoice.getColor(), //const Color.fromARGB(255, 49, 133, 255),
-        min: 0.5,
-        max: 2.0,
-        value: _speed,
-        onChanged: (value) => setState(() {
-          _speed = value;
-        }),
-      ),
+  //Icon indicating minimum or maximum speed
+  _sliderEdgeIcon(icon, alignment) {
+    return Container(
+      alignment: alignment,
+      child: icon,
     );
   }
 

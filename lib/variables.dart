@@ -31,7 +31,12 @@ const Map<String, Map<String, String>> langs = {
     'configureEngineText': 'Kõneleja vahetamine',
     'configureEngine': 'assets/tutorials/muuda_hääl.gif',
     'understood': 'Sain aru',
+    'Eesti': 'Eesti keel',
+    'English': 'Inglise keel',
+    'more': 'Rohkem',
     'choose': 'Süsteemi hääl',
+    'slider': 'Kiirus',
+    'reset': 'Lähtesta',
     'copy': 'Tekst kopeeritud!',
     'speak': 'Räägi',
     'stop': 'Peata',
@@ -64,7 +69,12 @@ const Map<String, Map<String, String>> langs = {
     'configureEngineText': 'Changing the default speaker',
     'configureEngine': 'assets/tutorials/configure_engine.gif',
     'understood': 'I understand',
+    'Eesti': 'Estonian',
+    'English': 'English',
+    'more': 'More',
     'choose': 'System voice',
+    'slider': 'Speed',
+    'reset': 'Reset',
     'copy': 'Text copied!',
     'speak': 'Speak',
     'stop': 'Stop',
@@ -101,9 +111,11 @@ final List<Voice> voices = [
 final SvgPicture slowTempoIcon = SvgPicture.asset(
   'assets/icons_logos/snail-clean.svg',
   color: Colors.blue,
+  fit: BoxFit.fitWidth,
 );
 
 final SvgPicture fastTempoIcon = SvgPicture.asset(
   'assets/icons_logos/horse-clean.svg',
   color: Colors.blue,
+  fit: BoxFit.fitWidth,
 );

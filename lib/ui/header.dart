@@ -23,8 +23,7 @@ class Header extends StatelessWidget {
         ),
         Spacer(),
         _languageButtons(),
-        if (ModalRoute.of(context)?.settings.name == 'home')
-          _moreButton(context),
+        _moreButton(context),
       ],
     );
   }
@@ -51,19 +50,26 @@ class Header extends StatelessWidget {
             minimumSize: MaterialStateProperty.all<Size>(Size(50, 40))),
         onPressed:
             this._lang == language ? null : () => this.callback(language),
-        child: Text(langCode));
+        child: Text(
+          langCode,
+          semanticsLabel: Variables.langs[this._lang]![language],
+        ));
   }
 
   _moreButton(BuildContext context) {
     return PopupMenuButton<String>(
+      initialValue: Variables.langs[this._lang]!['more'],
+      enabled: ModalRoute.of(context)?.settings.name == 'home',
       icon: isIOS
-          ? const Icon(
+          ? Icon(
               Icons.more_horiz_rounded,
               color: Colors.black54,
+              semanticLabel: Variables.langs[this._lang]!['more'],
             )
-          : const Icon(
+          : Icon(
               Icons.more_vert_rounded,
               color: Colors.black54,
+              semanticLabel: Variables.langs[this._lang]!['more'],
             ),
       onSelected: (value) => _handleClick(value, context),
       shape: RoundedRectangleBorder(
@@ -87,9 +93,8 @@ class Header extends StatelessWidget {
 
   Set<String> _getPages(BuildContext context) {
     Set<String> out = Set();
-    List<String> options = isIOS
-        ? [/*'about', */ 'instructions']
-        : ['TTS settings', /*'about', */ 'instructions'];
+    List<String> options =
+        isIOS ? ['instructions'] : ['TTS settings', 'instructions'];
     for (String option in options) {
       out.add(Variables.langs[_lang]![option]!);
     }

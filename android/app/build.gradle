@@ -11,15 +11,17 @@ if (flutterRoot == null) {
     throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
+'''
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
-    flutterVersionCode = '1'
+    flutterVersionCode = '2'
 }
 
 def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
-    flutterVersionName = '1.0.3'
+    flutterVersionName = '1.0.4'
 }
+'''
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
@@ -47,8 +49,11 @@ android {
         minSdkVersion 21 //flutter.minSdkVersion
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 33 //flutter.targetSdkVersion
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        versionCode 3
+        versionName '1.0.4'
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a", "x86", "x86_64"
+        }
     }
 
     buildTypes {

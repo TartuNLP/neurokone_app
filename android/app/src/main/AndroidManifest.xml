@@ -37,7 +37,7 @@
             android:name=".Konesuntees"
             android:label="@string/service_name"
             android:enabled="true"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.TTS_SERVICE" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -51,7 +51,7 @@
         <!--Language, pitch and speed data-->
         <activity android:name=".CheckVoiceData"
             android:theme="@android:style/Theme.NoDisplay"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.speech.tts.engine.CHECK_TTS_DATA" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -75,7 +75,7 @@
         <activity
             android:name=".GetSampleText"
             android:theme="@android:style/Theme.NoDisplay"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.speech.tts.engine.GET_SAMPLE_TEXT" />
 
