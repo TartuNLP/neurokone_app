@@ -1,5 +1,5 @@
 import 'dart:io' show Platform;
-import 'dart:math';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:neurokone/ui/page_view.dart';
 import 'package:neurokone/synth/system_channel.dart';
@@ -34,7 +34,7 @@ class MainPage extends StatefulWidget {
 class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Initial voice data.
   Voice _currentNativeVoice = Variables.voices[0];
-  double voiceTileHeight = 48;
+  double voiceTileHeight = 52;
 
   //Speed of the synthetic voice.
   double _speed = 1.0;
@@ -162,20 +162,23 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    _ttsEngineChoice(),
-                    _speedControl(),
-                    _inputTextField(),
-                    _speakStopButtons(),
-                  ],
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Text(
+                  widget.langText['engine']!,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                 ),
-              ),
+                _ttsEngineChoice(),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: _speedControl(),
+                ),
+                _inputTextField(),
+                _speakStopButtons(),
+              ],
             ),
           ),
         ),
@@ -185,83 +188,45 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   //Toggle switch between the native and system's tts engine.
   _ttsEngineChoice() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Flex(
+      direction: Axis.horizontal,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          widget.langText['engine']!,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        Expanded(
+          child: _dropDownVoices(),
         ),
-        Flex(
-          direction: Axis.horizontal,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            _radioTile(_dropDownVoices(), false),
-            _radioTile(_ttsSettingsButton(), true),
-          ],
-        ),
+        _ttsSettingsIconButton(),
       ],
     );
   }
 
-  //Text-to-speech voice option
-  _radioTile(title, initialValue) {
-    return Expanded(
-      flex: 2,
-      child: ListTile(
-        contentPadding: EdgeInsets.all(10),
-        title: title,
-        horizontalTitleGap: 0,
-        minLeadingWidth: 36,
-        leading: Radio<bool>(
-          visualDensity: const VisualDensity(
-            horizontal: VisualDensity.minimumDensity,
-            vertical: VisualDensity.minimumDensity,
-          ),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          fillColor: MaterialStateColor.resolveWith((states) => Colors.green),
-          focusColor: MaterialStateColor.resolveWith((states) => Colors.green),
-          value: initialValue,
-          groupValue: this.isSystemVoice,
-          onChanged: (bool? value) {
-            setState(() {
-              this.isSystemVoice = value!;
-            });
-          },
-        ),
-      ),
-    );
-  }
-
-  //Dropdown list of tts engine's voices.
   _dropDownVoices() {
     return DropdownButtonHideUnderline(
-      child: ButtonTheme(
-        child: PopupMenuButton(
-          color: Colors.transparent,
-          offset: Offset(0,
-              Variables.voices.indexOf(_currentNativeVoice) * voiceTileHeight),
-          elevation: 16,
-          constraints: BoxConstraints(
-            maxWidth: min(MediaQuery.of(context).size.width * 0.5, 200),
-          ),
-          initialValue: _currentNativeVoice,
-          child: _voiceBox(_currentNativeVoice, arrow: true),
-          // Callback that sets the selected popup menu item.
-          onSelected: (item) {
-            setState(() {
-              _currentNativeVoice = item;
-            });
-          },
-          itemBuilder: (context) => Variables.voices
-              .map((Voice voice) => PopupMenuItem(
-                    textStyle: TextStyle(),
-                    padding: EdgeInsets.all(0),
-                    value: voice,
-                    child: _voiceBox(voice),
-                  ))
-              .toList(),
+      child: DropdownButton2<Voice>(
+        iconStyleData: IconStyleData(
+          icon: Container(),
         ),
+        customButton: _voiceBox(_currentNativeVoice, arrow: true),
+        menuItemStyleData: MenuItemStyleData(padding: EdgeInsets.all(0)),
+        dropdownStyleData: DropdownStyleData(
+          padding: EdgeInsets.all(0),
+          offset: Offset(0, voiceTileHeight),
+          elevation: 16,
+          decoration: BoxDecoration(color: Colors.transparent),
+        ),
+        isExpanded: true,
+        value: _currentNativeVoice,
+        barrierLabel: widget.langText['chooseVoice'],
+        items: ([Voice('system', Colors.black)] + Variables.voices)
+            .map((voice) =>
+                DropdownMenuItem(value: voice, child: _voiceBox(voice)))
+            .toList(),
+        onChanged: (item) {
+          setState(() {
+            _currentNativeVoice = item!;
+            isSystemVoice = item.getName() == 'system' ? true : false;
+          });
+        },
       ),
     );
   }
@@ -272,13 +237,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       decoration: BoxDecoration(
         color: voice.getColor(),
         borderRadius: const BorderRadius.all(
-          Radius.circular(14),
+          Radius.circular(16),
         ),
       ),
-      //height: voiceTileHeight,
-      constraints: BoxConstraints.expand(
-          width: min(MediaQuery.of(context).size.width * 0.5, 200),
-          height: voiceTileHeight),
+      height: voiceTileHeight,
       child: _boxContents(voice, arrow),
     );
   }
@@ -287,38 +249,42 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _boxContents(Voice voice, bool arrow) {
     Center speaker = Center(
       child: Text(
-        voice.getName(),
+        voice.getName() == 'system'
+            ? widget.langText['system']!
+            : voice.getName(),
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontSize: 15,
+          fontSize: 20,
           //fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
         overflow: TextOverflow.visible,
       ),
     );
-    if (arrow) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Container(),
-          speaker,
-          Icon(Icons.arrow_drop_down),
-        ],
-      );
-    } else
-      return speaker;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        Container(),
+        speaker,
+        arrow
+            ? Icon(
+                Icons.arrow_drop_down,
+                size: 28,
+                color: Colors.white,
+              )
+            : Container(),
+      ],
+    );
   }
 
   //Takes the user to Android 'Text-to-speech output' settings.
-  _ttsSettingsButton() {
+  _ttsSettingsIconButton() {
     return SizedBox(
       height: voiceTileHeight,
-      child: TextButton(
-        child: Text(
-          widget.langText['choose']!,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13),
+      child: IconButton(
+        icon: Icon(
+          Icons.settings,
+          semanticLabel: widget.langText['TTS settings'],
         ),
         onPressed: () async {
           isIOS
@@ -326,40 +292,45 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
               : await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS')
                   .launch();
         },
-        style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all<Color>(
-                Color.fromARGB(255, 208, 225, 255)),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ))),
       ),
     );
   }
 
   //A slider for voice speaking speed with minimum 0.5 and maximum 2.0 value.
   _speedControl() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      direction: Axis.horizontal,
+      runSpacing: 8,
+      alignment: WrapAlignment.start,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         _tempoText(),
-        _tempoSlider(),
-        _resetButton(),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _tempoSlider(),
+            _tempoResetButton(),
+          ],
+        ),
       ],
     );
   }
 
   _tempoText() {
-    return Text(
-      widget.langText['tempo']!,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: Text(
+        widget.langText['tempo']!,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
 
-  _resetButton() {
+  _tempoResetButton() {
     return TextButton(
       onPressed: () => setState(() {
         this._speed = 1.0;
@@ -380,41 +351,35 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          //_sliderEdgeIcon(Variables.slowTempoIcon, Alignment.centerRight),
           Variables.slowTempoIcon,
-          Expanded(
-            child: SliderTheme(
-              data: SliderThemeData(
-                overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
-              ),
-              child: Slider(
-                thumbColor: Colors
-                    .blue, //_currentVoice.getColor(), //const Color.fromARGB(255, 49, 133, 255),
-                min: 0.5,
-                max: 2.0,
-                value: _speed,
-                label: widget.langText['slider']! + ' ' + _speed.toString(),
-                onChanged: (value) => setState(() {
-                  _speed = value;
-                }),
-                semanticFormatterCallback: (double value) {
-                  return '${widget.langText['slider']!} ${(value * 100).round()}%';
-                },
-              ),
-            ),
-          ),
-          //_sliderEdgeIcon(Variables.fastTempoIcon, Alignment.centerLeft),
+          _slider(),
           Variables.fastTempoIcon,
         ],
       ),
     );
   }
 
-  //Icon indicating minimum or maximum speed
-  _sliderEdgeIcon(icon, alignment) {
-    return Container(
-      alignment: alignment,
-      child: icon,
+  _slider() {
+    return Expanded(
+      child: SliderTheme(
+        data: SliderThemeData(
+          overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
+        ),
+        child: Slider(
+          thumbColor: Colors
+              .blue, //_currentVoice.getColor(), //const Color.fromARGB(255, 49, 133, 255),
+          min: 0.5,
+          max: 2.0,
+          value: _speed,
+          label: widget.langText['slider']! + ' ' + _speed.toString(),
+          onChanged: (value) => setState(() {
+            _speed = value;
+          }),
+          semanticFormatterCallback: (double value) {
+            return '${widget.langText['slider']!} ${(value * 100).round()}%';
+          },
+        ),
+      ),
     );
   }
 

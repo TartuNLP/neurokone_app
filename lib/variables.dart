@@ -13,6 +13,7 @@ const Map<String, Map<String, String>> langs = {
   'Eesti': {
     'loading': 'Mudelite laadimine...',
     'engine': 'Sünteeshääl:',
+    'chooseVoice': 'Hääle valik',
     'TTS settings': 'Kõnesünteesi seaded',
     'about': 'Meist',
     'back': 'Tagasi',
@@ -34,7 +35,7 @@ const Map<String, Map<String, String>> langs = {
     'Eesti': 'Eesti keel',
     'English': 'Inglise keel',
     'more': 'Rohkem',
-    'choose': 'Süsteemi hääl',
+    'system': 'Süsteemi hääl',
     'slider': 'Kiirus',
     'reset': 'Lähtesta',
     'copy': 'Tekst kopeeritud!',
@@ -50,6 +51,7 @@ const Map<String, Map<String, String>> langs = {
   'English': {
     'loading': 'Models loading...',
     'engine': 'Text-to-speech voice:',
+    'chooseVoice': 'Voice selection',
     'TTS settings': 'Text-to-speech settings',
     'about': 'About us',
     'back': 'Back',
@@ -72,7 +74,7 @@ const Map<String, Map<String, String>> langs = {
     'Eesti': 'Estonian',
     'English': 'English',
     'more': 'More',
-    'choose': 'System voice',
+    'system': 'System voice',
     'slider': 'Speed',
     'reset': 'Reset',
     'copy': 'Text copied!',
