@@ -236,6 +236,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return Container(
       decoration: BoxDecoration(
         color: voice.getColor(),
+        border: (voice == _currentNativeVoice && !arrow)
+            ? Border.all(
+                color: Colors.blueAccent,
+                width: 2,
+              )
+            : null,
         borderRadius: const BorderRadius.all(
           Radius.circular(16),
         ),
