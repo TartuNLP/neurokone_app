@@ -119,6 +119,8 @@ public class KonesunteesSeaded extends Activity {
             mProgress.setVisibility(View.GONE);
 
             Toast.makeText(KonesunteesSeaded.this, R.string.saved, Toast.LENGTH_SHORT).show();
+
+            KonesunteesSeaded.this.finish();
         }
     }
 }

@@ -95,7 +95,11 @@ class _InstructionsPageState extends State<InstructionsPage> {
     return TextButton(
         onPressed: () {
           Widget okButton = TextButton(
-              child: Text("OK"),
+              child: Text(
+                "OK",
+                semanticsLabel:
+                    Variables.langs[widget.lang]![key + 'Label']! + "OK",
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
                 _tutorialImage!.evict();
@@ -114,6 +118,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
                 width: MediaQuery.of(context).size.width / 2,
               ),
             ),
+            //semanticLabel: Variables.langs[widget.lang]![key + 'Label'],
             actionsPadding: EdgeInsets.all(0),
             actions: [okButton],
           );
