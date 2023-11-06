@@ -1,9 +1,8 @@
 import 'package:neurokone/ui/voice.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 final String packageName = 'com.tartunlp.neurokone';
-final String appVersion = 'Neurokõne v1.0.4';
+final String appVersion = 'Neurokõne v1.0.6';
 
 final String synthModel = 'fastspeech2-est';
 final String vocModel = 'hifigan-est.v2';
@@ -123,14 +122,5 @@ final List<Voice> voices = [
   Voice('Peeter', colors['purple']!),
 ];
 
-final SvgPicture slowTempoIcon = SvgPicture.asset(
-  'assets/icons_logos/snail-clean.svg',
-  color: Colors.blue,
-  fit: BoxFit.fitWidth,
-);
-
-final SvgPicture fastTempoIcon = SvgPicture.asset(
-  'assets/icons_logos/horse-clean.svg',
-  color: Colors.blue,
-  fit: BoxFit.fitWidth,
-);
+final String slowTempoIconPath = 'assets/icons_logos/snail-clean.svg';
+final String fastTempoIconPath = 'assets/icons_logos/horse-clean.svg';
