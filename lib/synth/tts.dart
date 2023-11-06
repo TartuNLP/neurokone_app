@@ -20,7 +20,7 @@ class Tts {
   /////////////////////////////////////////////////////////
   late NativeTts nativeTts;
   late FlutterTts systemTts;
-  
+
   bool stopNative = false;
   String engine = '';
 
@@ -76,15 +76,13 @@ class Tts {
 
   speak(String text, double speed, bool isSystem, int? voice) {
     isSystem
-        ? _systemSynthesis(text, speed)
+        ? _systemSynthesis(text)
         : _nativeSynthesis(text, speed, voice!);
   }
 
-  _systemSynthesis(String text, double speed) async {
+  _systemSynthesis(String text) async {
     await this.systemTts.setEngine(this.engine);
     await this.systemTts.setLanguage(this.lang);
-    print("Speed: " + (speed / 2).toString());
-    await this.systemTts.setSpeechRate(speed / 2);
     await this.systemTts.speak(text);
   }
 

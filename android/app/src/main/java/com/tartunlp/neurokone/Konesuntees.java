@@ -34,6 +34,10 @@ public class Konesuntees extends TextToSpeechService {
     private VocoderModel vocModule;
     private final List<String> voices = Arrays.asList("Mari", "Tambet", "Liivika", "Kalev", "Külli", "Meelis", "Albert", "Indrek", "Vesta", "Peeter");
     
+    private final float modelMax = 1.9f;
+    private final float systemMax = 6f;
+    private final float modelMin = 0.5f;
+    private final float systemMin = 0.1f;
 
     @Override
     public void onCreate() {
@@ -130,6 +134,19 @@ public class Konesuntees extends TextToSpeechService {
         this.mStopRequested = true;
     }
 
+    float normalizeSpeed(int speechRate) {
+        float rate = (float) speechRate / 100;
+        if (rate == 1.0) {
+            return rate;
+        } else if (rate < this.systemMin) {
+            return this.modelMin;
+        } else if (rate < 1) {
+            return this.modelMin + ((rate-this.systemMin) / (1-this.systemMin)) * (1-this.modelMin);
+        } else if (rate < this.systemMax) {
+            return 1 + ((rate-1) / (this.systemMax-1)) * (this.modelMax-1);
+        } else return this.modelMax;
+    }
+
     @Override
     protected synchronized void onSynthesizeText(SynthesisRequest request,
             SynthesisCallback callback) {
@@ -165,7 +182,8 @@ public class Konesuntees extends TextToSpeechService {
 
         int speakerId = voices.indexOf(PrefUtil.getTtsVoice(this));
         mModule.setVoice(speakerId);
-        float speed = (float) request.getSpeechRate() / 100;
+        Log.i(TAG, "Initial speed:" + request.getSpeechRate());
+        float speed = normalizeSpeed(request.getSpeechRate());
         mModule.setSpeed(speed);
         float pitch = (float) request.getPitch() / 100;
         mModule.setPitch(pitch);

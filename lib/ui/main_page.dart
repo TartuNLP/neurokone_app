@@ -6,6 +6,7 @@ import 'package:neurokone/synth/system_channel.dart';
 import 'package:neurokone/ui/header.dart';
 import 'package:neurokone/ui/voice.dart';
 import 'package:neurokone/synth/tts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:neurokone/variables.dart' as Variables;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -338,9 +339,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   _tempoResetButton() {
     return TextButton(
-      onPressed: () => setState(() {
-        this._speed = 1.0;
-      }),
+      onPressed: _currentNativeVoice.getName() == "system"
+          ? null
+          : () => setState(() {
+                this._speed = 1.0;
+              }),
       child: Text(
         widget.langText['reset']!,
         style: const TextStyle(
@@ -357,11 +360,22 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Variables.slowTempoIcon,
+          _sliderEdgeIcon(Variables.slowTempoIconPath),
           _slider(),
-          Variables.fastTempoIcon,
+          _sliderEdgeIcon(Variables.fastTempoIconPath),
         ],
       ),
+    );
+  }
+
+  _sliderEdgeIcon(iconPath) {
+    return SvgPicture.asset(
+      iconPath,
+      colorFilter: ColorFilter.mode(
+        _currentNativeVoice.getName() == "system" ? Colors.grey : Colors.blue,
+        BlendMode.srcIn,
+      ),
+      fit: BoxFit.fitWidth,
     );
   }
 
@@ -375,12 +389,14 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
           thumbColor: Colors
               .blue, //_currentVoice.getColor(), //const Color.fromARGB(255, 49, 133, 255),
           min: 0.5,
-          max: 2.0,
+          max: 1.9,
           value: _speed,
           label: widget.langText['slider']! + ' ' + _speed.toString(),
-          onChanged: (value) => setState(() {
-            _speed = value;
-          }),
+          onChanged: _currentNativeVoice.getName() == "system"
+              ? null
+              : (value) => setState(() {
+                    _speed = value;
+                  }),
           semanticFormatterCallback: (double value) {
             return '${widget.langText['slider']!} ${(value * 100).round()}%';
           },
