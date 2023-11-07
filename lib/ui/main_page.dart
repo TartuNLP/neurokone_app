@@ -168,9 +168,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Text(
-                  widget.langText['engine']!,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    widget.langText['engine']!,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
                 ),
                 _ttsEngineChoice(),
                 Padding(
@@ -312,13 +315,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         _tempoText(),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _tempoSlider(),
-            _tempoResetButton(),
-          ],
+        IntrinsicWidth(
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _tempoSlider(),
+              _tempoResetButton(),
+            ],
+          ),
         ),
       ],
     );
@@ -330,7 +335,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       child: Text(
         widget.langText['tempo']!,
         style: const TextStyle(
-          fontSize: 16,
+          fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -338,33 +343,37 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _tempoResetButton() {
-    return TextButton(
-      onPressed: _currentNativeVoice.getName() == "system"
-          ? null
-          : () => setState(() {
-                this._speed = 1.0;
-              }),
-      child: Text(
-        widget.langText['reset']!,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
+    return SizedBox(
+      width: 98,
+      child: TextButton(
+        onPressed: _currentNativeVoice.getName() == "system"
+            ? null
+            : () => setState(() {
+                  this._speed = 1.0;
+                }),
+        style: ButtonStyle(
+          alignment: Alignment.center,
+        ),
+        child: Text(
+          widget.langText['reset']!,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
   }
 
   _tempoSlider() {
-    return Container(
-      width: MediaQuery.of(context).size.width * 0.5,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _sliderEdgeIcon(Variables.slowTempoIconPath),
-          _slider(),
-          _sliderEdgeIcon(Variables.fastTempoIconPath),
-        ],
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _sliderEdgeIcon(Variables.slowTempoIconPath),
+        _slider(),
+        _sliderEdgeIcon(Variables.fastTempoIconPath),
+      ],
     );
   }
 
@@ -380,7 +389,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _slider() {
-    return Expanded(
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.45,
       child: SliderTheme(
         data: SliderThemeData(
           overlayShape: RoundSliderOverlayShape(overlayRadius: 16),

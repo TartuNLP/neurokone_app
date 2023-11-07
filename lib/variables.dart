@@ -2,7 +2,7 @@ import 'package:neurokone/ui/voice.dart';
 import 'package:flutter/material.dart';
 
 final String packageName = 'com.tartunlp.neurokone';
-final String appVersion = 'Neurokõne v1.0.6';
+final String appVersion = 'Neurokõne v1.0.7';
 
 final String synthModel = 'fastspeech2-est';
 final String vocModel = 'hifigan-est.v2';
@@ -51,7 +51,7 @@ const Map<String, Map<String, String>> langs = {
     'fast': 'Kiire',
     'dropdown': 'Vali hääl',
     'hint': 'Kirjuta siia...',
-    'tempo': 'Tempo',
+    'tempo': 'Tempo:',
     'selected': 'Luba hääled',
   },
   'English': {
@@ -96,7 +96,7 @@ const Map<String, Map<String, String>> langs = {
     'fast': 'Fast',
     'dropdown': 'Choose voice',
     'hint': 'Write here...',
-    'tempo': 'Tempo',
+    'tempo': 'Tempo:',
     'selected': 'Enable voices',
   }
 };
