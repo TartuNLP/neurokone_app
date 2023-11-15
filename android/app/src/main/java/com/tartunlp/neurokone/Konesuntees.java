@@ -207,6 +207,7 @@ public class Konesuntees extends TextToSpeechService {
 
     private boolean generateAudio(String text, SynthesisCallback cb) throws InterruptedException {
         final List<String> sentences = mProcessor.splitSentences(text);
+        Log.d(TAG, sentences.toString());
         OrderControl ordering = new OrderControl();
         List<Thread> threadList = new ArrayList<>();
         for (int i = 0; i < sentences.size(); i++) {

@@ -1,3 +1,4 @@
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:neurokone/synth/system_channel.dart';
 import 'package:neurokone/ui/about_page.dart';
 import 'package:neurokone/ui/main_page.dart';
@@ -26,6 +27,13 @@ class _TtsAppState extends State<TtsApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      supportedLocales: [
+        Locale('en', 'US'),
+        Locale('et', 'ET'),
+      ],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+      ],
       debugShowCheckedModeBanner: false,
       title: 'TartuNLP',
       theme: ThemeData(

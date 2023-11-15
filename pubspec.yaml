@@ -23,6 +23,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  localization: ^2.1.1
   
   android_intent_plus: ^3.1.1+1
   audioplayers: ^3.0.1

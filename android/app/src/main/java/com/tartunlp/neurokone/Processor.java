@@ -444,8 +444,16 @@ class Processor {
     private String expandCardinals(String text, char kaane) {
         Matcher m = NUMBER_RE.matcher(text);
         while (m.find()) {
-            long l = Long.parseLong(m.group());
-            String spelling = NumberNormEt.numToString(l, kaane);
+            String numText = m.group();
+            String spelling = "";
+            while (numText.startsWith("0")) {
+                spelling += "null ";
+                numText = numText.substring(1);
+            }
+            if (numText.length() > 0) {
+                long l = Long.parseLong(numText);
+                spelling += NumberNormEt.numToString(l, kaane);
+            }
             text = text.replaceFirst(m.group(), spelling);
         }
         return text;
@@ -573,6 +581,13 @@ class Processor {
         List<String> sentences = new ArrayList<>();
         int currentSentId = 0;
         Matcher matcher;
+        if (remainingText.length() == 1) {
+            String pronunciation = ALPHABET.get(remainingText.toUpperCase().charAt(0));
+            if (pronunciation != null) {
+                sentences.add(pronunciation + ".");
+            }
+            return sentences;
+        }
         if (!remainingText.matches(".+[.!?]\"?$")) {
             remainingText += ".";
         }
@@ -581,7 +596,7 @@ class Processor {
             currentSentId = matcher.end();
 
             // With sentence splitting (in case of low memory)
-            /*
+            //*
             int currentCharId = 0;
             int lastSplitId = 0;
             Matcher splitmatcher;
@@ -603,12 +618,13 @@ class Processor {
             }
             String sentToAdd = processSentence(sentence.substring(lastSplitId).replaceAll(sentenceStrip, "") + '.');
             if (sentToAdd.matches(".*[a-z].*")) sentences.add(sentToAdd);
-            */
+            //*/
 
             // Without splitting sentences
+            /*
             String processedSentence = processSentence(sentence);
             if (processedSentence.matches(".*[a-z].*")) sentences.add(processedSentence);
-            //
+            */
         }
         return sentences;
     }
