@@ -11,12 +11,78 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Processor {
-    private static final String TAG = "processor";
+class SentProcessor {
+    private static final String TAG = "SentProcessor";
 
-    private static final Pattern sentencesSplit = Pattern.compile("[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))");
+    private static final Pattern sentencesSplit = Pattern.compile("(?=[.!?])((((\" )| |( \"))(?![a-zäöüõšžA-ZÕÄÖÜŠŽ0-9]))|(\"?$))");
     private static final Pattern sentenceSplit = Pattern.compile("(?<!^)([,;!?]\"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )");
     private static final String sentenceStrip = "^[,;!?]?\"? ?";
+
+    private List<String> splitSentence(String sentence) {
+        List<String> sentenceParts = new ArrayList<>();
+        int currentCharId = 0;
+        int lastSplitId = 0;
+        Matcher matcher;
+        while ((matcher = sentenceSplit.matcher(sentence)).find(currentCharId)) {
+            int start = matcher.start();
+            int end = matcher.end();
+            if (start > 20 + lastSplitId &&
+                    end < sentence.length() - 20) {
+                sentenceParts.add(sentence
+                        .substring(lastSplitId, start)
+                        .replaceAll(sentenceStrip, ""));
+                lastSplitId = start;
+                currentCharId = start;
+            } else {
+                currentCharId = end;
+            }
+        }
+        sentenceParts.add(sentence.substring(lastSplitId).replaceAll(sentenceStrip, ""));
+        return sentenceParts;
+    }
+
+    public List<String> splitSentences(String text) {
+        List<String> sentences = new ArrayList<>();
+
+        if (text.length() == 1) {
+            sentences.add(text.toUpperCase());
+            return sentences;
+        }
+        /*
+        if (!text.matches(".+[.!?]\"?$")) {
+            text += ".";
+        }*/
+
+        int currentSentId = 0;
+        Matcher matcher;
+        while ((matcher = sentencesSplit.matcher(text)).find(currentSentId)) {
+            String sentence = text.substring(currentSentId, matcher.start());
+            Log.d(TAG, "sent: " + sentence);
+
+            // Sentence splitting in case of low memory
+            for (String sentPart : splitSentence(sentence)) sentences.add(sentPart);
+            
+            //Without splitting sentences
+            //sentences.add(sentence);
+
+            currentSentId = matcher.end();
+        }
+        //if last sentence doesn't end with .!?
+        if (currentSentId < text.length()) {
+            String finalSent = text.substring(currentSentId);
+
+            // Sentence splitting in case of low memory
+            for (String sentPart : splitSentence(finalSent)) sentences.add(sentPart);
+            
+            //Without splitting sentences
+            //sentences.add(finalSent);
+        }
+        return sentences;
+    }
+}
+
+class Preprocessor {
+    private static final String TAG = "Preprocessor";
 
     //private static final Pattern CURLY_RE = Pattern.compile("(.*?)\\{(.+?)\\}(.*)");
     private static final Pattern DECIMALS_RE = Pattern.compile("([0-9]+[,.][0-9]+)");
@@ -424,7 +490,11 @@ class Processor {
     private String expandDecimals(String text) {
         Matcher m = DECIMALS_RE.matcher(text);
         while (m.find()) {
-            String s = m.group().replaceAll("[.,]", " koma ");
+            String s = m.group();
+            if (s.contains(".") && s.contains(",")) {
+                s = s.replaceAll(",", "");
+            }
+            s = s.replaceAll("[.,]", " koma ");
             text = text.replaceFirst(m.group(), s);
         }
         return text;
@@ -510,8 +580,6 @@ class Processor {
                 word = expandNumbers(word, kaane);
             }
 
-            if (word.endsWith("."))
-                word = word.substring(0,word.length()-1);
             if (ABBREVIATIONS.containsKey(word))
                 word = ABBREVIATIONS.get(word);
             else if (word.matches("[A-ZÄÖÜÕŽŠ]+")) {
@@ -527,6 +595,13 @@ class Processor {
     }
 
     private String cleanTextForEstonian(String text) {
+        //Temporarily remove sentence end symbol
+        String sentEnd = ".";
+        String lastChar = text.substring(text.length() - 1);
+        if (".!?".contains(lastChar)) {
+            sentEnd = lastChar;
+            text = text.substring(0, text.length() - 1);
+        }
         // ... between numbers to kuni
         Matcher m = Pattern.compile("(\\d)\\.\\.\\.(\\d)").matcher(text);
         if (m.find())
@@ -546,7 +621,6 @@ class Processor {
         text = text.substring(0,1).toLowerCase() + text.substring(1);
 
         // split text into words ands symbols
-
         Matcher tokenizer = Pattern.compile("([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\\S").matcher(text);
         ArrayList<String> tokens = new ArrayList<>();
         while (tokenizer.find())
@@ -554,7 +628,7 @@ class Processor {
 
         text = processByWord(tokens);
         text = text.toLowerCase();
-        text += ".";
+        text += sentEnd;
         text = collapseWhitespace(text);
         text = expandAbbreviations(text);
 
@@ -562,7 +636,14 @@ class Processor {
         return text;
     }
 
-    private String processSentence(String text) {
+    public synchronized String preprocess(String text) {
+        if (text.length() == 1) {
+            String pronunciation = ALPHABET.get(text.toUpperCase().charAt(0));
+            if (pronunciation != null) {
+                return pronunciation + ".";
+            }
+            return ".";
+        }
         List<String> sequence = new ArrayList<>();
         while (text!= null && text.length() > 0) {
             Matcher m = Pattern.compile("(.*?)\\{(.+?)\\}(.*)").matcher(text);
@@ -575,58 +656,6 @@ class Processor {
             text = m.group(3);
         }
         return String.join(" ", sequence);
-    }
-
-    public List<String> splitSentences(String remainingText) {
-        List<String> sentences = new ArrayList<>();
-        int currentSentId = 0;
-        Matcher matcher;
-        if (remainingText.length() == 1) {
-            String pronunciation = ALPHABET.get(remainingText.toUpperCase().charAt(0));
-            if (pronunciation != null) {
-                sentences.add(pronunciation + ".");
-            }
-            return sentences;
-        }
-        if (!remainingText.matches(".+[.!?]\"?$")) {
-            remainingText += ".";
-        }
-        while ((matcher = sentencesSplit.matcher(remainingText)).find(currentSentId)) {
-            String sentence = remainingText.substring(currentSentId, matcher.start());
-            currentSentId = matcher.end();
-
-            // With sentence splitting (in case of low memory)
-            //*
-            int currentCharId = 0;
-            int lastSplitId = 0;
-            Matcher splitmatcher;
-            while ((splitmatcher = sentenceSplit.matcher(sentence)).find(currentCharId)) {
-                int start = splitmatcher.start();
-                int end = splitmatcher.end();
-                if (start > 20 + lastSplitId &&
-                        end < sentence.length() - 20) {
-                    String sentToAdd = processSentence(sentence
-                            .substring(lastSplitId, start)
-                            .replaceAll(sentenceStrip, "") +
-                            '.');
-                    if (sentToAdd.matches(".*[a-z].*")) sentences.add(sentToAdd);
-                    lastSplitId = start;
-                    currentCharId = start;
-                } else {
-                    currentCharId = end;
-                }
-            }
-            String sentToAdd = processSentence(sentence.substring(lastSplitId).replaceAll(sentenceStrip, "") + '.');
-            if (sentToAdd.matches(".*[a-z].*")) sentences.add(sentToAdd);
-            //*/
-
-            // Without splitting sentences
-            /*
-            String processedSentence = processSentence(sentence);
-            if (processedSentence.matches(".*[a-z].*")) sentences.add(processedSentence);
-            */
-        }
-        return sentences;
     }
 }
 
