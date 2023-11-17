@@ -31,6 +31,7 @@ class Header extends StatelessWidget {
     );
   }
 
+  //App language radio buttons
   _languageButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -42,7 +43,7 @@ class Header extends StatelessWidget {
     );
   }
 
-  //Button that, when selected, has a blueish background and is disabled.
+  //Button that, when selected, has a blueish background
   _radioButton(String langCode, String language) {
     return Semantics(
       excludeSemantics: true,
@@ -63,6 +64,7 @@ class Header extends StatelessWidget {
     );
   }
 
+  //Button that opens the 'More' menu
   _moreButton(BuildContext context) {
     return Semantics(
       label: Variables.langs[this._lang]!['more'],
@@ -100,6 +102,7 @@ class Header extends StatelessWidget {
     );
   }
 
+  //'More' menu items
   Set<String> _getPages(BuildContext context) {
     Set<String> out = Set();
     List<String> options =
@@ -110,6 +113,7 @@ class Header extends StatelessWidget {
     return out;
   }
 
+  //Route to take when selected an option in 'More' menu
   void _handleClick(String value, BuildContext context) async {
     if (value == Variables.langs[_lang]!['TTS settings']!) {
       await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS').launch();

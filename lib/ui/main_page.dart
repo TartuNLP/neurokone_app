@@ -111,6 +111,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     });
   }
 
+  //Shows instructions the first time the app is opened
   _firstTimeInstructions() async {
     if (await IsFirstRun.isFirstRun()) {
       Navigator.pushNamed(context, 'instructions');
@@ -195,7 +196,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  //Toggle switch between the native and system's tts engine.
+  //Voice selection and system's tts engine settings button.
   _ttsEngineChoice() {
     return Flex(
       direction: Axis.horizontal,
@@ -209,6 +210,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
+  //Dropdown menu button for synthesis voice selection
   _dropDownVoices() {
     return DropdownButtonHideUnderline(
       child: DropdownButton2<Voice>(
@@ -225,7 +227,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         ),
         isExpanded: true,
         value: _currentNativeVoice,
-        barrierLabel: widget.langText['dismiss'],
         items: ([Voice('system', Colors.black)] + Variables.voices)
             .map((voice) => DropdownMenuItem(
                   value: voice,
@@ -319,7 +320,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  //A slider for voice speaking speed with minimum 0.5 and maximum 2.0 value.
+  //A slider for voice speaking speed with minimum 0.5 and maximum 1.9 value.
   _speedControl() {
     return Wrap(
       direction: Axis.horizontal,

@@ -50,10 +50,12 @@ class _TtsAppState extends State<TtsApp> {
               switchLangs: this.switchLanguages,
               channel: this.channel,
             ),
+        //unused
         'about': (context) => AboutPage(
               lang: this.lang,
               switchLangs: this.switchLanguages,
             ),
+        //iOS only
         'select': (context) => LanguageSelectionPage(
               lang: this.lang,
               switchLangs: this.switchLanguages,
@@ -63,6 +65,7 @@ class _TtsAppState extends State<TtsApp> {
     );
   }
 
+  //Switch app language
   void switchLanguages(String newLang) {
     setState(() {
       this.lang = newLang;

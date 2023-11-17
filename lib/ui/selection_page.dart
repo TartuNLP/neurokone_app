@@ -7,6 +7,7 @@ import 'package:neurokone/variables.dart' as Variables;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+//iOS only page for enabling voices to the system
 class LanguageSelectionPage extends StatefulWidget {
   final List<Voice> voices = Variables.voices;
   late final Map<String, String> langText;
