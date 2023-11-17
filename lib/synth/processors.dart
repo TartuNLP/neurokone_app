@@ -2,11 +2,11 @@ import 'package:logger/logger.dart';
 import 'dart:math' as Math;
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
-class EstProcessor {
+class SentProcessor {
   Logger logger = Logger();
   //For splitting the whole text into sentences.
   RegExp sentencesSplit =
-      RegExp(r'[.!?]((((" )| |( "))(?=[a-zõäöüšžA-ZÕÄÖÜŠŽ0-9]))|("?$))');
+      RegExp(r'(?=[.!?])((((" )| |( "))(?=[a-zõäöüšžA-ZÕÄÖÜŠŽ0-9]))|("?$))');
   //For splitting long sentences into parts
   RegExp sentenceSplit =
       RegExp(r'(?<!^)([,;!?]"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )');
@@ -27,20 +27,25 @@ class EstProcessor {
       if (split.start > 20 + currentCharId &&
           split.end < sentence.length - 20) {
         sentenceParts.add(sentence
-                .substring(currentCharId, split.start)
-                .replaceAll(this.strip, '') +
-            '.');
+            .substring(currentCharId, split.start)
+            .replaceAll(this.strip, ''));
         currentCharId = split.start;
       }
     }
     sentenceParts
-        .add(sentence.substring(currentCharId).replaceAll(this.strip, '') + '.');
+        .add(sentence.substring(currentCharId).replaceAll(this.strip, ''));
     return sentenceParts;
   }
 
   //Splits the input text into sentences, if the sentence is too long then tries to split where there are pauses
-  List<String> _splitSentences(String text) {
+  List<String> splitSentences(String text) {
     List<String> sentences = [];
+
+    if (text.length == 1) {
+      sentences.add(text.toUpperCase());
+      return sentences;
+    }
+
     int currentSentId = 0;
     for (RegExpMatch match in this.sentencesSplit.allMatches(text)) {
       sentences.addAll(_splitSentence(text, currentSentId, match));
@@ -50,13 +55,19 @@ class EstProcessor {
       //if last sentence doesn't end with .!?
       sentences.addAll(_splitSentence(text, currentSentId, null));
     }
-    this.logger
+    this
+        .logger
         .d('Text split into sentences/sentence parts:' + sentences.toString());
     return sentences;
   }
+}
+
+class Preprocessor {
+  Logger logger = Logger();
 
   RegExp CURLY_RE = RegExp(r'(.*?)\{(.+?)\}(.*)');
-  RegExp DECIMALS_RE = RegExp(r'([0-9]+[,.][0-9]+)');
+  RegExp DECIMALS_RE =
+      RegExp(r'([0-9]+[,.][0-9]+)|([0-9]{1,3}(,[0-9]{3})+.[0-9]+)');
   RegExp CURRENCY_RE =
       RegExp(r'([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])');
   RegExp ORDINAL_RE = RegExp(r'[0-9]+\.');
@@ -515,8 +526,11 @@ class EstProcessor {
   String _expandDecimals(String text) {
     RegExpMatch? m = DECIMALS_RE.firstMatch(text);
     while (m != null) {
-      String s =
-          text.substring(m.start, m.end).replaceAll(RegExp(r"[.,]"), " koma ");
+      String s = text.substring(m.start, m.end);
+      if (s.contains(".") && s.contains(",")) {
+        s = s.replaceAll(",", "");
+      }
+      s = s.replaceAll(RegExp(r"[.,]"), " koma ");
       text = text.replaceFirst(text.substring(m.start, m.end), s);
       m = DECIMALS_RE.firstMatch(text);
     }
@@ -538,8 +552,16 @@ class EstProcessor {
   String _expandCardinals(String text, String kaane) {
     RegExpMatch? m = NUMBER_RE.firstMatch(text);
     while (m != null) {
-      int l = int.parse(text.substring(m.start, m.end));
-      String spelling = NumberNormEt.numToString(l, kaane);
+      String numText = text.substring(m.start, m.end);
+      String spelling = "";
+      while (numText.startsWith("0")) {
+        spelling += "null ";
+        numText = numText.substring(1);
+      }
+      if (numText.length > 0) {
+        int l = int.parse(numText);
+        spelling += NumberNormEt.numToString(l, kaane);
+      }
       text = text.replaceFirst(text.substring(m.start, m.end), spelling);
       m = NUMBER_RE.firstMatch(text);
     }
@@ -561,8 +583,10 @@ class EstProcessor {
 
   String _processByWord(List<String> tokens) {
     List<String> newTextParts = [];
+    // process every word separately
     for (int i = 0; i < tokens.length; i++) {
       String word = tokens[i];
+      // if current token is a symbol
       if (!RegExp(
               r'([A-ZÄÖÜÕŽŠa-zäöüõšž]+(\.(?!( [A-ZÄÖÜÕŽŠ])))?)|([£$€]?[0-9.,]+[£$€]?)')
           .hasMatch(word)) {
@@ -581,6 +605,7 @@ class EstProcessor {
         }
         continue;
       }
+      // roman numbers to arabic
       if (RegExp(r'^[IVXLCDM]+(-\w*)?$').hasMatch(word)) {
         word = _romanToArabic(word);
         if (word.split(' ').length > 1) {
@@ -588,6 +613,7 @@ class EstProcessor {
           continue;
         }
       }
+      // numbers & currency to words
       if (DECIMALSCURRENCYNUMBER_RE.hasMatch(word)) {
         String kaane = 'N';
         if ((i > 0 && GENITIVE_PREPOSITIONS.contains(tokens[i - 1])) ||
@@ -597,9 +623,7 @@ class EstProcessor {
         }
         word = _expandNumbers(word, kaane);
       }
-      if (word.endsWith('.')) {
-        word = word.substring(0, word.length - 1);
-      }
+
       if (ABBREVIATIONS.containsKey(word)) {
         word = ABBREVIATIONS[word]!;
       } else if (RegExp(r'^[A-ZÄÖÜÕŽŠ]+$').hasMatch(word)) {
@@ -617,20 +641,33 @@ class EstProcessor {
   }
 
   String _cleanTextForEstonian(String text) {
+    //Temporarily remove sentence end symbol
+    String sentEnd = '.';
+    String lastChar = text.substring(text.length - 1);
+    if ('.!?'.contains(lastChar)) {
+      sentEnd = lastChar;
+      text = text.substring(0, text.length - 1);
+    }
+    // ... between numbers to kuni
     RegExpMatch? m = RegExp(r'(\d)\.\.\.(\d)').firstMatch(text);
     while (m != null) {
       text = m.group(1).toString() + ' kuni ' + m.group(2).toString();
       m = RegExp(r'(\d)\.\.\.(\d)').firstMatch(text);
     }
+    // reduce Unicode repertoire _before_ inserting any hyphens
     //text = _convertToUtf8(text);
     text = _simplifyUnicode(text);
 
+    // add a hyphen between any number-letter sequences  # TODO should not be done in URLs
     text = _subBetween(text, RegExp(r'(\d)([A-ZÄÖÜÕŽŠa-zäöüõšž])'), '-');
     text = _subBetween(text, RegExp(r'([A-ZÄÖÜÕŽŠa-zäöüõšž])(\d)'), '-');
 
+    // remove grouping between numbers
+    // keeping space in 2006-10-27 12:48:50, in general require group of 3
     text = _subBetween(text, RegExp(r'([0-9]) ([0-9]{3})(?!\d)'), '');
     text = text.substring(0, 1).toLowerCase() + text.substring(1);
 
+    // split text into words ands symbols
     RegExp tokenizer = RegExp(r'([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\S');
     List<String> tokens = [];
     for (RegExpMatch match in tokenizer.allMatches(text)) {
@@ -639,7 +676,7 @@ class EstProcessor {
 
     text = _processByWord(tokens);
     text = text.toLowerCase();
-    text += '.';
+    text += sentEnd;
     text = _collapseWhitespace(text);
     text = _expandAbbreviations(text);
     text = text.toLowerCase();
@@ -648,29 +685,26 @@ class EstProcessor {
     return text;
   }
 
-  Future<List<String>> preprocess(String text) async {
-    List<String> splitText = _splitSentences(text);
-    List<String> newSentences = [];
-    for (String sentence in splitText) {
-      //String sequence = '';
-      List<String> sequence = [];
-      while (sentence.isNotEmpty) {
-        RegExpMatch? m = CURLY_RE.firstMatch(sentence);
-        if (m == null) {
-          //sequence += _cleanTextForEstonian(text)
-          sequence.addAll(_cleanTextForEstonian(sentence).split(''));
-          break;
-        }
-        //sequence += _cleanTextForEstonian(m.group(1)!);
-        sequence.addAll(_cleanTextForEstonian(m.group(1)!).split(''));
-
-        //sequence.addAll(_arpabetToSequence(m.group(2)!));
-        sentence = m.group(3)!;
+  Future<String> preprocess(String sentence) async {
+    if (sentence.length == 1) {
+      String? pronunciation = ALPHABET[sentence];
+      if (pronunciation != null) {
+        return pronunciation + ".";
       }
-      //sentences.add(sequence)
-      newSentences.add(sequence.join(''));
+      return ".";
     }
-    return newSentences;
+    List<String> sequence = [];
+    while (sentence.isNotEmpty) {
+      RegExpMatch? m = CURLY_RE.firstMatch(sentence);
+      if (m == null) {
+        sequence.addAll(_cleanTextForEstonian(sentence).split(''));
+        break;
+      }
+      sequence.addAll(_cleanTextForEstonian(m.group(1)!).split(''));
+
+      sentence = m.group(3)!;
+    }
+    return sequence.join('');
   }
 }
 
@@ -775,7 +809,7 @@ class NumberNormEt {
   static String toOrdinal(int n, String kaane) {
     String spelling = numToString(n, 'N');
     List<String> split = spelling.split(' ');
-    String last = split[-1];
+    String last = split.removeLast();
     if (kaane == 'N') {
       for (String key in ordinalMap.keys) {
         if (last.endsWith(key)) {
@@ -791,7 +825,7 @@ class NumberNormEt {
       }
       last = last.replaceAll('kümme', 'kümnenda');
     }
-    if (split.length >= 2) {
+    if (split.length >= 1) {
       String text = _toGenitive(split);
       last = text + ' ' + last;
     }

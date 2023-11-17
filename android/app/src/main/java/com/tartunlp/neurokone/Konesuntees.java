@@ -28,7 +28,8 @@ public class Konesuntees extends TextToSpeechService {
     private volatile boolean mStopRequested = false;
 
     private boolean isInit = false;
-    private final Processor mProcessor = new Processor();
+    private final SentProcessor mSentProcessor = new SentProcessor();
+    private final Preprocessor mPreprocessor = new Preprocessor();
     private final Encoder mEncoder = new Encoder();
     private FastSpeechModel mModule;
     private VocoderModel vocModule;
@@ -201,18 +202,16 @@ public class Konesuntees extends TextToSpeechService {
             return;
         }
 
-        // Alright, we're done with our synthesis - yay!
         callback.done();
     }
 
     private boolean generateAudio(String text, SynthesisCallback cb) throws InterruptedException {
-        final List<String> sentences = mProcessor.splitSentences(text);
+        final List<String> sentences = mSentProcessor.splitSentences(text);
         Log.d(TAG, sentences.toString());
         OrderControl ordering = new OrderControl();
         List<Thread> threadList = new ArrayList<>();
         for (int i = 0; i < sentences.size(); i++) {
-            int[] inputIds = mEncoder.textToIds(sentences.get(i));
-            Thread thread = new Thread(new Synthesizer(i, ordering, inputIds, cb));
+            Thread thread = new Thread(new Synthesizer(i, ordering, sentences.get(i), cb));
             thread.start();
             threadList.add(thread);
         }
@@ -229,20 +228,22 @@ public class Konesuntees extends TextToSpeechService {
     public class Synthesizer implements Runnable {
         private final int order;
         private final OrderControl ordering;
-        private final int[] ids;
+        private final String sentence;
         private final SynthesisCallback cb;
         private byte[] mAudioBuffer;
 
-        public Synthesizer(int orderNumber, OrderControl ordering, int[] inputIds, SynthesisCallback callback) {
+        public Synthesizer(int orderNumber, OrderControl ordering, String sentence, SynthesisCallback callback) {
             this.order = orderNumber;
             this.ordering = ordering;
-            this.ids = inputIds;
+            this.sentence = sentence;
             this.cb = callback;
         }
 
         @Override
         public void run() {
-            TensorBuffer spectrogram = mModule.getMelSpectrogram(ids);
+            String processedSentence = mPreprocessor.preprocess(this.sentence);
+            int[] inputIds = mEncoder.textToIds(processedSentence);
+            TensorBuffer spectrogram = mModule.getMelSpectrogram(inputIds);
             float[] outputArray = vocModule.getAudio(spectrogram);
 
             this.mAudioBuffer = new byte[2 * outputArray.length + 1];
@@ -271,10 +272,10 @@ public class Konesuntees extends TextToSpeechService {
             // Get the maximum allowed size of data we can send across in audioAvailable.
             final int maxBufferSize = cb.getMaxBufferSize();
             int offset = 0;
-            while (offset < mAudioBuffer.length) {
-                Log.d(TAG, "Sending bytes to callback...(" + offset + " out of " + mAudioBuffer.length + ")");
-                int bytesToWrite = Math.min(maxBufferSize, mAudioBuffer.length - offset);
-                cb.audioAvailable(mAudioBuffer, offset, bytesToWrite);
+            while (offset < this.mAudioBuffer.length) {
+                Log.d(TAG, "Sending bytes to callback...(" + offset + " out of " + this.mAudioBuffer.length + ")");
+                int bytesToWrite = Math.min(maxBufferSize, this.mAudioBuffer.length - offset);
+                this.cb.audioAvailable(this.mAudioBuffer, offset, bytesToWrite);
                 offset += bytesToWrite;
             }
         }

@@ -4,7 +4,7 @@ import 'package:logger/logger.dart';
 import 'package:neurokone/variables.dart' as Variables;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:neurokone/synth/native_tts.dart';
-import 'package:neurokone/synth/est_processor.dart';
+import 'package:neurokone/synth/processors.dart';
 import 'package:path_provider/path_provider.dart';
 
 class Tts {
@@ -62,7 +62,6 @@ class Tts {
     if (this.isIOS) {
       if (await this.systemTts.isLanguageAvailable(this.lang)) {
         this.systemTts.setLanguage(this.lang);
-        //this.systemTts.setVoice({lang: (await this.systemTts.getVoices)[0]});
       }
     } else {
       String newEngine = await this.systemTts.getDefaultEngine;
@@ -71,13 +70,14 @@ class Tts {
     }
   }
 
+  //Splits the whole text into sentences
+  final SentProcessor _sentProcessor = SentProcessor();
+
   //Processes the text before input to the model.
-  final EstProcessor _processor = EstProcessor();
+  final Preprocessor _preprocessor = Preprocessor();
 
   speak(String text, double speed, bool isSystem, int? voice) {
-    isSystem
-        ? _systemSynthesis(text)
-        : _nativeSynthesis(text, speed, voice!);
+    isSystem ? _systemSynthesis(text) : _nativeSynthesis(text, speed, voice!);
   }
 
   _systemSynthesis(String text) async {
@@ -87,10 +87,11 @@ class Tts {
   }
 
   _nativeSynthesis(String text, double speed, int voice) async {
-    List<String> sentences = await _processor.preprocess(text);
+    List<String> sentences = _sentProcessor.splitSentences(text);
     for (String sentence in sentences) {
+      String processedSentence = await _preprocessor.preprocess(sentence);
       if (this.stopNative) break;
-      await this.nativeTts.nativeTextToSpeech(sentence, voice, speed);
+      await this.nativeTts.nativeTextToSpeech(processedSentence, voice, speed);
     }
     this.stopNative = false;
   }
