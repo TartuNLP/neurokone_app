@@ -65,9 +65,20 @@ class _InstructionsPageState extends State<InstructionsPage> {
   }
 
   _introductionText() {
-    return Text(
-      Variables.langs[widget.lang]!['introductionText']!,
-      style: TextStyle(fontSize: 17),
+    return Column(
+      children: [
+        Text(
+          Variables.langs[widget.lang]!['introductionText']!,
+          style: TextStyle(fontSize: 17),
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        Text(
+          Variables.langs[widget.lang]!['instructionText']!,
+          style: TextStyle(fontSize: 17),
+        )
+      ],
     );
   }
 
@@ -84,7 +95,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
       children: [
         _alertButton('enableEngineApp'),
         _alertButton('enableEngineSettings'),
-        _alertButton('configureEngine')
+        _alertButton('configureEngine'),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+//Template for a page widget
 class NewPage {
   static Scaffold createScaffoldView(
       {required Widget appBarTitle, required Widget body, Widget? scrollButton, Widget? bottom}) {

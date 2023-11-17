@@ -58,6 +58,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+
     this._textEditingController = TextEditingController();
     this._textEditingController.addListener(() {
       setState(() {
@@ -110,6 +111,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     });
   }
 
+  //Shows instructions the first time the app is opened
   _firstTimeInstructions() async {
     if (await IsFirstRun.isFirstRun()) {
       Navigator.pushNamed(context, 'instructions');
@@ -168,11 +170,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    widget.langText['engine']!,
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                Semantics(
+                  hidden: true,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      widget.langText['engine']!,
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    ),
                   ),
                 ),
                 _ttsEngineChoice(),
@@ -190,7 +196,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
-  //Toggle switch between the native and system's tts engine.
+  //Voice selection and system's tts engine settings button.
   _ttsEngineChoice() {
     return Flex(
       direction: Axis.horizontal,
@@ -204,6 +210,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     );
   }
 
+  //Dropdown menu button for synthesis voice selection
   _dropDownVoices() {
     return DropdownButtonHideUnderline(
       child: DropdownButton2<Voice>(
@@ -220,10 +227,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         ),
         isExpanded: true,
         value: _currentNativeVoice,
-        barrierLabel: widget.langText['chooseVoice'],
         items: ([Voice('system', Colors.black)] + Variables.voices)
-            .map((voice) =>
-                DropdownMenuItem(value: voice, child: _voiceBox(voice)))
+            .map((voice) => DropdownMenuItem(
+                  value: voice,
+                  child: _voiceBox(voice),
+                ))
             .toList(),
         onChanged: (item) {
           setState(() {
@@ -257,11 +265,14 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   //Contents in the voice representing box
   _boxContents(Voice voice, bool arrow) {
+    String voiceName = voice.getName() == 'system'
+        ? widget.langText['system']!
+        : voice.getName();
     Center speaker = Center(
       child: Text(
-        voice.getName() == 'system'
-            ? widget.langText['system']!
-            : voice.getName(),
+        voiceName,
+        semanticsLabel:
+            arrow ? widget.langText['engine']! + " " + voiceName : voiceName,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 20,
@@ -291,22 +302,25 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _ttsSettingsIconButton() {
     return SizedBox(
       height: voiceTileHeight,
-      child: IconButton(
-        icon: Icon(
-          Icons.settings,
-          semanticLabel: widget.langText['TTS settings'],
+      child: Semantics(
+        label: widget.langText['TTS settings'],
+        child: IconButton(
+          icon: Icon(
+            Icons.settings,
+          ),
+          onPressed: () async {
+            isIOS
+                ? await Navigator.pushNamed(context, 'select')
+                : await AndroidIntent(
+                        action: 'com.android.settings.TTS_SETTINGS')
+                    .launch();
+          },
         ),
-        onPressed: () async {
-          isIOS
-              ? await Navigator.pushNamed(context, 'select')
-              : await AndroidIntent(action: 'com.android.settings.TTS_SETTINGS')
-                  .launch();
-        },
       ),
     );
   }
 
-  //A slider for voice speaking speed with minimum 0.5 and maximum 2.0 value.
+  //A slider for voice speaking speed with minimum 0.5 and maximum 1.9 value.
   _speedControl() {
     return Wrap(
       direction: Axis.horizontal,
@@ -314,7 +328,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       alignment: WrapAlignment.start,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _tempoText(),
+        Semantics(
+          hidden: true,
+          child: _tempoText(),
+        ),
         IntrinsicWidth(
           child: Row(
             mainAxisSize: MainAxisSize.max,
@@ -356,6 +373,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         ),
         child: Text(
           widget.langText['reset']!,
+          semanticsLabel: widget.langText['resetLabel'],
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -408,7 +426,17 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
                     _speed = value;
                   }),
           semanticFormatterCallback: (double value) {
-            return '${widget.langText['slider']!} ${(value * 100).round()}%';
+            value = (value * 100).round() / 100;
+            switch (value) {
+              case 1.0:
+                return '${widget.langText['slider']!} ${widget.langText['normal']!}';
+              case 0.5:
+                return '${widget.langText['slider']!} ${widget.langText['minimum']!}';
+              case 1.9:
+                return '${widget.langText['slider']!} ${widget.langText['maximum']!}';
+              default:
+                return '${widget.langText['slider']!} $value ';
+            }
           },
         ),
       ),
@@ -465,22 +493,35 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _clearButton() {
-    return IconButton(
-      padding: const EdgeInsets.all(0),
-      onPressed: () => setState(() {
-        _textEditingController.clear();
-      }),
-      icon: const Icon(Icons.clear, color: Colors.black54),
-      splashRadius: 10,
+    return Semantics(
+      label: widget.langText['clearLabel'],
+      child: IconButton(
+        padding: const EdgeInsets.all(0),
+        onPressed: () => setState(() {
+          _textEditingController.clear();
+        }),
+        icon: Icon(
+          Icons.clear,
+          color: Colors.black54,
+        ),
+        splashRadius: 10,
+      ),
     );
   }
 
   _copyButton() {
-    return IconButton(
-      onPressed: () => Clipboard.setData(ClipboardData(text: _fieldText)).then(
-          (result) => Fluttertoast.showToast(msg: widget.langText['copy']!)),
-      icon: const Icon(Icons.copy, color: Colors.black54),
-      splashRadius: 10,
+    return Semantics(
+      label: widget.langText['copyLabel'],
+      child: IconButton(
+        onPressed: () => Clipboard.setData(ClipboardData(text: _fieldText))
+            .then((result) =>
+                Fluttertoast.showToast(msg: widget.langText['copy']!)),
+        icon: Icon(
+          Icons.copy,
+          color: Colors.black54,
+        ),
+        splashRadius: 10,
+      ),
     );
   }
 
