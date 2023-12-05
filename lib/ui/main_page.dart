@@ -124,16 +124,19 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       case AppLifecycleState.resumed:
         tts.loadSystemDefaultEngine();
         setState(() {});
-        print("app in resumed");
+        print("app resumed");
         break;
       case AppLifecycleState.inactive:
-        print("app in inactive");
+        print("app inactive");
         break;
       case AppLifecycleState.paused:
-        print("app in paused");
+        print("app paused");
         break;
       case AppLifecycleState.detached:
-        print("app in detached");
+        print("app detached");
+        break;
+      case AppLifecycleState.hidden:
+        print("app hidden");
         break;
     }
   }

@@ -8,12 +8,55 @@
 
 import Foundation
 
-class Processor {
+class SentProcessor {
     private final let sentencesSplit = /[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))/
     //private final let sentencesSplit = /[.!?]((((\" )| |( \")))|(\"?$))/
-    private final let sentenceSplit = /*(?<!^)*//([,;!?]\"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )/ //lookbehind functionality (?<!^) needs to be replaced until it is supported in Swift
+    private final let sentenceSplit = /*(?<!^)*//([,;!?]\"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )/ //lookahead functionality (?<!^) needs to be replaced until it is supported in Swift
     private final let sentenceStrip: String = "^[,;!?]?\"? ?"
     
+    private func splitSentence(sent: String)  -> [String] {
+        //For splitting sentences if they're too long for the synthesizer
+        var sentence = sent
+        var sentenceParts: [String] = []
+        var startId = sentence.startIndex
+        while let splitMatch = sentence[startId...].firstMatch(of: sentenceSplit) {
+            if sentence.distance(from: sentence.startIndex, to: splitMatch.range.lowerBound) > 30 && sentence.distance(from: splitMatch.range.upperBound, to: sentence.endIndex) > 30 {
+                
+                // if lookahead doesn't work
+                sentenceParts.append(String(sentence[..<splitMatch.range.upperBound]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
+                sentence = String(sentence[splitMatch.range.upperBound...])
+                startId = sentence.startIndex
+                
+                // if lookahead works
+                //sentenceParts.append(String(sentence[..<splitMatch.range.lowerBound]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
+                //sentence = String(sentence[splitMatch.range.lowerBound])
+                
+            } else {
+                startId = splitMatch.range.upperBound
+            }
+        }
+        sentenceParts.append(sentence.replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
+        return sentenceParts
+    }
+    
+    // input format: <speak><voice name="extension-identifier.voice-identifier">text</voice></speak>
+    func splitSentences(text: String) -> [String] {
+        var sentences: [String] = []
+        var remainingSents: String = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        if remainingSents.wholeMatch(of: /.+[.!?]\"?$/) == nil {
+            remainingSents += "."
+        }
+        while let sentMatch = remainingSents.firstMatch(of: sentencesSplit) {
+            var sentence: String = String(remainingSents[..<sentMatch.range.lowerBound])
+            remainingSents = String(remainingSents[sentMatch.range.upperBound...])
+            
+            sentences.append(contentsOf: splitSentence(sent: sentence))
+        }
+        return sentences
+    }
+}
+
+class Preprocessor {
     private final let CURLY_RE = /(.*?)\{(.+?)\}(.*)/
     private final let DECIMALS_RE = /([0-9]+[,.][0-9]+)/
     private final let CURRENCY_RE = /([£$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£$€])/
@@ -581,8 +624,8 @@ class Processor {
         NSLog("QQQ text preprocessed: \(newText)")
         return newText
     }
-    
-    private func processSentence(_ text: String) -> String {
+
+    func processSentence(_ text: String) -> String {
         var remainingText = text
         var sequence: [String] = []
         while remainingText.count > 0 {
@@ -595,42 +638,7 @@ class Processor {
                 break
             }
         }
-        return sequence.joined(separator: " ").replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression)
-    }
-    
-    // input format: <speak><voice name="extension-identifier.voice-identifier">text</voice></speak>
-    func splitSentences(text: String) -> [String] {
-        var sentences: [String] = []
-        var remainingSents: String = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
-        if remainingSents.wholeMatch(of: /.+[.!?]\"?$/) == nil {
-            remainingSents += "."
-        }
-        while let sentMatch = remainingSents.firstMatch(of: sentencesSplit) {
-            var sentence: String = String(remainingSents[..<sentMatch.range.lowerBound])
-            remainingSents = String(remainingSents[sentMatch.range.upperBound...])
-            
-            //For splitting sentences if they're too long for the synthesizer
-            var startId = sentence.startIndex
-            while let splitMatch = sentence[startId...].firstMatch(of: sentenceSplit) {
-                if sentence.distance(from: sentence.startIndex, to: splitMatch.range.lowerBound) > 30 && sentence.distance(from: splitMatch.range.upperBound, to: sentence.endIndex) > 30 {
-                    
-                    // if lookahead doesn't work
-                    sentences.append(processSentence(String(sentence[..<splitMatch.range.upperBound])))
-                    sentence = String(sentence[splitMatch.range.upperBound...])
-                    startId = sentence.startIndex
-                    
-                    // if lookahead works
-                    //sentences.append(String(sentence[..<splitMatch.range.lowerBound]).replacingOccurrences(of: sentenceStrip, with: "", options: .regularExpression))
-                    //sentence = String(sentence[splitMatch.range.lowerBound])
-                    
-                } else {
-                    startId = splitMatch.range.upperBound
-                }
-            }
-            
-            sentences.append(processSentence(sentence))
-        }
-        return sentences
+        return sequence.joined(separator: " ")
     }
 }
 

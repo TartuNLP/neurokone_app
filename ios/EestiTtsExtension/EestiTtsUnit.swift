@@ -28,7 +28,8 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     
     private let voices = ["Mari", "Tambet", "Liivika", "Kalev", "Külli", "Meelis", "Albert", "Indrek", "Vesta", "Peeter"]
     
-    private final let processor: Processor = Processor()
+    private final let sentprocessor: SentProcessor = SentProcessor()
+    private final let preprocessor: Preprocessor = Preprocessor()
     private final let encoder: Encoder = Encoder()
     private var synthesizer: FastSpeechModel!
     private var vocoder: VocoderModel!
@@ -205,11 +206,12 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         request = speechRequest
         synthesizer.setVoice(voice: voices.firstIndex(of: voice.name)!)
         
-        let sentences = processor.splitSentences(text: text)
+        let sentences = sentprocessor.splitSentences(text: text)
         NSLog("QQQ sentences: \(sentences)")
         var audioData = Data()
         for sentence in sentences {
-            let ids: [Int] = encoder.textToIds(text: sentence)
+            let processedSentence = preprocessor.processSentence(sentence)
+            let ids: [Int] = encoder.textToIds(text: processedSentence)
             //NSLog("QQQ letter ids: \(ids)")
             do {
                 let synthOutput: Data = try self.synthesizer.getMelSpectrogram(inputIds: ids)

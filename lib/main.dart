@@ -33,6 +33,7 @@ class _TtsAppState extends State<TtsApp> {
       ],
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
       ],
       debugShowCheckedModeBanner: false,
       title: 'TartuNLP',

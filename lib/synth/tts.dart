@@ -81,7 +81,7 @@ class Tts {
   }
 
   _systemSynthesis(String text) async {
-    await this.systemTts.setEngine(this.engine);
+    if (!isIOS) await this.systemTts.setEngine(this.engine);
     await this.systemTts.setLanguage(this.lang);
     await this.systemTts.speak(text);
   }
