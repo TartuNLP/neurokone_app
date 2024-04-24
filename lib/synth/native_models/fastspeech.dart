@@ -14,7 +14,7 @@ class FastSpeech extends TfModel {
       [1.0], //f0_ratios
       [1.0], //energy_ratios
     ];
-    if (this.mModule.getInputTensors().length == 6) {
+    if (mModule.getInputTensors().length == 6) {
       inputList.insert(1, [
         [0] //attention_mask
       ]);

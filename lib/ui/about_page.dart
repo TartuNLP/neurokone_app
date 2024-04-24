@@ -1,13 +1,13 @@
 import 'package:neurokone/ui/header.dart';
 import 'package:neurokone/ui/page_view.dart';
-import 'package:neurokone/variables.dart' as Variables;
+import 'package:neurokone/variables.dart' as vars;
 import 'package:flutter/material.dart';
 
 class AboutPage extends StatefulWidget {
   final String lang;
   final Function switchLangs;
 
-  AboutPage({required this.lang, required this.switchLangs});
+  const AboutPage({super.key, required this.lang, required this.switchLangs});
 
   @override
   State<AboutPage> createState() => _AboutPageState();
@@ -30,13 +30,13 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   _aboutText() {
-    return Text('back');
+    return const Text('back');
   }
 
   _backButton() {
     return TextButton(
       onPressed: () => Navigator.pop(context),
-      child: Text(Variables.langs[widget.lang]!['back']!),
+      child: Text(vars.langs[widget.lang]!['back']!),
     );
   }
 }

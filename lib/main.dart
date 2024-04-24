@@ -22,45 +22,45 @@ class _TtsAppState extends State<TtsApp> {
   //Initialise app in Estonian by default
   String lang = 'Eesti';
   final MaterialColor themeColor = Colors.blue;
-  final SystemChannel channel = new SystemChannel();
+  final SystemChannel channel = SystemChannel();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      supportedLocales: [
+      supportedLocales: const [
         Locale('en', 'US'),
         Locale('et', 'ET'),
       ],
-      localizationsDelegates: [
+      localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       debugShowCheckedModeBanner: false,
       title: 'TartuNLP',
       theme: ThemeData(
-        primarySwatch: this.themeColor,
+        primarySwatch: themeColor,
       ),
       initialRoute: 'home',
       routes: {
         'instructions': (context) => InstructionsPage(
-              lang: this.lang,
-              switchLangs: this.switchLanguages,
+              lang: lang,
+              switchLangs: switchLanguages,
             ),
         'home': (context) => MainPage(
-              lang: this.lang,
-              switchLangs: this.switchLanguages,
-              channel: this.channel,
+              lang: lang,
+              switchLangs: switchLanguages,
+              channel: channel,
             ),
         //unused
         'about': (context) => AboutPage(
-              lang: this.lang,
-              switchLangs: this.switchLanguages,
+              lang: lang,
+              switchLangs: switchLanguages,
             ),
         //iOS only
         'select': (context) => LanguageSelectionPage(
-              lang: this.lang,
-              switchLangs: this.switchLanguages,
-              channel: this.channel,
+              lang: lang,
+              switchLangs: switchLanguages,
+              channel: channel,
             ),
       },
     );
@@ -69,7 +69,7 @@ class _TtsAppState extends State<TtsApp> {
   //Switch app language
   void switchLanguages(String newLang) {
     setState(() {
-      this.lang = newLang;
+      lang = newLang;
     });
   }
 }

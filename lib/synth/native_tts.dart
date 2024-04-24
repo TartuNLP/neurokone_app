@@ -1,6 +1,6 @@
 import 'package:logger/logger.dart';
 import 'package:neurokone/synth/text_encoder.dart';
-import 'package:neurokone/variables.dart' as Variables;
+import 'package:neurokone/variables.dart' as vars;
 import 'package:neurokone/synth/native_models/fastspeech.dart';
 import 'package:neurokone/synth/native_models/vocoder.dart';
 import 'package:neurokone/synth/audio_player.dart';
@@ -19,21 +19,20 @@ class NativeTts {
   int fileId = 0;
 
   NativeTts() {
-    this._synth = FastSpeech(Variables.synthModel);
-    this._vocoder = Vocoder(Variables.vocModel);
+    _synth = FastSpeech(vars.synthModel);
+    _vocoder = Vocoder(vars.vocModel);
   }
 
   //Text preprocessing, models' inference and playing of the resulting audio
   //Saves maximum of 3 audio files to memory.
   nativeTextToSpeech(String sentence, int voiceId, double invertedSpeed) async {
     double speed = 1.0 / invertedSpeed;
-    List output = this.encoder.textToIds(sentence);
-    this.logger.d('Input ids length: ' + output.length.toString());
-    output = await this._synth.getMelSpectrogram(output, voiceId, speed);
-    this.logger.d('Spectrogram shape: ' +
-        [output[0].length, output[0][0].length].toString());
-    output = this._vocoder.getAudio(output);
-    this.logger.d('Audio length: ' + output[0].length.toString());
+    List output = encoder.textToIds(sentence);
+    logger.d('Input ids length: ${output.length}');
+    output = await _synth.getMelSpectrogram(output, voiceId, speed);
+    logger.d('Spectrogram shape: ${[output[0].length, output[0][0].length]}');
+    output = _vocoder.getAudio(output);
+    logger.d('Audio length: ${output[0].length}');
 
     List<double> audioBytes = [];
     if (output[0].length > 1) {
@@ -43,7 +42,7 @@ class NativeTts {
     } else {
       audioBytes = output[0][0];
     }
-    await this.audioPlayer.playAudio(sentence, audioBytes, fileId);
+    await audioPlayer.playAudio(sentence, audioBytes, fileId);
     if (fileId >= 2) {
       fileId = 0;
     } else {

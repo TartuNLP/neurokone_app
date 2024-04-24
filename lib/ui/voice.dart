@@ -5,17 +5,17 @@ class Voice {
   final Color _color;
 
   String getName() {
-    return this._name;
+    return _name;
   }
 
   Color getColor() {
-    return this._color;
+    return _color;
   }
 
   const Voice(this._name, this._color);
 
   @override
-  bool operator ==(Object other) => other is Voice && other._name == this._name;
+  bool operator ==(Object other) => other is Voice && other._name == _name;
 
   @override
   int get hashCode => super.hashCode;

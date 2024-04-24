@@ -7,7 +7,7 @@ import 'package:neurokone/ui/header.dart';
 import 'package:neurokone/ui/voice.dart';
 import 'package:neurokone/synth/tts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:neurokone/variables.dart' as Variables;
+import 'package:neurokone/variables.dart' as vars;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:android_intent_plus/android_intent.dart';
@@ -25,7 +25,7 @@ class MainPage extends StatefulWidget {
     required this.switchLangs,
     required this.channel,
   }) : super(key: key) {
-    this.langText = Variables.langs[this.lang]!;
+    langText = vars.langs[lang]!;
   }
 
   @override
@@ -34,7 +34,7 @@ class MainPage extends StatefulWidget {
 
 class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Initial voice data.
-  Voice _currentNativeVoice = Variables.voices[0];
+  Voice _currentNativeVoice = vars.voices[0];
   double voiceTileHeight = 52;
 
   //Speed of the synthetic voice.
@@ -59,10 +59,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
 
-    this._textEditingController = TextEditingController();
-    this._textEditingController.addListener(() {
+    _textEditingController = TextEditingController();
+    _textEditingController.addListener(() {
       setState(() {
-        this._fieldText = _textEditingController.text;
+        _fieldText = _textEditingController.text;
       });
     });
     _initTts();
@@ -73,7 +73,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   //Loads tts engines
   _initTts() async {
-    tts = Tts(this.isIOS);
+    tts = Tts(isIOS);
 
     // loads system default model
     tts.loadSystemDefaultEngine();
@@ -138,6 +138,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       case AppLifecycleState.hidden:
         print("app hidden");
         break;
+      case AppLifecycleState.hidden:
+        print("app in detached");
+        break;
     }
   }
 
@@ -179,14 +182,14 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
                       widget.langText['engine']!,
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 20),
                     ),
                   ),
                 ),
                 _ttsEngineChoice(),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: _speedControl(),
                 ),
                 _inputTextField(),
@@ -221,16 +224,16 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
           icon: Container(),
         ),
         customButton: _voiceBox(_currentNativeVoice, arrow: true),
-        menuItemStyleData: MenuItemStyleData(padding: EdgeInsets.all(0)),
+        menuItemStyleData: const MenuItemStyleData(padding: EdgeInsets.all(0)),
         dropdownStyleData: DropdownStyleData(
-          padding: EdgeInsets.all(0),
+          padding: const EdgeInsets.all(0),
           offset: Offset(0, voiceTileHeight),
           elevation: 16,
-          decoration: BoxDecoration(color: Colors.transparent),
+          decoration: const BoxDecoration(color: Colors.transparent),
         ),
         isExpanded: true,
         value: _currentNativeVoice,
-        items: ([Voice('system', Colors.black)] + Variables.voices)
+        items: ([const Voice('system', Colors.black)] + vars.voices)
             .map((voice) => DropdownMenuItem(
                   value: voice,
                   child: _voiceBox(voice),
@@ -275,9 +278,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       child: Text(
         voiceName,
         semanticsLabel:
-            arrow ? widget.langText['engine']! + " " + voiceName : voiceName,
+            arrow ? "${widget.langText['engine']!} $voiceName" : voiceName,
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 20,
           //fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -291,7 +294,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         Container(),
         speaker,
         arrow
-            ? Icon(
+            ? const Icon(
                 Icons.arrow_drop_down,
                 size: 28,
                 color: Colors.white,
@@ -308,13 +311,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       child: Semantics(
         label: widget.langText['TTS settings'],
         child: IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.settings,
           ),
           onPressed: () async {
             isIOS
                 ? await Navigator.pushNamed(context, 'select')
-                : await AndroidIntent(
+                : await const AndroidIntent(
                         action: 'com.android.settings.TTS_SETTINGS')
                     .launch();
           },
@@ -369,9 +372,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         onPressed: _currentNativeVoice.getName() == "system"
             ? null
             : () => setState(() {
-                  this._speed = 1.0;
+                  _speed = 1.0;
                 }),
-        style: ButtonStyle(
+        style: const ButtonStyle(
           alignment: Alignment.center,
         ),
         child: Text(
@@ -391,9 +394,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _sliderEdgeIcon(Variables.slowTempoIconPath),
+        _sliderEdgeIcon(vars.slowTempoIconPath),
         _slider(),
-        _sliderEdgeIcon(Variables.fastTempoIconPath),
+        _sliderEdgeIcon(vars.fastTempoIconPath),
       ],
     );
   }
@@ -410,10 +413,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   _slider() {
-    return Container(
+    return SizedBox(
       width: MediaQuery.of(context).size.width * 0.45,
       child: SliderTheme(
-        data: SliderThemeData(
+        data: const SliderThemeData(
           overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
         ),
         child: Slider(
@@ -422,7 +425,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
           min: 0.5,
           max: 1.9,
           value: _speed,
-          label: widget.langText['slider']! + ' ' + _speed.toString(),
+          label: '${widget.langText['slider']!} $_speed',
           onChanged: _currentNativeVoice.getName() == "system"
               ? null
               : (value) => setState(() {
@@ -461,14 +464,14 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
                 hintText: widget.langText['hint'],
                 fillColor: Colors.white,
                 filled: true,
-                enabledBorder: OutlineInputBorder(
+                enabledBorder: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(16)),
                   borderSide: BorderSide(
                     color: Color.fromARGB(0, 0, 0, 0),
                     width: 2.0,
                   ),
                 ),
-                focusedBorder: OutlineInputBorder(
+                focusedBorder: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(16)),
                   borderSide: BorderSide(
                     color: Color.fromARGB(102, 77, 182, 172),
@@ -503,7 +506,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         onPressed: () => setState(() {
           _textEditingController.clear();
         }),
-        icon: Icon(
+        icon: const Icon(
           Icons.clear,
           color: Colors.black54,
         ),
@@ -519,7 +522,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         onPressed: () => Clipboard.setData(ClipboardData(text: _fieldText))
             .then((result) =>
                 Fluttertoast.showToast(msg: widget.langText['copy']!)),
-        icon: Icon(
+        icon: const Icon(
           Icons.copy,
           color: Colors.black54,
         ),
@@ -569,7 +572,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   Future _speak() async {
     if (!isSystemVoice) isNativePlaying = true;
     tts.speak(_fieldText, _speed, isSystemVoice,
-        isSystemVoice ? null : Variables.voices.indexOf(_currentNativeVoice));
+        isSystemVoice ? null : vars.voices.indexOf(_currentNativeVoice));
   }
 
   //Button to stop ongoing synthesizing
@@ -585,7 +588,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       onPressed: _stop,
       child: Text(
         widget.langText['stop']!,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 15,
         ),
       ),

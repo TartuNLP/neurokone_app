@@ -42,3 +42,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Separately downloaded libraries and pods for MacOS
+assets/TF_Libraries/libtensorflowlite_c-mac.so
+assets/TF_Libraries/libtensorflowlite_flex.so
+assets/TF_Pods/
