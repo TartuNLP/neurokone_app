@@ -1,6 +1,6 @@
 //
 //  FastSpeechModel.swift
-//  EestiTtsExtension
+//  EestiTtsiOS
 //
 //  Created by Rasmus Lellep on 28.04.2023.
 //  Copyright © 2023 The Chromium Authors. All rights reserved.
@@ -32,31 +32,31 @@ class FastSpeechModel: TfLiteModel {
         let primaryInputs: [[Int32]] = [inputIds.map { Int32($0) }, [Int32(self.voice)]]
         let secondaryInputs: [[Float]] = [[self.speed], [self.pitch], [self.energy]]
         
-        try self.model.resizeInput(at: 0, to: Tensor.Shape([1, inputIds.count]))
+        try self.model!.resizeInput(at: 0, to: Tensor.Shape([1, inputIds.count]))
         for id in 1..<primaryInputs.count {
-            try self.model.resizeInput(at: id, to: Tensor.Shape([primaryInputs[id].count]))
+            try self.model!.resizeInput(at: id, to: Tensor.Shape([primaryInputs[id].count]))
         }
         for id in 0..<secondaryInputs.count {
-            try self.model.resizeInput(at: id+primaryInputs.count, to: Tensor.Shape([secondaryInputs[id].count]))
+            try self.model!.resizeInput(at: id+primaryInputs.count, to: Tensor.Shape([secondaryInputs[id].count]))
         }
         //NSLog("QQQ inputs resized")
         
-        try self.model.allocateTensors()
+        try self.model!.allocateTensors()
         
         for id in 0..<primaryInputs.count {
             let dataIn = primaryInputs[id].withUnsafeBufferPointer(Data.init)
-            try self.model.copy(dataIn, toInputAt: id)
+            try self.model!.copy(dataIn, toInputAt: id)
         }
         for id in 0..<secondaryInputs.count {
             let dataIn = secondaryInputs[id].withUnsafeBufferPointer(Data.init)
-            try self.model.copy(dataIn, toInputAt: id+primaryInputs.count)
+            try self.model!.copy(dataIn, toInputAt: id+primaryInputs.count)
         }
         //NSLog("QQQ input prepared")
         
         // inference
-        try self.model.invoke()
+        try self.model!.invoke()
         //NSLog("QQQ model invoked")
         
-        return try self.model.output(at: 0).data
+        return try self.model!.output(at: 0).data
     }
 }

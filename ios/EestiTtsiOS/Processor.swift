@@ -1,6 +1,6 @@
 //
 //  Processor.swift
-//  EestiTtsExtension
+//  EestiTtsiOS
 //
 //  Created by Rasmus Lellep on 03.05.2023.
 //  Copyright © 2023 The Chromium Authors. All rights reserved.
@@ -11,8 +11,8 @@ import Foundation
 class SentProcessor {
     private final let sentencesSplit = /[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))/
     //private final let sentencesSplit = /[.!?]((((\" )| |( \")))|(\"?$))/
-    private final let sentenceSplit = /*(?<!^)*//([,;!?]\"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )/ //lookahead functionality (?<!^) needs to be replaced until it is supported in Swift
-    private final let sentenceStrip: String = "^[,;!?]?\"? ?"
+    private final let sentenceSplit = /*(?<!^)*//([,;!?]\"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)|–) )/ //lookahead functionality (?<!^) needs to be replaced until it is supported in Swift
+    private final let sentenceStrip: String = "(^[,;!?–]?\"? ?)|([,;!?–]?\"? ?$)"
     
     private func splitSentence(sent: String)  -> [String] {
         //For splitting sentences if they're too long for the synthesizer
@@ -42,15 +42,21 @@ class SentProcessor {
     // input format: <speak><voice name="extension-identifier.voice-identifier">text</voice></speak>
     func splitSentences(text: String) -> [String] {
         var sentences: [String] = []
-        var remainingSents: String = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
-        if remainingSents.wholeMatch(of: /.+[.!?]\"?$/) == nil {
-            remainingSents += "."
-        }
-        while let sentMatch = remainingSents.firstMatch(of: sentencesSplit) {
-            var sentence: String = String(remainingSents[..<sentMatch.range.lowerBound])
-            remainingSents = String(remainingSents[sentMatch.range.upperBound...])
-            
-            sentences.append(contentsOf: splitSentence(sent: sentence))
+        let allText: String = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        let paragraphs = allText.replacingOccurrences(of: "\n+", with: "\n", options: .regularExpression).split(separator: "\n")
+        for currentParagraph in paragraphs {
+            var remainingSents = currentParagraph
+            if remainingSents.wholeMatch(of: /.+[.!?]\"?$/) == nil {
+                remainingSents += "."
+            }
+            while let sentMatch = remainingSents.firstMatch(of: sentencesSplit) {
+                let sentence: String = String(remainingSents[..<sentMatch.range.lowerBound])
+                remainingSents = remainingSents[sentMatch.range.upperBound...]
+                
+                //sentences.append(contentsOf: splitSentence(sent: sentence))
+                sentences.append(sentence)
+            }
+            sentences[sentences.count - 1] += "\n"
         }
         return sentences
     }
@@ -62,7 +68,8 @@ class Preprocessor {
     private final let CURRENCY_RE = /([£$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£$€])/
     private final let ORDINAL_RE = /[0-9]+\./
     private final let NUMBER_RE = /[0-9]+/
-    private final let DECIMALSCURRENCYNUMBER_RE = /(([0-9]+[,.][0-9]+)|([£$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£$€])|[0-9]+\.?)/
+    private final let TRINUMBER_RE = /[0-9][0-9]?[0-9]?( [0-9]{3})+/
+    private final let DECIMALSCURRENCYNUMBER_RE = /([0-9]+[,.][0-9]+)|([£$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£$€])|([0-9]+\.?)/
     private final let CURRENCIES = [
         "£s": " nael ",
         "£m": " naela ",
@@ -428,21 +435,25 @@ class Preprocessor {
         return newText
     }
     
+    private func unifyNumberPunctuation(text: String) -> String {
+        if text.contains("\\.") && text.contains(",") || text.filter({ $0 == "," }).count > 1 {
+            return text.replacingOccurrences(of: ",", with: "")
+        }
+        return text
+    }
+    
     private func expandCurrency(text: String, kaane: Character) -> String {
         var s = text
-        if s.contains("\\.") && s.contains(",") {
-            s = text.replacingOccurrences(of: ",", with: "")
-        }
         s = s.replacingOccurrences(of: ".", with: ",")
-        var curr = "N"
-        if text.contains("$") {
-            curr = "$"
-        } else if text.contains("€") {
-            curr = "€"
-        } else if text.contains("£") {
-            curr = "£"
-        }
         if s.wholeMatch(of: CURRENCY_RE) != nil {
+            var curr = "N"
+            if text.contains("$") {
+                curr = "$"
+            } else if text.contains("€") {
+                curr = "€"
+            } else if text.contains("£") {
+                curr = "£"
+            }
             var moneys = "0"
             var cents = "0"
             var spelling = ""
@@ -476,8 +487,9 @@ class Preprocessor {
             if let range = s.range(of: "\\" + s) {
                 s = s.replacingCharacters(in: range, with: spelling)
             }
+            return s
         }
-        return s
+        return text
     }
     
     private func expandDecimals(text: String) -> String {
@@ -497,7 +509,7 @@ class Preprocessor {
         var outText = ""
         while let match = remainingText.firstMatch(of: ORDINAL_RE) {
             outText += remainingText[..<match.range.lowerBound]
-            outText += NumberNorm.toOrdinal(n: Int64(match.output.dropLast(1))!, kaane: kaane)
+            outText += NumberNorm.toOrdinal(n: Int64(match.output.dropLast())!, kaane: kaane)
             remainingText = String(remainingText[match.range.upperBound...])
         }
         outText += remainingText
@@ -510,7 +522,7 @@ class Preprocessor {
         while let match = remainingText.firstMatch(of: NUMBER_RE) {
             outText += remainingText[..<match.range.lowerBound]
             outText += NumberNorm.numToString(n: Int64(match.output)!, kaane: kaane)
-            remainingText = String(remainingText[match.endIndex...])
+            remainingText = String(remainingText[match.range.upperBound...])
         }
         outText += remainingText
         return outText
@@ -522,12 +534,14 @@ class Preprocessor {
             parts.append(String(part))
         }
         for i in 0..<parts.count {
+            parts[i] = unifyNumberPunctuation(text: parts[i])
             parts[i] = expandCurrency(text: parts[i], kaane: kaane)
             parts[i] = expandDecimals(text: parts[i])
-            if kaane != "N" || parts[i].hasSuffix(".") {
+            if parts[i].hasSuffix(".") {
                 parts[i] = expandOrdinals(text: parts[i], kaane: kaane)
+            } else {
+                parts[i] = expandCardinals(text: parts[i], kaane: kaane)
             }
-            parts[i] = expandCardinals(text: parts[i], kaane: kaane)
         }
         return parts.joined(separator: " ")
     }
@@ -606,10 +620,18 @@ class Preprocessor {
         
         // remove grouping between numbers
         // keeping space in 2006-10-27 12:48:50, in general require group of 3
-        newText  = subBetween(text: newText, label: /([0-9]) ([0-9]{3})(?!\d)/, target: "")
+        while let match = newText.firstMatch(of: TRINUMBER_RE) {
+            newText = newText.replacingOccurrences(of: " ", with: "", range: match.range)
+        }
+        //newText  = subBetween(text: newText, label: /([0-9]) ([0-9]{3})(?!\d)/, target: "")
         newText = newText.prefix(1).lowercased() + newText.dropFirst()
         
-        // split text into words ands symbols
+        //Replace dash with comma
+        newText = newText.replacingOccurrences(of: " – ", with: ", ")
+        //Remove end of quote before comma
+        newText = newText.replacingOccurrences(of: ",\"", with: ",")
+        
+        // split text into words and symbols
         var tokens: [String] = []
         while let match = newText.firstMatch(of: /([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\S/) {
             tokens.append(String(newText[match.range]))
@@ -752,7 +774,7 @@ class NumberNorm {
         }
         if split.count >= 2 {
             var parts: [String] = []
-            for i in 0..<split.count {
+            for i in 0..<split.count-1 {
                 parts.append(String(split[i]))
             }
             let text: String = toGenitive(words: parts)
@@ -780,9 +802,13 @@ class NumberNorm {
     static func numToString(n: Int64, kaane: Character) -> String {
         let helperOut: String = numToStringHelper(n: n)
         if (kaane == "O") {
-            return toGenitive(words: helperOut.split(separator: " ") as! [String])
+            return toGenitive(words: helperOut.components(separatedBy: " "))
         }
-        return helperOut.replacingOccurrences(of: "^üks ", with: "", options: .regularExpression)
+        if helperOut.count > 4 && !helperOut.starts(with: "üheksa")  {
+            return helperOut.replacingOccurrences(of: "^ü((ks)|(he)) ?", with: "", options: .regularExpression)
+        } else {
+            return helperOut
+        }
     }
     
     private static func numToStringHelper(n: Int64) -> String {
@@ -797,7 +823,7 @@ class NumberNorm {
         } else if ( n <= 99 ) {
             return nums[index/10] + "kümmend" + (n % 10 > 0 ? " " + numToStringHelper(n: n % 10) : "")
         } else if ( n <= 999 ) {
-            return (index/100 == 1 ? "" : nums[index/100]) + "sada" + (n % 100 > 0 ? " " + numToStringHelper(n: n % 100) : "")
+            return nums[index/100] + "sada" + (n % 100 > 0 ? " " + numToStringHelper(n: n % 100) : "")
         }
         var factor: Int = 0
         if ( n <= 999999) {

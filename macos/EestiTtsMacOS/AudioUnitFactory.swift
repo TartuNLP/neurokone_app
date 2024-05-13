@@ -1,6 +1,6 @@
 //
 //  AudioUnitFactory.swift
-//  EestiTts4MacOS
+//  EestiTtsMacOS
 //
 //  Created by Rasmus Lellep on 06.03.2024.
 //

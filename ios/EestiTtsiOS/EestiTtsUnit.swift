@@ -1,9 +1,9 @@
-//
-//  EestiTtsUnit.swift
-//  EestiTtsMacOS
-//
-//  Created by Rasmus Lellep on 06.03.2024.
-//
+/*
+See LICENSE folder for this sample’s licensing information.
+
+Abstract:
+The object that's responsible for rendering the speech the system requests.
+*/
 
 import os
 import AVFoundation
@@ -33,9 +33,6 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private var isSynthDone = true
     private var allData: [Data] = []
     private var currentData: Data?
-    
-    //Length of silence to be added between sentences
-    //private let silenceLength = 160
     
     @objc
     override init(componentDescription: AudioComponentDescription,
@@ -75,7 +72,9 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
 
     public override var speechVoices: [AVSpeechSynthesisProviderVoice] {
         get {
-            return self.voices.map { voice in
+            //let langs: [String] = (groupDefaults?.value(forKey: "langs") as? [String])!
+            let voices: [String] = (groupDefaults?.value(forKey: "voices") as? [String])!
+            return voices.map { voice in
                 return AVSpeechSynthesisProviderVoice(name: voice,
                                                       identifier: "auto.\(langCodes[0].lowercased()).\(voice)",
                                                       primaryLanguages: langCodes,
@@ -120,7 +119,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         }
         
         guard let audioData = self.currentData else {
-            // Handle the case when self.currentData is nil
+            // Handle the case when rawAudioData is nil
             return kAudioUnitErr_Uninitialized
         }
 
@@ -136,7 +135,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         if self.framePosition == 0 {
             NSLog("QQQ starting to render sentence..")
         }
-        
+
         // Iterate through the requested number of frames.
         for frame in 0..<frameCount {
             // Copy the source frames into the target buffer.
@@ -170,10 +169,10 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         //Replace English sample with Estonian.
         text = text.replacingOccurrences(of: "Hello! My name is \(voice.name).", with: "Tere! Mina olen \(voice.name).")
         text = text.replacingOccurrences(of: "&quot;", with: "\"")
-        
+
         NSLog("QQQ ssml text: \(text)")
-        NSLog("QQQ ssml voice: \(voice.name)")
-        
+        NSLog("QQQ ssml voice: \(voice)")
+
         self.outputMutex.wait()
         
         self.request = speechRequest
@@ -221,6 +220,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
 }
 
 class Synthesizer {
+    private let groupDefaults = UserDefaults(suiteName: "group.tartunlp.neurokone")
     private var synthMutex = DispatchSemaphore(value: 1)
     
     private final let preprocessor: Preprocessor = Preprocessor()
@@ -229,9 +229,13 @@ class Synthesizer {
     private var synthesizer: FastSpeechModel!
     private var vocoder: VocoderModel!
     
+    private let bytesInFrame = 4*80 //80 bins of 4-byte float values
+    private let audioChunkSize = 180
+    private let overlapSize = 15
+    
     init() throws {
-        self.synthesizer = try FastSpeechModel(modelPath: Bundle.main.path(forResource: "fastspeech2-est", ofType: "tflite")!)
-        self.vocoder = try VocoderModel(modelPath: Bundle.main.path(forResource: "hifigan-est.v2", ofType: "tflite")!)
+        self.synthesizer = try FastSpeechModel(modelPath: (groupDefaults?.value(forKey: "synthesizer") as? String)!)
+        self.vocoder = try VocoderModel(modelPath: (groupDefaults?.value(forKey: "vocoder") as? String)!)
     }
     
     func setVoice(voice: Int) {
@@ -248,7 +252,42 @@ class Synthesizer {
             let synthOutput: Data = try self.synthesizer.getMelSpectrogram(inputIds: ids)
             self.synthesizer.reload()
             
-            output = try self.vocoder.getAudio(input: synthOutput)
+            for id in 0...synthOutput.count/(bytesInFrame*(self.audioChunkSize - self.overlapSize)) {
+                
+                var start_id = id*bytesInFrame*(self.audioChunkSize - self.overlapSize)
+                let end_id = min(synthOutput.count, bytesInFrame*((id+1)*self.audioChunkSize - id*self.overlapSize))
+                
+                // Vocoder outputs white noise if input is a multiple of 29
+                var padding = Data()
+                var tempOverlapAddition = 0
+                let length = (end_id-start_id)/bytesInFrame
+                if (length % 29 == 0 || length % 113 == 0) {
+                    NSLog("QQQ last part multiple of 29(ids (\(start_id), \(end_id)), adding padding or overlap...")
+                    if (start_id == 0) {
+                        padding = Data(repeating: 0, count: bytesInFrame)
+                    } else {
+                        start_id -= bytesInFrame
+                        tempOverlapAddition = 1
+                    }
+                }
+                
+                let vocInput = synthOutput.subdata(in: start_id..<end_id) + padding
+                let vocOutput = try self.vocoder.getAudio(input: vocInput)
+                
+                let tempOverlapSize = self.overlapSize + tempOverlapAddition
+                let overlapRatio: Double = Double(bytesInFrame * tempOverlapSize) / Double(end_id - start_id)
+                if end_id == synthOutput.count && overlapRatio >= 1 {
+                    break
+                }
+                let numValuesCut = Int(ceil(Double(vocOutput.count)*overlapRatio/2.0))
+                let clip_start = start_id == 0 ? 0 : numValuesCut
+                let clip_end = end_id == synthOutput.count ? vocOutput.count : vocOutput.count - numValuesCut
+                
+                output += vocOutput.subdata(in: clip_start..<clip_end)
+                if end_id == synthOutput.count {
+                    break
+                }
+            }
             self.vocoder.reload()
             
             self.synthMutex.signal()

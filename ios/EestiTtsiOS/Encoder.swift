@@ -1,6 +1,6 @@
 //
 //  Encoder.swift
-//  EestiTtsExtension
+//  EestiTtsiOS
 //
 //  Created by Rasmus Lellep on 28.04.2023.
 //  Copyright © 2023 The Chromium Authors. All rights reserved.

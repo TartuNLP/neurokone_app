@@ -39,7 +39,7 @@ target 'Runner' do
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 
-target 'EestiTtsExtension' do
+target 'EestiTtsiOS' do
   use_frameworks! :linkage => :static
   use_modular_headers!
 

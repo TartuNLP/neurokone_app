@@ -19,25 +19,25 @@ This template uses Swift and SwiftUI for business logic and user interface, C++ 
 This template is designed to make Audio Unit development as easy as possible. In most cases you should only need to edit files in the top level groups; `Parameters`, `DSP` and `UI` groups.
 
 * /Common - Contains common code split by functionality which should rarely need to be modified. 
-	* `Audio Unit/EestiTtsExtensionAudioUnit.mm/h` - A subclass of AUAudioUnit, this is the actual Audio Unit implementation. You may in advanced cases need to change this file to add additional functionality from AUAudioUnit.  
+	* `Audio Unit/EestiTtsiOSAudioUnit.mm/h` - A subclass of AUAudioUnit, this is the actual Audio Unit implementation. You may in advanced cases need to change this file to add additional functionality from AUAudioUnit.  
 * /Parameters
-	* `EestiTtsExtensionParameterAddresses.h` - A pure `C` enum containing parameter addresses used by Swift and C++ to reference parameters.
+	* `EestiTtsiOSParameterAddresses.h` - A pure `C` enum containing parameter addresses used by Swift and C++ to reference parameters.
 	
 	* `Parameters.swift` - Contains a ParameterTreeSpec object made up of ParameterGroupSpec's and ParameterSpec's which allow you describe your plug-in's parameters and the layout of those parameters.
 
 * /DSP
-	* `EestiTtsExtensionDSPKernel.hpp` - A pure C++ class to handle the real-time aspects of the Audio Unit Extension. DSP and processing should be done here. Note: Be aware of the constraints of real-time audio processing. 
+	* `EestiTtsiOSDSPKernel.hpp` - A pure C++ class to handle the real-time aspects of the Audio Unit Extension. DSP and processing should be done here. Note: Be aware of the constraints of real-time audio processing. 
 * /UI
-	* `EestiTtsExtensionMainView.swift` - SwiftUI based main view, add your SwiftUI views and controls here.
+	* `EestiTtsiOSMainView.swift` - SwiftUI based main view, add your SwiftUI views and controls here.
 
 ## Adding a parameter
-1. Add a new parameter address to the `EestiTtsExtensionParameterAddress` enum in `EestiTtsExtensionParameterAddresses.h` 
+1. Add a new parameter address to the `EestiTtsiOSParameterAddress` enum in `EestiTtsiOSParameterAddresses.h` 
 
 
 Example:
 
 ```c
-typedef NS_ENUM(AUParameterAddress, EestiTtsExtensionParameterAddress) {
+typedef NS_ENUM(AUParameterAddress, EestiTtsiOSParameterAddress) {
 	sendNote = 0,
 	....
 	attack
@@ -62,7 +62,7 @@ ParameterGroupSpec(identifier: "global", name: "Global") {
 ```
 Note: the identifier will be used to interact with this parameter from SwiftUI.
 
-3. In order to manipulate the DSP side of the Audio Unit we must handle changes to our new parameter in `EestiTtsExtensionDSPKernel.hpp`. In the `setParameter` and `getParameter` methods add a case for the new parameter address.
+3. In order to manipulate the DSP side of the Audio Unit we must handle changes to our new parameter in `EestiTtsiOSDSPKernel.hpp`. In the `setParameter` and `getParameter` methods add a case for the new parameter address.
 
 Example:
 
@@ -70,7 +70,7 @@ Example:
 	void setParameter(AUParameterAddress address, AUValue value) {
 		switch (address) {
 			....
-			case EestiTtsExtensionExtensionParameterAddress:: attack:
+			case EestiTtsiOSExtensionParameterAddress:: attack:
 				mAttack = value;
 				break;			
 			...
@@ -79,7 +79,7 @@ Example:
 	AUValue getParameter(AUParameterAddress address) {
 		switch (address) {
 			....
-			case EestiTtsExtensionExtensionParameterAddress::attack:
+			case EestiTtsiOSExtensionParameterAddress::attack:
 				return (AUValue) mAttack;
 			...
 	}

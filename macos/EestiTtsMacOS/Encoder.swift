@@ -1,6 +1,6 @@
 //
 //  Encoder.swift
-//  EestiTts4MacOS
+//  EestiTtsMacOS
 //
 //  Created by Rasmus Lellep on 06.03.2024.
 //
@@ -17,7 +17,12 @@ class Encoder {
     func textToIds(text: String) -> [Int] {
         var ids: [Int] = []
         text.forEach { char in
-            ids.append(self.SYMBOLS.firstIndex(of: String(char))!)
+            guard let charId = self.SYMBOLS.firstIndex(of: String(char))
+            else {
+                NSLog("QQQ cannot encode char \(char)")
+                return
+            }
+            ids.append(charId)
         }
         return ids
     }

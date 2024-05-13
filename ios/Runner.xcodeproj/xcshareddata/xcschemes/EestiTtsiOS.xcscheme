@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "25B7B42D29E58DAA00F5494E"
-               BuildableName = "EestiTtsExtension.appex"
-               BlueprintName = "EestiTtsExtension"
+               BuildableName = "EestiTtsiOS.appex"
+               BlueprintName = "EestiTtsiOS"
                ReferencedContainer = "container:Runner.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
