@@ -468,7 +468,7 @@ class Preprocessor {
             if moneys != "0" {
                 if kaane == "O" {
                     spelling += String(parts[0]) + CURRENCIES[curr + "g"]!
-                }  else if moneys == "1" || moneys == "01" {
+                } else if moneys == "1" || moneys == "01" {
                     spelling += String(parts[0]) + CURRENCIES[curr + "s"]!
                 } else {
                     spelling += String(parts[0]) + CURRENCIES[curr + "m"]!
@@ -582,9 +582,6 @@ class Preprocessor {
                 //}
                 word = expandNumbers(text: word, kaane: kaane)
             }
-            if word.hasSuffix(".") {
-                word = String(word.dropLast(1))
-            }
             if ABBREVIATIONS.keys.contains(word) {
                 word = ABBREVIATIONS[word]!
             } else if word.wholeMatch(of: ONLY_UPPER_RE) != nil {
@@ -603,6 +600,15 @@ class Preprocessor {
     
     private func cleanTextForEstonian(text: String) -> String {
         var newText = text
+
+        //Temporarily remove sentence end symbol
+        var sentEnd = "."
+        var lastChar = newText.last!
+        if ".!?".contains(lastChar) {
+            sentEnd = String(lastChar)
+            newText = String(newText.dropLast())
+        }
+
         // ... between numbers to kuni
         if let match = newText.firstMatch(of: /(\d)\.\.\.(\d)/) {
             newText = String(text[..<match.range.lowerBound])
@@ -639,7 +645,7 @@ class Preprocessor {
         }
         newText = processByWord(tokens: tokens)
         newText = newText.lowercased()
-        newText += "."
+        newText += sentEnd
         newText = collapseWhitespace(text: newText)
         newText = expandAbbreviations(text: newText)
         
@@ -759,14 +765,12 @@ class NumberNorm {
             for key in ordinalMap.keys {
                 if last.hasSuffix(key) {
                     last = last.replacingOccurrences(of: key, with: ordinalMap[key]!)   //näiteks kuus<kümmend> => kuus<kümnes>
-                }
-                else {
+                } else {
                     last = last.replacingOccurrences(of: key, with: genitiveMap[key]!) //näiteks <kuus>kümmend => <kuue>kümmend
                 }
             }
             last = last.replacingOccurrences(of: "kümme", with: "kümnes")
-        }
-        else if (kaane == "O") {
+        } else if (kaane == "O") {
             for key in ordinalGenitiveMap.keys {
                 last = last.replacingOccurrences(of: key, with: ordinalGenitiveMap[key]!)
             }

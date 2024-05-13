@@ -15,8 +15,8 @@ class SentProcessor {
     private static final String TAG = "SentProcessor";
 
     private static final Pattern sentencesSplit = Pattern.compile("(?=[.!?])((((\" )| |( \"))(?![a-zäöüõšžA-ZÕÄÖÜŠŽ0-9]))|(\"?$))");
-    private static final Pattern sentenceSplit = Pattern.compile("(?<!^)([,;!?]\"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )");
-    private static final String sentenceStrip = "^[,;!?]?\"? ?";
+    private static final Pattern sentenceSplit = Pattern.compile("(?<!^)([,;!?]\"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)|–) )");
+    private static final String sentenceStrip = "(^[,;!?–]?\"? ?)|([,;!?–]?\"? ?$)";
 
     private List<String> splitSentence(String sentence) {
         List<String> sentenceParts = new ArrayList<>();
@@ -89,6 +89,7 @@ class Preprocessor {
     private static final String CURRENCY_RE = "([£$€]((\\d+[.,])?\\d+))|(((\\d+[.,])?\\d+)[£$€])";
     private static final Pattern ORDINAL_RE = Pattern.compile("[0-9]+\\.");
     private static final Pattern NUMBER_RE = Pattern.compile("[0-9]+");
+    private static final Pattern TRINUMBER_RE = Pattern.compile("[0-9][0-9]?[0-9]?( [0-9]{3})+")
     private static final Pattern DECIMALSCURRENCYNUMBER_RE = Pattern.compile("(([0-9]+[,.][0-9]+)|([£$€]((\\d+[.,])?\\d+))|(((\\d+[.,])?\\d+)[£$€])|[0-9]+\\.?)");
     private static final HashMap<String, String> CURRENCIES = new HashMap<>();
     static {
@@ -377,11 +378,11 @@ class Preprocessor {
         sentence = sentence.replace("ð", "d").replace("þ", "th");
         sentence = sentence.replace("ø", "ö").replace("Ø", "Ö");
         sentence = sentence.replace("ß", "ss").replace("ẞ", "Ss");
-        sentence = sentence.replaceAll("S[cC][hH]", "Š");
         sentence = sentence.replaceAll("sch", "š");
+
+        sentence = sentence.replaceAll("S[cC][hH]", "Š");
         sentence = sentence.replaceAll("[ĆČ]", "Tš");
         sentence = sentence.replaceAll("[ćč]", "tš");
-        sentence = sentence.replaceAll("—", ",");
 
         //sentence = Normalizer.normalize(sentence, Normalizer.Form.NFD);
         sentence = Normalizer.normalize(sentence, Normalizer.Form.NFC);
@@ -440,20 +441,25 @@ class Preprocessor {
         return text;
     }
 
+    private String unifyNumberPunctuation(String text) {
+        if text.contains(".") && text.contains(",") || text.chars().filter(ch -> ch == ',').count() > 1 {
+            return text.replace(",", "")
+        }
+        return text
+    }
+
     private String expandCurrency(String text, char kaane) {
         String s = text;
-        if (text.contains(".") && text.contains(","))
-            s = text.replaceAll(",", "");
         s = s.replaceAll("\\.", ",");
         boolean match = s.matches(CURRENCY_RE);
-        char curr = 'N';
-        if (text.contains("$"))
-            curr = '$';
-        else if (text.contains("€"))
-            curr = '€';
-        else if (text.contains("£"))
-            curr = '£';
         if (match) {
+            char curr = 'N';
+            if (text.contains("$"))
+                curr = '$';
+            else if (text.contains("€"))
+                curr = '€';
+            else if (text.contains("£"))
+                curr = '£';
             String moneys = "0";
             String cents = "0";
             String spelling = "";
@@ -532,9 +538,10 @@ class Preprocessor {
     private String expandNumbers(String text, char kaane) {
         String[] parts = text.split(" ");
         for (int i = 0; i < parts.length; i++) {
+            parts[i] = unifyNumberPunctuation(parts[i])
             parts[i] = expandCurrency(parts[i], kaane);
             parts[i] = expandDecimals(parts[i]);
-            if (kaane != 'N' || parts[i].endsWith("."))
+            if (parts[i].endsWith("."))
                 parts[i] = expandOrdinals(parts[i], kaane);
             parts[i] = expandCardinals(parts[i], kaane);
         }
@@ -579,7 +586,7 @@ class Preprocessor {
                 //    kaane = 'N';
                 word = expandNumbers(word, kaane);
             }
-
+            
             if (ABBREVIATIONS.containsKey(word))
                 word = ABBREVIATIONS.get(word);
             else if (word.matches("[A-ZÄÖÜÕŽŠ]+")) {
@@ -616,9 +623,20 @@ class Preprocessor {
         text = subBetween(text, "([A-ZÄÖÜÕŽŠa-zäöüõšž])(\\d)", "-");
 
         // remove grouping between numbers
-        // keeping space in 2006-10-27 12:48:50, in general require group of 3
-        text = subBetween(text, "([0-9]) ([0-9]{3})(?!\\d)", "");
+        // keeping space in 2006-10-27 12:48:50, in general require group of z
+        Matcher m = TRINUMBER_RE.matcher(text);
+        while (m.find()) {
+            String num = text.substring(m.start(), m.end())
+            text = text.replace(num, num.replace(" ", ""))
+            m = TRINUMBER_RE.matcher(text);
+        }
+        //text = subBetween(text, "([0-9]) ([0-9]{3})(?!\\d)", "");
         text = text.substring(0,1).toLowerCase() + text.substring(1);
+
+        //Replace dash with comma
+        text = text.replace(" – ", ", ")
+        //Remove end of quote before comma
+        text = text.replace(",\"", ",")
 
         // split text into words ands symbols
         Matcher tokenizer = Pattern.compile("([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\\S").matcher(text);
@@ -791,7 +809,9 @@ class NumberNormEt {
         String helperOut = numToStringHelper(n);
         if (kaane == 'O')
             return toGenitive(new ArrayList<>(Arrays.asList(helperOut.split(" "))));
-        return helperOut.replaceAll("^üks ", "");
+        if helperOut.length > 4 && !helperOut.startsWith("üheksa")
+            return helperOut.replaceAll("^ü((ks)|(he)) ?", "")
+        else return helperOut
     }
 
     private static final String numToStringHelper(long n) {
