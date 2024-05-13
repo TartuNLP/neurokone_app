@@ -68,7 +68,7 @@ class TtsPlayer {
   List<int> _convertFloatTo16BitSigned(List<double> pcmDouble) {
     List<int> out = [];
     for (double value in pcmDouble) {
-      double newValue = (value * this.coeff);
+      double newValue = (value * coeff);
       int newInt = newValue.round();
       out.add(newInt);
     }
@@ -78,42 +78,39 @@ class TtsPlayer {
   //Converts the predicted bytesm adds these to buffer, saves the audio file,
   //waits until the last audio has finished playing and the plays the current audio from memory
   playAudio(String sentence, List<double> bytes, int index) async {
-    this.logger.d('Playing audio for sentence "' + sentence + '"');
+    logger.d('Playing audio for sentence "$sentence"');
     String filePath =
-        (await getTemporaryDirectory()).toString().split('\'')[1] +
-            '/tempAudio' +
-            index.toString() +
-            '.wav';
+        '${(await getTemporaryDirectory()).toString().split('\'')[1]}/tempAudio$index.wav';
     List<int> intBytes = _convertFloatTo16BitSigned(bytes);
     Int16List intList = Int16List.fromList(intBytes);
     Uint8List playableBytes = intList.buffer
         .asUint8List(intList.offsetInBytes, intList.lengthInBytes);
-    while (DateTime.now().isBefore(this.lastStart
-        .add(Duration(milliseconds: this.previusDurationInMs + this.delayInMs)))) {
+    while (DateTime.now().isBefore(lastStart
+        .add(Duration(milliseconds: previusDurationInMs + delayInMs)))) {
       continue;
     }
     await save(playableBytes, filePath, 22050);
-    while (this.player.state != PlayerState.completed) {
-      if (this.lastStart
-              .add(Duration(milliseconds: this.previusDurationInMs + 200))
+    while (player.state != PlayerState.completed) {
+      if (lastStart
+              .add(Duration(milliseconds: previusDurationInMs + 200))
               .compareTo(DateTime.now()) <=
           0) {
-        this.player.state = PlayerState.completed;
+        player.state = PlayerState.completed;
       }
       continue;
     }
-    this.previusDurationInMs = (intList.length * 1000 / this.sampleRate).ceil();
-    this.lastStart = DateTime.now();
-    await this.player.play(DeviceFileSource(filePath));
+    previusDurationInMs = (intList.length * 1000 / sampleRate).ceil();
+    lastStart = DateTime.now();
+    await player.play(DeviceFileSource(filePath));
     //await player.play(filePath, isLocal: true);
-    this.logger.d("Audio playing.");
+    logger.d("Audio playing.");
   }
 
   bool isPlaying() {
-    return this.player.state == PlayerState.playing;
+    return player.state == PlayerState.playing;
   }
 
   stopAudio() async {
-    await this.player.stop();
+    await player.stop();
   }
 }

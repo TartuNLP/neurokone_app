@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:neurokone/ui/voice.dart';
 import 'package:logger/logger.dart';
-import 'package:neurokone/variables.dart' as Variables;
+import 'package:neurokone/variables.dart' as vars;
 import 'package:flutter/services.dart';
 
 class SystemChannel {
   Logger logger = Logger();
-  late final MethodChannel channel = new MethodChannel(Variables.packageName);
+  late final MethodChannel channel = const MethodChannel(vars.packageName);
   List<Voice> enabledVoices = [];
 
   SystemChannel() {
@@ -15,37 +15,36 @@ class SystemChannel {
 
   _getEnabledVoices() async {
     if (Platform.isIOS) {
-      List enabledVoiceNames =
-          await this.channel.invokeMethod("getDefaultVoices");
+      List enabledVoiceNames = await channel.invokeMethod("getDefaultVoices");
       List<String> enabledVoiceNamesString =
           enabledVoiceNames.map((e) => e as String).toList();
-      this.enabledVoices = _namesToVoices(enabledVoiceNamesString);
-      this.logger.d("Voices: " + this.enabledVoices.toString());
+      enabledVoices = _namesToVoices(enabledVoiceNamesString);
+      logger.d("Voices: $enabledVoices");
     } else {
-      this.enabledVoices = Variables.voices;
+      enabledVoices = vars.voices;
     }
   }
 
   List<Voice> _namesToVoices(List<String> names) {
     List<Voice> voices = [];
-    for (Voice voice in Variables.voices) {
+    for (Voice voice in vars.voices) {
       if (names.contains(voice.getName())) voices.add(voice);
     }
     return voices;
   }
 
   List<Voice> getDefaultVoices() {
-    return this.enabledVoices;
+    return enabledVoices;
   }
 
   void setNewVoices(List<Voice> newVoices) async {
-    this.enabledVoices = newVoices;
-    this.logger.d("Now enabled: " + this.enabledVoices.toString());
+    enabledVoices = newVoices;
+    logger.d("Now enabled: $enabledVoices");
   }
 
   Future<void> save() async {
-    this.logger.d("Saving " + this.enabledVoices.toString() + " to defaults.");
-    this.logger.i(await this.channel.invokeMethod('setDefaultVoices',
-        this.enabledVoices.map((e) => e.getName()).toList()));
+    logger.d("Saving $enabledVoices to defaults.");
+    logger.i(await channel.invokeMethod(
+        'setDefaultVoices', enabledVoices.map((e) => e.getName()).toList()));
   }
 }

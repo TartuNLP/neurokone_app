@@ -8,36 +8,36 @@ class TfModel {
   late Interpreter mModule;
 
   TfModel(this.TAG) {
-    this.modulePath = this.TAG + '.tflite';
+    modulePath = '$TAG.tflite';
     loadModel();
   }
 
   loadModel() async {
-    this.mModule = await Interpreter.fromAsset(this.modulePath);
-    this.logger.d(modulePath);
+    mModule = await Interpreter.fromAsset(modulePath);
+    logger.d(modulePath);
   }
 
   //Performs inference on the model and returns model's output as Tensor.
   //Input should already formatted to to model's input shape.
   Tensor invokeModel(List<Object> inputList) {
-    var inputTensors = this.mModule.getInputTensors();
+    var inputTensors = mModule.getInputTensors();
 
     for (int i = 0; i < inputList.length; i++) {
       Tensor tensor = inputTensors.elementAt(i);
       final newShape = tensor.getInputShapeIfDifferent(inputList[i]);
       if (newShape != null) {
-        this.mModule.resizeInputTensor(i, newShape);
+        mModule.resizeInputTensor(i, newShape);
       }
     }
-    this.mModule.allocateTensors();
+    mModule.allocateTensors();
 
-    inputTensors = this.mModule.getInputTensors();
+    inputTensors = mModule.getInputTensors();
     for (int i = 0; i < inputList.length; i++) {
       inputTensors.elementAt(i).setTo(inputList[i]);
     }
 
-    this.mModule.invoke();
+    mModule.invoke();
 
-    return this.mModule.getOutputTensor(0);
+    return mModule.getOutputTensor(0);
   }
 }

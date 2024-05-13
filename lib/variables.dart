@@ -1,11 +1,11 @@
 import 'package:neurokone/ui/voice.dart';
 import 'package:flutter/material.dart';
 
-final String packageName = 'com.tartunlp.neurokone';
-final String appVersion = 'Neurokõne v1.0.8';
+const String packageName = 'tartunlp.neurokone';
+const String appVersion = 'Neurokõne v1.0.8';
 
-final String synthModel = 'fastspeech2-est';
-final String vocModel = 'hifigan-est.v2';
+const String synthModel = 'fastspeech2-est';
+const String vocModel = 'hifigan-est.v2';
 
 //Defaults for Estonian and English UI.
 const Map<String, Map<String, String>> langs = {
@@ -136,5 +136,5 @@ final List<Voice> voices = [
   Voice('Peeter', colors['purple']!),
 ];
 
-final String slowTempoIconPath = 'assets/icons_logos/snail-clean.svg';
-final String fastTempoIconPath = 'assets/icons_logos/horse-clean.svg';
+const String slowTempoIconPath = 'assets/icons_logos/snail-clean.svg';
+const String fastTempoIconPath = 'assets/icons_logos/horse-clean.svg';

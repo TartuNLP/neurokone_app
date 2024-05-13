@@ -8,7 +8,7 @@ class Encoder {
     '-',
     ' ',
     '!',
-    '\"',
+    '"',
     "'",
     ',',
     '.',
@@ -62,7 +62,7 @@ class Encoder {
     for (String symbol in symbols.characters) {
       int? id = SYMBOL_TO_ID[symbol];
       if (id == null) {
-        this.logger.d("symbolsToSequence: id is not found for " + symbol);
+        logger.d("symbolsToSequence: id is not found for $symbol");
       } else {
         sequence.add(id);
       }

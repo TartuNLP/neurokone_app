@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1430"
+   LastUpgradeVersion = "1510"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -29,8 +29,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "25B7B42D29E58DAA00F5494E"
-               BuildableName = "EestiTtsExtension.appex"
-               BlueprintName = "EestiTtsExtension"
+               BuildableName = "EestiTtsiOS.appex"
+               BlueprintName = "EestiTtsiOS"
                ReferencedContainer = "container:Runner.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

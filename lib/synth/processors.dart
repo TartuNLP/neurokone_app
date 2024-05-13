@@ -1,5 +1,5 @@
 import 'package:logger/logger.dart';
-import 'dart:math' as Math;
+import 'dart:math' as math;
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
 
 class SentProcessor {
@@ -23,17 +23,16 @@ class SentProcessor {
       sentence = text.substring(currentSentId);
     }
     int currentCharId = 0;
-    for (RegExpMatch split in this.sentenceSplit.allMatches(sentence)) {
+    for (RegExpMatch split in sentenceSplit.allMatches(sentence)) {
       if (split.start > 20 + currentCharId &&
           split.end < sentence.length - 20) {
         sentenceParts.add(sentence
             .substring(currentCharId, split.start)
-            .replaceAll(this.strip, ''));
+            .replaceAll(strip, ''));
         currentCharId = split.start;
       }
     }
-    sentenceParts
-        .add(sentence.substring(currentCharId).replaceAll(this.strip, ''));
+    sentenceParts.add(sentence.substring(currentCharId).replaceAll(strip, ''));
     return sentenceParts;
   }
 
@@ -47,7 +46,7 @@ class SentProcessor {
     }
 
     int currentSentId = 0;
-    for (RegExpMatch match in this.sentencesSplit.allMatches(text)) {
+    for (RegExpMatch match in sentencesSplit.allMatches(text)) {
       sentences.addAll(_splitSentence(text, currentSentId, match));
       currentSentId = match.end;
     }
@@ -55,9 +54,7 @@ class SentProcessor {
       //if last sentence doesn't end with .!?
       sentences.addAll(_splitSentence(text, currentSentId, null));
     }
-    this
-        .logger
-        .d('Text split into sentences/sentence parts:' + sentences.toString());
+    logger.d('Text split into sentences/sentence parts:$sentences');
     return sentences;
   }
 }
@@ -430,10 +427,8 @@ class Preprocessor {
     RegExpMatch? m = pattern.firstMatch(word);
     String newword = word;
     if (m != null) {
-      endingWord = " " +
-          (word.substring(m.start).startsWith("-")
-              ? word.substring(m.start + 1)
-              : word.substring(m.start));
+      endingWord =
+          " ${word.substring(m.start).startsWith("-") ? word.substring(m.start + 1) : word.substring(m.start)}";
       newword = word.substring(0, m.start);
     }
     if (RegExp(r'I{4}').hasMatch(word) ||
@@ -460,7 +455,7 @@ class Preprocessor {
       max = i;
       sum += i;
     }
-    return sum.toString() + "." + endingWord;
+    return "$sum.$endingWord";
   }
 
   String _expandAbbreviations(String text) {
@@ -499,23 +494,23 @@ class Preprocessor {
       }
       if ("0" != moneys) {
         if (kaane == 'O') {
-          spelling += parts[0] + CURRENCIES[curr + "g"]!;
+          spelling += parts[0] + CURRENCIES["${curr}g"]!;
         } else if ("1" == moneys || "01" == moneys) {
-          spelling += parts[0] + CURRENCIES[curr + "s"]!;
+          spelling += parts[0] + CURRENCIES["${curr}s"]!;
         } else {
-          spelling += parts[0] + CURRENCIES[curr + "m"]!;
+          spelling += parts[0] + CURRENCIES["${curr}m"]!;
         }
       }
       if ("0" != cents && "00" != cents) {
         spelling += " ja -";
         if (kaane == 'O') {
-          spelling += parts[0] + CURRENCIES[curr + "cg"]!;
+          spelling += parts[0] + CURRENCIES["${curr}cg"]!;
         }
 
         if ("1" == cents || "01" == cents) {
-          spelling += parts[1] + CURRENCIES[curr + "cs"]!;
+          spelling += parts[1] + CURRENCIES["${curr}cs"]!;
         } else {
-          spelling += parts[1] + CURRENCIES[curr + "cm"]!;
+          spelling += parts[1] + CURRENCIES["${curr}cm"]!;
         }
       }
       text = text.replaceFirst(text, spelling);
@@ -558,7 +553,7 @@ class Preprocessor {
         spelling += "null ";
         numText = numText.substring(1);
       }
-      if (numText.length > 0) {
+      if (numText.isNotEmpty) {
         int l = int.parse(numText);
         spelling += NumberNormEt.numToString(l, kaane);
       }
@@ -651,7 +646,7 @@ class Preprocessor {
     // ... between numbers to kuni
     RegExpMatch? m = RegExp(r'(\d)\.\.\.(\d)').firstMatch(text);
     while (m != null) {
-      text = m.group(1).toString() + ' kuni ' + m.group(2).toString();
+      text = '${m.group(1)} kuni ${m.group(2)}';
       m = RegExp(r'(\d)\.\.\.(\d)').firstMatch(text);
     }
     // reduce Unicode repertoire _before_ inserting any hyphens
@@ -681,7 +676,7 @@ class Preprocessor {
     text = _expandAbbreviations(text);
     text = text.toLowerCase();
 
-    this.logger.d('Text preprocessed:' + text);
+    logger.d('Text preprocessed:$text');
     return text;
   }
 
@@ -689,7 +684,7 @@ class Preprocessor {
     if (sentence.length == 1) {
       String? pronunciation = ALPHABET[sentence];
       if (pronunciation != null) {
-        return pronunciation + ".";
+        return "$pronunciation.";
       }
       return ".";
     }
@@ -825,9 +820,9 @@ class NumberNormEt {
       }
       last = last.replaceAll('kümme', 'kümnenda');
     }
-    if (split.length >= 1) {
+    if (split.isNotEmpty) {
       String text = _toGenitive(split);
-      last = text + ' ' + last;
+      last = '$text $last';
     }
     return last;
   }
@@ -855,21 +850,17 @@ class NumberNormEt {
 
   static String _numToStringHelper(int n) {
     if (n < 0) {
-      return ' miinus ' + _numToStringHelper(-n);
+      return ' miinus ${_numToStringHelper(-n)}';
     }
     int index = n;
     if (n <= 10) {
       return nums[index];
     } else if (n <= 19) {
-      return nums[index - 10] + 'teist';
+      return '${nums[index - 10]}teist';
     } else if (n <= 99) {
-      return nums[(index / 10).floor()] +
-          'kümmend' +
-          (n % 10 > 0 ? ' ' + _numToStringHelper(n % 10) : '');
+      return '${nums[(index / 10).floor()]}kümmend${n % 10 > 0 ? ' ${_numToStringHelper(n % 10)}' : ''}';
     } else if (n <= 999) {
-      return ((index / 100).floor() == 1 ? '' : nums[(index / 100).floor()]) +
-          'sada' +
-          (n % 100 > 0 ? ' ' + _numToStringHelper(n % 100) : '');
+      return '${(index / 100).floor() == 1 ? '' : nums[(index / 100).floor()]}sada${n % 100 > 0 ? ' ${_numToStringHelper(n % 100)}' : ''}';
     }
     int factor = 0;
     if (n <= 999999) {
@@ -885,12 +876,6 @@ class NumberNormEt {
     } else {
       factor = 6;
     }
-    return _numToStringHelper((n / Math.pow(1000, factor)).floor()) +
-        ' ' +
-        CARDINAL_NUMBERS[factor]! +
-        (factor != 1 ? 'it' : '') +
-        (n % Math.pow(1000, factor) > 0
-            ? ' ' + _numToStringHelper((n % Math.pow(1000, factor)).floor())
-            : '');
+    return '${_numToStringHelper((n / math.pow(1000, factor)).floor())} ${CARDINAL_NUMBERS[factor]!}${factor != 1 ? 'it' : ''}${n % math.pow(1000, factor) > 0 ? ' ${_numToStringHelper((n % math.pow(1000, factor)).floor())}' : ''}';
   }
 }

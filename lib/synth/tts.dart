@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
-import 'package:neurokone/variables.dart' as Variables;
+import 'package:neurokone/variables.dart' as vars;
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:neurokone/synth/native_tts.dart';
 import 'package:neurokone/synth/processors.dart';
@@ -27,20 +27,20 @@ class Tts {
   Logger logger = Logger();
 
   Tts(this.isIOS) {
-    this.nativeTts = NativeTts();
+    nativeTts = NativeTts();
     initSystemTts();
   }
 
   //Loads Android system's tts engine.
   void initSystemTts() async {
-    if (!this.isIOS) {
+    if (!isIOS) {
       //copies models to platform application assets
-      _copyModel(Variables.synthModel + '.tflite');
-      _copyModel(Variables.vocModel + '.tflite');
+      _copyModel('${vars.synthModel}.tflite');
+      _copyModel('${vars.vocModel}.tflite');
     }
-    this.systemTts = FlutterTts();
+    systemTts = FlutterTts();
     //Synchronizes the tts output so that an audio clip is not played until the previous one has finished.
-    await this.systemTts.awaitSpeakCompletion(true);
+    await systemTts.awaitSpeakCompletion(true);
   }
 
   void _copyModel(String model) async {
@@ -48,10 +48,10 @@ class Tts {
     final String localPath = docDir.path;
     File file = File('$localPath/$model');
     if (file.existsSync()) {
-      logger.d('Model ' + model + ' exists, no need to copy.');
+      logger.d('Model $model exists, no need to copy.');
     } else {
-      logger.d('Copying model ' + model + ' to ' + file.path);
-      final asset = await rootBundle.load('assets/' + model);
+      logger.d('Copying model $model to ${file.path}');
+      final asset = await rootBundle.load('assets/$model');
       final buffer = asset.buffer;
       await file.writeAsBytes(
           buffer.asUint8List(asset.offsetInBytes, asset.lengthInBytes));
@@ -59,14 +59,14 @@ class Tts {
   }
 
   Future loadSystemDefaultEngine() async {
-    if (this.isIOS) {
-      if (await this.systemTts.isLanguageAvailable(this.lang)) {
-        this.systemTts.setLanguage(this.lang);
+    if (isIOS) {
+      if (await systemTts.isLanguageAvailable(lang)) {
+        systemTts.setLanguage(lang);
       }
-    } else {
-      String newEngine = await this.systemTts.getDefaultEngine;
-      this.logger.d('TtsEngine:' + newEngine);
-      this.engine = newEngine;
+    } else if (Platform.isAndroid) {
+      String newEngine = await systemTts.getDefaultEngine;
+      logger.d('TtsEngine:$newEngine');
+      engine = newEngine;
     }
   }
 
@@ -81,18 +81,18 @@ class Tts {
   }
 
   _systemSynthesis(String text) async {
-    await this.systemTts.setEngine(this.engine);
-    await this.systemTts.setLanguage(this.lang);
-    await this.systemTts.speak(text);
+    await systemTts.setEngine(engine);
+    await systemTts.setLanguage(lang);
+    await systemTts.speak(text);
   }
 
   _nativeSynthesis(String text, double speed, int voice) async {
     List<String> sentences = _sentProcessor.splitSentences(text);
     for (String sentence in sentences) {
       String processedSentence = await _preprocessor.preprocess(sentence);
-      if (this.stopNative) break;
-      await this.nativeTts.nativeTextToSpeech(processedSentence, voice, speed);
+      if (stopNative) break;
+      await nativeTts.nativeTextToSpeech(processedSentence, voice, speed);
     }
-    this.stopNative = false;
+    stopNative = false;
   }
 }
