@@ -32,6 +32,8 @@ migrate_working_dir/
 .pub/
 /build/
 
+ios/Flutter/flutter_export_environment.sh
+
 # Symbolication related
 app.*.symbols
 
