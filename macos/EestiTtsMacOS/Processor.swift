@@ -49,7 +49,7 @@ class SentProcessor {
                 remainingSents += "."
             }
             while let sentMatch = remainingSents.firstMatch(of: sentencesSplit) {
-                let sentence: String = String(remainingSents[..<sentMatch.range.lowerBound])
+                let sentence: String = String(remainingSents[..<sentMatch.range.lowerBound + 1])
                 remainingSents = remainingSents[sentMatch.range.upperBound...]
                 
                 //sentences.append(contentsOf: splitSentence(sent: sentence))
@@ -125,7 +125,9 @@ class Preprocessor {
         "*": "korda",
         "∙": "korda",
         "/": "jagada",
-        "-": "miinus",
+        "−": "miinus",
+        "-": "kuni",
+        "–": "kuni"
     ]
 
     // any symbols still left unreplaced (neutral character namings which may be different from audible_symbols)
@@ -550,16 +552,21 @@ class Preprocessor {
         // process every word separately
         for i in 0..<tokens.count {
             var word = tokens[i]
+            var ending = ""
+            if String(word.last!) == "," {
+                word = String(word.dropLast())
+                ending = ","
+            }
             // if current token is a symbol
             if word.wholeMatch(of: NO_SPECIAL_SYMBOLS_RE) == nil {
                 if AUDIBLE_SYMBOLS.keys.contains(word) {
                     if AUDIBLE_CONNECTING_SYMBOLS.contains(word) && !(i>0 && i<tokens.count-1 && tokens[i-1].wholeMatch(of: DECIMALSCURRENCYNUMBER_RE) != nil && tokens[i+1].wholeMatch(of: DECIMALSCURRENCYNUMBER_RE) != nil) {
                         continue
                     } else {
-                        newTextParts.append(AUDIBLE_SYMBOLS[word]!)
+                        newTextParts.append(AUDIBLE_SYMBOLS[word]! + ending)
                     }
                 } else {
-                    newTextParts.append(word)
+                    newTextParts.append(word + ending)
                 }
                 continue
             }
@@ -567,14 +574,16 @@ class Preprocessor {
             if word.wholeMatch(of: CONTAINS_ROMAN_RE) != nil {
                 word = romanToArabic(word: word)
                 if word.split(separator: " ").count > 1 {
-                    newTextParts.append(processByWord(tokens: word.split(separator: " ").map { String($0) }))
+                    newTextParts.append(processByWord(tokens: word.split(separator: " ").map { String($0) }) + ending)
                     continue
                 }
             }
             // numbers & currency to words
             if word.wholeMatch(of: DECIMALSCURRENCYNUMBER_RE) != nil {
                 var kaane: Character = "N"
-                if (i>0 && GENITIVE_PREPOSITIONS.contains(tokens[i-1])) || (i<tokens.count-1 && GENITIVE_POSTPOSITIONS.contains(tokens[i+1])) {
+                if (i>0 && GENITIVE_PREPOSITIONS.contains(tokens[i-1])) || 
+                    (i<tokens.count-1 && GENITIVE_POSTPOSITIONS.contains(tokens[i+1]) ||
+                    i<tokens.count-2 && [CURRENCIES["$g"]!, CURRENCIES["€g"]!].contains(" " + tokens[i + 1] + " ") && GENITIVE_POSTPOSITIONS.contains(tokens[i+2])) {
                     kaane = "O"
                 } //else if i > 0 && NOMINATIVE_PRECEEDING_WORDS.contains(tokens[i-1]) {
                 //    kaane = "N"
@@ -592,7 +601,7 @@ class Preprocessor {
                     word = newWord.joined(separator: "-")
                 }
             }
-            newTextParts.append(word)
+            newTextParts.append(word + ending)
         }
         return newTextParts.joined(separator: " ")
     }
@@ -803,15 +812,14 @@ class NumberNorm {
     }
 
     static func numToString(n: Int64, kaane: Character) -> String {
-        let helperOut: String = numToStringHelper(n: n)
+        var helperOut: String = numToStringHelper(n: n)
         if (kaane == "O") {
-            return toGenitive(words: helperOut.components(separatedBy: " "))
+            helperout = toGenitive(words: helperOut.components(separatedBy: " "))
         }
         if helperOut.count > 4 && !helperOut.starts(with: "üheksa") {
             return helperOut.replacingOccurrences(of: "^ü((ks)|(he)) ?", with: "", options: .regularExpression)
-        } else {
-            return helperOut
         }
+        return helperOut
     }
     
     private static func numToStringHelper(n: Int64) -> String {

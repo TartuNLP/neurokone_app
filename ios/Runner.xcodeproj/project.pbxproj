@@ -509,7 +509,7 @@
 					"-force_load",
 					"$(SRCROOT)/Pods/TensorFlowLiteSelectTfOps/Frameworks/TensorFlowLiteSelectTfOps.framework/TensorFlowLiteSelectTfOps",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "tartunlp.neurokone.synth-ios";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tartunlp.neurokone.synth-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -566,7 +566,7 @@
 					"-force_load",
 					"$(SRCROOT)/Pods/TensorFlowLiteSelectTfOps/Frameworks/TensorFlowLiteSelectTfOps.framework/TensorFlowLiteSelectTfOps",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "tartunlp.neurokone.synth-ios";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.tartunlp.neurokone.synth-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -736,7 +736,7 @@
 					"-weak_framework",
 					"\"CoreML\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = tartunlp.neurokone;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tartunlp.neurokone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -795,7 +795,7 @@
 					"-weak_framework",
 					"\"CoreML\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = tartunlp.neurokone;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tartunlp.neurokone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";

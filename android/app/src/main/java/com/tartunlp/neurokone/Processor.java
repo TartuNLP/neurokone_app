@@ -14,7 +14,8 @@ import java.util.regex.Pattern;
 class SentProcessor {
     private static final String TAG = "SentProcessor";
 
-    private static final Pattern sentencesSplit = Pattern.compile("(?=[.!?])((((\" )| |( \"))(?![a-zäöüõšžA-ZÕÄÖÜŠŽ0-9]))|(\"?$))");
+    private static final Pattern sentencesSplit = Pattern.compile("[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))");
+    //private static final Pattern sentencesSplit = Pattern.compile("(?=[.!?])((((\" )| |( \"))(?![a-zäöüõšžA-ZÕÄÖÜŠŽ0-9]))|(\"?$))");
     private static final Pattern sentenceSplit = Pattern.compile("(?<!^)([,;!?]\"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)|–) )");
     private static final String sentenceStrip = "(^[,;!?–]?\"? ?)|([,;!?–]?\"? ?$)";
 
@@ -56,7 +57,7 @@ class SentProcessor {
         int currentSentId = 0;
         Matcher matcher;
         while ((matcher = sentencesSplit.matcher(text)).find(currentSentId)) {
-            String sentence = text.substring(currentSentId, matcher.start());
+            String sentence = text.substring(currentSentId, matcher.start() + 1);
             Log.d(TAG, "sent: " + sentence);
 
             // Sentence splitting in case of low memory
@@ -89,7 +90,7 @@ class Preprocessor {
     private static final String CURRENCY_RE = "([£$€]((\\d+[.,])?\\d+))|(((\\d+[.,])?\\d+)[£$€])";
     private static final Pattern ORDINAL_RE = Pattern.compile("[0-9]+\\.");
     private static final Pattern NUMBER_RE = Pattern.compile("[0-9]+");
-    private static final Pattern TRINUMBER_RE = Pattern.compile("[0-9][0-9]?[0-9]?( [0-9]{3})+")
+    private static final Pattern TRINUMBER_RE = Pattern.compile("[0-9][0-9]?[0-9]?( [0-9]{3})+");
     private static final Pattern DECIMALSCURRENCYNUMBER_RE = Pattern.compile("(([0-9]+[,.][0-9]+)|([£$€]((\\d+[.,])?\\d+))|(((\\d+[.,])?\\d+)[£$€])|[0-9]+\\.?)");
     private static final HashMap<String, String> CURRENCIES = new HashMap<>();
     static {
@@ -112,6 +113,8 @@ class Preprocessor {
         CURRENCIES.put("€cm", " senti ");
         CURRENCIES.put("€cg", " sendi ");
     }
+
+    private static final String[] CURRENCY_G = {"euro", "dollari"};
 
     // sümbolid, mis häälduvad vaid siis, kui asuvad kahe arvu vahel
     private static final String[] AUDIBLE_CONNECTING_SYMBOLS = {"×", "x", "*", "/", "-"};
@@ -157,7 +160,9 @@ class Preprocessor {
         AUDIBLE_SYMBOLS.put("*", "korda");
         AUDIBLE_SYMBOLS.put("∙", "korda");
         AUDIBLE_SYMBOLS.put("/", "jagada");
-        AUDIBLE_SYMBOLS.put("-", "miinus");}
+        AUDIBLE_SYMBOLS.put("−", "miinus");
+        AUDIBLE_SYMBOLS.put("-", "kuni");
+        AUDIBLE_SYMBOLS.put("–", "kuni");}
 
     // any symbols still left unreplaced (neutral character namings which may be different from audible_symbols)
     // used on the final text right before output as str.maketrans dictionary, thus the spaces
@@ -412,9 +417,13 @@ class Preprocessor {
         Matcher m = Pattern.compile("-[a-z]+$").matcher(word);
         if (m.find())
             endingWord = " " + (m.group().startsWith("-") ? m.group().substring(1) : m.group());
-        if (word.matches("[IXC]{4}"))
+        if (word.matches("I{4}") ||
+            word.matches("X{4}") ||
+            word.matches("C{4}"))
             return word;
-        else if (word.matches("[VLD]{2}"))
+        else if (word.matches("V{2}") ||
+            word.matches("L{2}") ||
+            word.matches("D{2}"))
             return word;
         String newword = word.replace("IV", "IIII").replace("IX", "VIIII");
         newword = newword.replace("XL", "XXXX").replace("XC", "LXXXX");
@@ -442,10 +451,10 @@ class Preprocessor {
     }
 
     private String unifyNumberPunctuation(String text) {
-        if text.contains(".") && text.contains(",") || text.chars().filter(ch -> ch == ',').count() > 1 {
-            return text.replace(",", "")
+        if (text.contains(".") && text.contains(",") || text.chars().filter(ch -> ch == ',').count() > 1) {
+            return text.replace(",", "");
         }
-        return text
+        return text;
     }
 
     private String expandCurrency(String text, char kaane) {
@@ -538,7 +547,7 @@ class Preprocessor {
     private String expandNumbers(String text, char kaane) {
         String[] parts = text.split(" ");
         for (int i = 0; i < parts.length; i++) {
-            parts[i] = unifyNumberPunctuation(parts[i])
+            parts[i] = unifyNumberPunctuation(parts[i]);
             parts[i] = expandCurrency(parts[i], kaane);
             parts[i] = expandDecimals(parts[i]);
             if (parts[i].endsWith("."))
@@ -553,6 +562,11 @@ class Preprocessor {
         // process every word separately
         for (int i=0; i<tokens.size(); i++) {
             String word = tokens.get(i);
+            String ending = "";
+            if (word.endsWith(",")) {
+                word = word.substring(0, word.length() - 1);
+                ending = ",";
+            }
             // if current token is a symbol
             if (!word.matches("([A-ZÄÖÜÕŽŠa-zäöüõšž]+(\\.(?!( [A-ZÄÖÜÕŽŠ])))?)|([£$€]?[0-9.,]+[£$€]?)")) {
                 if (AUDIBLE_SYMBOLS.containsKey(word)) {
@@ -562,25 +576,27 @@ class Preprocessor {
                                     tokens.get(i+1).matches(DECIMALSCURRENCYNUMBER_RE.pattern()))) {
                         continue;
                     } else {
-                        newTextParts.add(AUDIBLE_SYMBOLS.get(word));
+                        newTextParts.add(AUDIBLE_SYMBOLS.get(word) + ending);
                     }
                 }
                 else
-                    newTextParts.add(word);
+                    newTextParts.add(word + ending);
                 continue;
             }
             // roman numbers to arabic
             if (word.matches("^[IVXLCDM]+(-\\w*)?$")) {
                 word = romanToArabic(word);
                 if (word.split(" ").length > 1) {
-                    newTextParts.add(processByWord(Arrays.asList(word.split(" "))));
+                    newTextParts.add(processByWord(Arrays.asList(word.split(" "))) + ending);
                     continue;
                 }
             }
             // numbers & currency to words
             if (word.matches(DECIMALSCURRENCYNUMBER_RE.pattern())) {
                 char kaane = 'N';
-                if ((i > 0 && Arrays.asList(GENITIVE_PREPOSITIONS).contains(tokens.get(i-1))) || (i < tokens.size()-1 && Arrays.asList(GENITIVE_POSTPOSITIONS).contains(tokens.get(i+1))))
+                if ((i > 0 && Arrays.asList(GENITIVE_PREPOSITIONS).contains(tokens.get(i-1))) || 
+                    (i < tokens.size()-1 && Arrays.asList(GENITIVE_POSTPOSITIONS).contains(tokens.get(i+1))) ||
+                    (i < tokens.size() - 2 && Arrays.asList(CURRENCY_G).contains(tokens.get(i + 1)) && Arrays.asList(GENITIVE_POSTPOSITIONS).contains(tokens.get(i + 2))))
                     kaane = 'O';
                 //else if (i > 0 && Arrays.asList(NOMINATIVE_PRECEEDING_WORDS).contains(tokens.get(i-1)))
                 //    kaane = 'N';
@@ -596,7 +612,7 @@ class Preprocessor {
                     word = String.join("-", newword);
                 }
             }
-            newTextParts.add(word);
+            newTextParts.add(word + ending);
         }
         return String.join(" ", newTextParts);
     }
@@ -624,19 +640,19 @@ class Preprocessor {
 
         // remove grouping between numbers
         // keeping space in 2006-10-27 12:48:50, in general require group of z
-        Matcher m = TRINUMBER_RE.matcher(text);
+        m = TRINUMBER_RE.matcher(text);
         while (m.find()) {
-            String num = text.substring(m.start(), m.end())
-            text = text.replace(num, num.replace(" ", ""))
+            String num = text.substring(m.start(), m.end());
+            text = text.replace(num, num.replace(" ", ""));
             m = TRINUMBER_RE.matcher(text);
         }
         //text = subBetween(text, "([0-9]) ([0-9]{3})(?!\\d)", "");
         text = text.substring(0,1).toLowerCase() + text.substring(1);
 
         //Replace dash with comma
-        text = text.replace(" – ", ", ")
+        text = text.replace(" – ", ", ");
         //Remove end of quote before comma
-        text = text.replace(",\"", ",")
+        text = text.replace(",\"", ",");
 
         // split text into words ands symbols
         Matcher tokenizer = Pattern.compile("([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\\S").matcher(text);
@@ -808,10 +824,10 @@ class NumberNormEt {
     public static final String numToString(long n, char kaane) {
         String helperOut = numToStringHelper(n);
         if (kaane == 'O')
-            return toGenitive(new ArrayList<>(Arrays.asList(helperOut.split(" "))));
-        if helperOut.length > 4 && !helperOut.startsWith("üheksa")
-            return helperOut.replaceAll("^ü((ks)|(he)) ?", "")
-        else return helperOut
+            helperOut = toGenitive(new ArrayList<>(Arrays.asList(helperOut.split(" "))));
+        if (helperOut.length() > 4 && !helperOut.startsWith("üheksa"))
+            return helperOut.replaceAll("^ü((ks)|(he)) ?", "");
+        return helperOut;
     }
 
     private static final String numToStringHelper(long n) {

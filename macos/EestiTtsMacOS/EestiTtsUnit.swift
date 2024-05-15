@@ -11,7 +11,7 @@ import AVFoundation
 public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private let langCodes: [String] = ["et-EE"]
 
-    private let groupDefaults = UserDefaults(suiteName: "group.tartunlp.neurokone")
+    private let groupDefaults = UserDefaults(suiteName: "group.com.tartunlp.neurokone")
     
     private var request: AVSpeechSynthesisProviderRequest?
     

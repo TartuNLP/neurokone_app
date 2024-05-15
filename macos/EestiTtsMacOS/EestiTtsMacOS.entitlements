@@ -6,7 +6,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.tartunlp.neurokone</string>
+		<string>group.com.tartunlp.neurokone</string>
 	</array>
 </dict>
 </plist>

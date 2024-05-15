@@ -4,7 +4,7 @@ import FlutterMacOS
 //import AVFoundation
 
 class MainFlutterWindow: NSWindow {
-    let defaults = UserDefaults(suiteName: "group.tartunlp.neurokone")
+    let defaults = UserDefaults(suiteName: "group.com.tartunlp.neurokone")
     let mainBundle = Bundle.main
     
     override func awakeFromNib() {
@@ -17,7 +17,7 @@ class MainFlutterWindow: NSWindow {
         addModelPath(assetPath: "assets/fastspeech2-est.tflite", key: "synthesizer", controller: flutterViewController)
         addModelPath(assetPath: "assets/hifigan-est.v2.tflite", key: "vocoder", controller: flutterViewController)
             
-        let methodChannel = FlutterMethodChannel(name: "tartunlp.neurokone", binaryMessenger: flutterViewController.engine.binaryMessenger)
+        let methodChannel = FlutterMethodChannel(name: "com.tartunlp.neurokone", binaryMessenger: flutterViewController.engine.binaryMessenger)
             methodChannel.setMethodCallHandler(handleMethodCalls)
         */
         

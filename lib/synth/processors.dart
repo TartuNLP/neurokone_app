@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'dart:math' as math;
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
@@ -6,19 +7,20 @@ class SentProcessor {
   Logger logger = Logger();
   //For splitting the whole text into sentences.
   RegExp sentencesSplit =
-      RegExp(r'(?=[.!?])((((" )| |( "))(?=[a-zõäöüšžA-ZÕÄÖÜŠŽ0-9]))|("?$))');
+      RegExp(r'[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))');
+  //RegExp sentencesSplit = RegExp(r'(?=[.!?])((((" )| |( "))(?=[a-zõäöüšžA-ZÕÄÖÜŠŽ0-9]))|("?$))');
   //For splitting long sentences into parts
   RegExp sentenceSplit =
-      RegExp(r'(?<!^)([,;!?]"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)) )');
+      RegExp(r'(?<!^)([,;!?]"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)|–) )');
   //For stripping unnecessary symbols from the beginning
-  RegExp strip = RegExp(r'^[,;!?]?"? ?');
+  RegExp strip = RegExp(r'(^[,;!?–]?\"? ?)|([,;!?–]?\"? ?$)');
 
   List<String> _splitSentence(
       String text, int currentSentId, RegExpMatch? match) {
     List<String> sentenceParts = [];
     String sentence;
     if (match != null) {
-      sentence = text.substring(currentSentId, match.start);
+      sentence = text.substring(currentSentId, match.start + 1);
     } else {
       sentence = text.substring(currentSentId);
     }
@@ -69,6 +71,7 @@ class Preprocessor {
       RegExp(r'([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])');
   RegExp ORDINAL_RE = RegExp(r'[0-9]+\.');
   RegExp NUMBER_RE = RegExp(r'[0-9]+');
+  RegExp TRINUMBER_RE = RegExp(r'[0-9][0-9]?[0-9]?( [0-9]{3})+');
   RegExp DECIMALSCURRENCYNUMBER_RE = RegExp(
       r'(([0-9]+[,.][0-9]+)|([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])|[0-9]+\.?)');
 
@@ -180,7 +183,9 @@ class Preprocessor {
     '*': 'korda',
     '∙': 'korda',
     '/': 'jagada',
-    '-': 'miinus',
+    '−': 'miinus',
+    '-': 'kuni',
+    '–': 'kuni'
   };
   static Map<String, String> ABBREVIATIONS = {
     'apr': 'aprill',
@@ -465,22 +470,27 @@ class Preprocessor {
     return text;
   }
 
+  String _unifyNumberPunctuation(String text) {
+    if (text.contains(".") && text.contains(",") ||
+        text.characters.where((p0) => p0 == ',').length > 1) {
+      return text.replaceAll(",", "");
+    }
+    return text;
+  }
+
   String _expandCurrency(String text, String kaane) {
     String s = text;
-    if (text.contains(".") && text.contains(",")) {
-      s = text.replaceAll(",", "");
-    }
     s = s.replaceAll("\\.", ",");
     bool match = CURRENCY_RE.hasMatch(s);
-    String curr = 'N';
-    if (text.contains('\$')) {
-      curr = '\$';
-    } else if (text.contains("€")) {
-      curr = '€';
-    } else if (text.contains("£")) {
-      curr = '£';
-    }
     if (match) {
+      String curr = 'N';
+      if (text.contains('\$')) {
+        curr = '\$';
+      } else if (text.contains("€")) {
+        curr = '€';
+      } else if (text.contains("£")) {
+        curr = '£';
+      }
       String moneys = "0";
       String cents = "0";
       String spelling = "";
@@ -566,9 +576,10 @@ class Preprocessor {
   String _expandNumbers(String text, String kaane) {
     List<String> parts = text.split(" ");
     for (int i = 0; i < parts.length; i++) {
+      parts[i] = _unifyNumberPunctuation(parts[i]);
       parts[i] = _expandCurrency(parts[i], kaane);
       parts[i] = _expandDecimals(parts[i]);
-      if (kaane != 'N' || parts[i].endsWith(".")) {
+      if (parts[i].endsWith(".")) {
         parts[i] = _expandOrdinals(parts[i], kaane);
       }
       parts[i] = _expandCardinals(parts[i], kaane);
@@ -581,6 +592,11 @@ class Preprocessor {
     // process every word separately
     for (int i = 0; i < tokens.length; i++) {
       String word = tokens[i];
+      String ending = '';
+      if (word.endsWith(',')) {
+        word = word.substring(0, word.length - 1);
+        ending = ',';
+      }
       // if current token is a symbol
       if (!RegExp(
               r'([A-ZÄÖÜÕŽŠa-zäöüõšž]+(\.(?!( [A-ZÄÖÜÕŽŠ])))?)|([£$€]?[0-9.,]+[£$€]?)')
@@ -593,10 +609,10 @@ class Preprocessor {
                   DECIMALSCURRENCYNUMBER_RE.hasMatch(tokens[i + 1]))) {
             continue;
           } else {
-            newTextParts.add(AUDIBLE_SYMBOLS[word]!);
+            newTextParts.add(AUDIBLE_SYMBOLS[word]! + ending);
           }
         } else {
-          newTextParts.add(word);
+          newTextParts.add(word + ending);
         }
         continue;
       }
@@ -604,7 +620,7 @@ class Preprocessor {
       if (RegExp(r'^[IVXLCDM]+(-\w*)?$').hasMatch(word)) {
         word = _romanToArabic(word);
         if (word.split(' ').length > 1) {
-          newTextParts.add(_processByWord(word.split(' ')));
+          newTextParts.add(_processByWord(word.split(' ')) + ending);
           continue;
         }
       }
@@ -613,7 +629,11 @@ class Preprocessor {
         String kaane = 'N';
         if ((i > 0 && GENITIVE_PREPOSITIONS.contains(tokens[i - 1])) ||
             (i < tokens.length - 1 &&
-                GENITIVE_POSTPOSITIONS.contains(tokens[i + 1]))) {
+                GENITIVE_POSTPOSITIONS.contains(tokens[i + 1])) ||
+            (i < tokens.length - 2 &&
+                [CURRENCIES['\$g'], CURRENCIES['€g']]
+                    .contains(" ${tokens[i + 1]}") &&
+                GENITIVE_POSTPOSITIONS.contains(tokens[i + 2]))) {
           kaane = 'O';
         }
         word = _expandNumbers(word, kaane);
@@ -630,7 +650,7 @@ class Preprocessor {
           word = newWord.join('-');
         }
       }
-      newTextParts.add(word);
+      newTextParts.add(word + ending);
     }
     return newTextParts.join(' ');
   }
@@ -659,8 +679,19 @@ class Preprocessor {
 
     // remove grouping between numbers
     // keeping space in 2006-10-27 12:48:50, in general require group of 3
-    text = _subBetween(text, RegExp(r'([0-9]) ([0-9]{3})(?!\d)'), '');
+    m = TRINUMBER_RE.firstMatch(text);
+    while (m != null) {
+      String num = text.substring(m.start, m.end);
+      text = text.replaceAll(num, num.replaceAll(" ", ""));
+      m = TRINUMBER_RE.firstMatch(text);
+    }
+    //text = _subBetween(text, RegExp(r'([0-9]) ([0-9]{3})(?!\d)'), '');
     text = text.substring(0, 1).toLowerCase() + text.substring(1);
+
+    //Replace dash with comma
+    text = text.replaceAll(" – ", ", ");
+    //Remove end of quote before comma
+    text = text.replaceAll(",\"", ",");
 
     // split text into words ands symbols
     RegExp tokenizer = RegExp(r'([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\S');
@@ -843,9 +874,12 @@ class NumberNormEt {
   static String numToString(int n, String kaane) {
     String helperOut = _numToStringHelper(n);
     if (kaane == 'O') {
-      return _toGenitive(helperOut.split(' '));
+      helperOut = _toGenitive(helperOut.split(' '));
     }
-    return helperOut.replaceAll(r'^üks ', '');
+    if (helperOut.length > 4 && !helperOut.startsWith("üheksa")) {
+      return helperOut.replaceFirst(RegExp(r'^ü((ks)|(he)) ?'), '');
+    }
+    return helperOut;
   }
 
   static String _numToStringHelper(int n) {
