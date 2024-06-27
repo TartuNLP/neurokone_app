@@ -50,7 +50,7 @@ class SentProcessor {
                 remainingSents += "."
             }
             while let sentMatch = remainingSents.firstMatch(of: sentencesSplit) {
-                let sentence: String = String(remainingSents[..<sentMatch.range.lowerBound + 1])
+                let sentence: String = String(remainingSents[...sentMatch.range.lowerBound])
                 remainingSents = remainingSents[sentMatch.range.upperBound...]
                 
                 //sentences.append(contentsOf: splitSentence(sent: sentence))
@@ -133,18 +133,18 @@ class Preprocessor {
 
     // any symbols still left unreplaced (neutral character namings which may be different from audible_symbols)
     // used on the final text right before output as str.maketrans dictionary, thus the spaces
-    /*
     private final let LAST_RESORT = [
          "@": " ätt ",
          "=": " võrdub ",
          "/": " kaldkriips ",
          "(": " sulgudes ",
+         ")": "",
          "#": " trellid ",
          "*": " tärn ",
          "&": " ampersand ",
          "%": " protsent ",
          "_": " allkriips ",
-    ]*/
+    ]
     
     private final let ABBREVIATIONS = [
         "apr": "aprill",
@@ -437,6 +437,14 @@ class Preprocessor {
         return newText
     }
     
+    private func expandLastResort(text: String) -> String {
+        var newText = text
+        for entry in LAST_RESORT {
+            newText = newText.replacingOccurrences(of: entry.key, with: entry.value, options: .literal)
+        }
+        return newText
+    }
+    
     private func unifyNumberPunctuation(text: String) -> String {
         if text.contains("\\.") && text.contains(",") || text.filter({ $0 == "," }).count > 1 {
             return text.replacingOccurrences(of: ",", with: "")
@@ -612,7 +620,7 @@ class Preprocessor {
 
         //Temporarily remove sentence end symbol
         var sentEnd = "."
-        var lastChar = newText.last!
+        let lastChar = newText.last!
         if ".!?".contains(lastChar) {
             sentEnd = String(lastChar)
             newText = String(newText.dropLast())
@@ -657,6 +665,8 @@ class Preprocessor {
         newText += sentEnd
         newText = collapseWhitespace(text: newText)
         newText = expandAbbreviations(text: newText)
+        newText = expandLastResort(text: newText)
+        newText = collapseWhitespace(text: newText)
         
         NSLog("QQQ text preprocessed: \(newText)")
         return newText
@@ -817,7 +827,7 @@ class NumberNorm {
         if (kaane == "O") {
             helperOut = toGenitive(words: helperOut.components(separatedBy: " "))
         }
-        if helperOut.count > 4 && !helperOut.starts(with: "üheksa")  {
+        if helperOut.count > 4 && !helperOut.starts(with: "üheksa") {
             return helperOut.replacingOccurrences(of: "^ü((ks)|(he)) ?", with: "", options: .regularExpression)
         }
         return helperOut
@@ -859,4 +869,3 @@ class NumberNorm {
         return higherTier + " " + CARDINAL_NUMBERS[factor]! + (factor != 1 ? "it" : "") + lowerTier
     }
 }
-

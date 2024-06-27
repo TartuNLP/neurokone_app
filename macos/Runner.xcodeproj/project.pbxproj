@@ -592,7 +592,7 @@
 					"-force_load",
 					"$(SRCROOT)/../assets/TF_Pods/TensorFlowLiteSelectTfOps/Frameworks/TensorFlowLiteSelectTfOps.framework/TensorFlowLiteSelectTfOps",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tartunlp.neurokone.synth-macos";
+				PRODUCT_BUNDLE_IDENTIFIER = "tartunlp.neurokone.synth-macos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -667,7 +667,7 @@
 					"-force_load",
 					"$(SRCROOT)/../assets/TF_Pods/TensorFlowLiteSelectTfOps/Frameworks/TensorFlowLiteSelectTfOps.framework/TensorFlowLiteSelectTfOps",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tartunlp.neurokone.synth-macos";
+				PRODUCT_BUNDLE_IDENTIFIER = "tartunlp.neurokone.synth-macos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -741,7 +741,7 @@
 					"-force_load",
 					"$(SRCROOT)/../assets/TF_Pods/TensorFlowLiteSelectTfOps/Frameworks/TensorFlowLiteSelectTfOps.framework/TensorFlowLiteSelectTfOps",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.tartunlp.neurokone.synth-macos";
+				PRODUCT_BUNDLE_IDENTIFIER = "tartunlp.neurokone.synth-macos";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -821,7 +821,7 @@
 					"$(PROJECT_DIR)/../assets/TF_Libraries",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tartunlp.neurokone;
+				PRODUCT_BUNDLE_IDENTIFIER = tartunlp.neurokone;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
@@ -963,7 +963,7 @@
 					"$(PROJECT_DIR)/../assets/TF_Libraries",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tartunlp.neurokone;
+				PRODUCT_BUNDLE_IDENTIFIER = tartunlp.neurokone;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -991,7 +991,7 @@
 					"$(PROJECT_DIR)/../assets/TF_Libraries",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tartunlp.neurokone;
+				PRODUCT_BUNDLE_IDENTIFIER = tartunlp.neurokone;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};

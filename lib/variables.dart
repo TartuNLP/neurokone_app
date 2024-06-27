@@ -1,7 +1,7 @@
 import 'package:neurokone/ui/voice.dart';
 import 'package:flutter/material.dart';
 
-const String packageName = 'com.tartunlp.neurokone';
+const String packageName = 'tartunlp.neurokone';
 const String appVersion = 'Neurokõne v1.1.0';
 
 const String synthModel = 'fastspeech2-est';
