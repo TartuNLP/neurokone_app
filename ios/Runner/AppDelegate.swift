@@ -5,7 +5,7 @@ import AVFoundation
 
 @UIApplicationMain
 @objc class AppDelegate: FlutterAppDelegate {
-  let defaults = UserDefaults(suiteName: "group.com.tartunlp.neurokone")
+  let defaults = UserDefaults(suiteName: "group.tartunlp.neurokone")
   let mainBundle = Bundle.main
 
   override func application(
@@ -17,7 +17,7 @@ import AVFoundation
     addModelPath(assetPath: "assets/fastspeech2-est.tflite", key: "synthesizer", controller: flutterController!)
     addModelPath(assetPath: "assets/hifigan-est.v2.tflite", key: "vocoder", controller: flutterController!)
 
-    let methodChannel = FlutterMethodChannel(name: "com.tartunlp.neurokone", binaryMessenger: flutterController!.binaryMessenger)
+    let methodChannel = FlutterMethodChannel(name: "tartunlp.neurokone", binaryMessenger: flutterController!.binaryMessenger)
     methodChannel.setMethodCallHandler(handleMethodCalls)
 
     GeneratedPluginRegistrant.register(with: self)

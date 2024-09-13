@@ -9,7 +9,8 @@ import 'package:path_provider/path_provider.dart';
 
 class Tts {
   final bool isIOS;
-  String lang = 'et-EE';
+  String lang = 'et';
+  String locale = 'EE';
 
   /////////////////////////////////////////////////////////
   // FlutterTts uses Android system's text-to-speech engine
@@ -59,9 +60,9 @@ class Tts {
   }
 
   Future loadSystemDefaultEngine() async {
-    if (isIOS) {
-      if (await systemTts.isLanguageAvailable(lang)) {
-        systemTts.setLanguage(lang);
+    if (!Platform.isAndroid) {
+      if (await systemTts.isLanguageAvailable('$lang-$locale')) {
+        systemTts.setLanguage('$lang-$locale');
       }
     } else if (Platform.isAndroid) {
       String newEngine = await systemTts.getDefaultEngine;
@@ -81,8 +82,10 @@ class Tts {
   }
 
   _systemSynthesis(String text) async {
-    await systemTts.setEngine(engine);
-    await systemTts.setLanguage(lang);
+    if (Platform.isAndroid) {
+      await systemTts.setEngine(engine);
+      await systemTts.setLanguage('$lang-$locale');
+    }
     await systemTts.speak(text);
   }
 
