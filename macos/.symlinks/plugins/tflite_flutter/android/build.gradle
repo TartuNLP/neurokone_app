@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-group 'com.tfliteflutter.tflite_flutter_plugin'
+group 'org.tensorflow.tflite_flutter'
 version '1.0'
 
 buildscript {

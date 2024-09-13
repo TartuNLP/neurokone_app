@@ -37,6 +37,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
     currentDefaults = widget.channel.getDefaultVoices();
   }
 
+  @override
   Widget build(BuildContext context) {
     switch (defaultTargetPlatform) {
       case TargetPlatform.iOS:

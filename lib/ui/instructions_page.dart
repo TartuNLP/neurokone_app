@@ -188,12 +188,12 @@ class _InstructionsPageState extends State<InstructionsPage> {
   }
 
   _appVersionRow() {
-    return Row(
+    return const Row(
       children: [
-        const Spacer(),
+        Spacer(),
         Text(
           vars.appVersion,
-          style: const TextStyle(fontSize: 14),
+          style: TextStyle(fontSize: 14),
         )
       ],
     );

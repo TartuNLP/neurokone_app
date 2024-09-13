@@ -18,5 +18,6 @@ class Voice {
   bool operator ==(Object other) => other is Voice && other._name == _name;
 
   @override
+  // ignore: unnecessary_overrides
   int get hashCode => super.hashCode;
 }
