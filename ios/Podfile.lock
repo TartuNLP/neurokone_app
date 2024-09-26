@@ -65,8 +65,8 @@ SPEC CHECKSUMS:
   audioplayers_darwin: 877d9a4d06331c5c374595e46e16453ac7eafa40
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_tts: 0f492aab6accf87059b72354fcb4ba934304771d
-  fluttertoast: 31b00dabfa7fb7bacd9e7dbee580d7a2ff4bf265
-  path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
+  fluttertoast: e9a18c7be5413da53898f660530c56f35edfba9c
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
   TensorFlowLiteC: 9115580176f050caa70fea478dba3d5a75c612a4
   TensorFlowLiteSelectTfOps: 8dad8028b2179eb80139763644ba78dc30909654

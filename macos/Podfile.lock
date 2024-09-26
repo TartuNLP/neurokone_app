@@ -20,9 +20,6 @@ PODS:
     - TensorFlowLiteSwift/Core (= 2.14.0)
   - TensorFlowLiteSwift/Core (2.14.0):
     - TensorFlowLiteC (= 2.14.0)
-  - tflite_flutter (0.1.0):
-    - FlutterMacOS
-    - TensorFlowLiteSwift
 
 DEPENDENCIES:
   - audioplayers_darwin (from `Flutter/ephemeral/.symlinks/plugins/audioplayers_darwin/macos`)
@@ -33,7 +30,6 @@ DEPENDENCIES:
   - TensorFlowLiteC (from `../assets/TF_Pods/TensorFlowLiteC`)
   - TensorFlowLiteSelectTfOps (from `../assets/TF_Pods/TensorFlowLiteSelectTfOps`)
   - TensorFlowLiteSwift (from `../assets/TF_Pods/TensorFlowLiteSwift`)
-  - tflite_flutter (from `Flutter/ephemeral/.symlinks/plugins/tflite_flutter/macos`)
 
 EXTERNAL SOURCES:
   audioplayers_darwin:
@@ -52,19 +48,16 @@ EXTERNAL SOURCES:
     :path: "../assets/TF_Pods/TensorFlowLiteSelectTfOps"
   TensorFlowLiteSwift:
     :path: "../assets/TF_Pods/TensorFlowLiteSwift"
-  tflite_flutter:
-    :path: Flutter/ephemeral/.symlinks/plugins/tflite_flutter/macos
 
 SPEC CHECKSUMS:
   audioplayers_darwin: dcad41de4fbd0099cb3749f7ab3b0cb8f70b810c
   flutter_tts: 64651204e5d276ffea5a910f942d5e9785a96085
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
-  path_provider_foundation: 29f094ae23ebbca9d3d0cec13889cd9060c0e943
+  path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   shared_preferences_foundation: 5b919d13b803cadd15ed2dc053125c68730e5126
   TensorFlowLiteC: 8858cba3345c99275528b6decd44210380fc7741
   TensorFlowLiteSelectTfOps: 8d24ce22a5d113c294416b0e2bdc9f8f0f892f46
   TensorFlowLiteSwift: 721abee965cc1989ea5a59d1a96361842ae9c6be
-  tflite_flutter: 9c33232c71f0b1b97567dd9b8e389d5976839ef5
 
 PODFILE CHECKSUM: f16e928e8de01efa6443ecfe64114113092afd41
 

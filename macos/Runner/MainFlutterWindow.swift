@@ -4,7 +4,7 @@ import FlutterMacOS
 //import AVFoundation
 
 class MainFlutterWindow: NSWindow {
-    let defaults = UserDefaults(suiteName: "group.com.tartunlp.neurokone")
+    let defaults = UserDefaults(suiteName: "group.ee.ut.cs.nlp.neurokone")
     let mainBundle = Bundle.main
     
     override func awakeFromNib() {

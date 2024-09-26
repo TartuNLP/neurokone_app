@@ -6,8 +6,8 @@ import 'package:flutter/services.dart';
 
 class SystemChannel {
   Logger logger = Logger();
-  late final MethodChannel channel =
-      MethodChannel((Platform.isAndroid ? 'com.' : '') + vars.packageName);
+  late final MethodChannel channel = MethodChannel(
+      Platform.isAndroid ? vars.packageName : vars.packageNameApple);
   List<Voice> enabledVoices = [];
 
   SystemChannel() {

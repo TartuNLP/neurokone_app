@@ -45,21 +45,31 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
           appBarTitle: Header(widget.switchLangs, widget.lang),
           body: Column(
             children: [
+              ListTile(
+                onTap: () => _toggleVoices(),
+                title: Text(
+                  widget.langText['allVoices']!,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
               SizedBox(
-                height: MediaQuery.of(context).size.height - 150,
+                height: MediaQuery.of(context).size.height - 200,
                 width: MediaQuery.of(context).size.width,
-                child: ListView.builder(
-                  itemCount: widget.voices.length,
-                  itemBuilder: (context, index) => ListTile(
-                    onTap: () => _toggleVoice(index),
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(widget.voices[index].getName()),
-                        Text(currentDefaults.contains(widget.voices[index])
-                            ? "✓"
-                            : ""),
-                      ],
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: ListView.builder(
+                    itemCount: widget.voices.length,
+                    itemBuilder: (context, index) => ListTile(
+                      onTap: () => _toggleVoice(index),
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(widget.voices[index].getName()),
+                          Text(currentDefaults.contains(widget.voices[index])
+                              ? "✓"
+                              : ""),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -73,6 +83,12 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
         );
       default:
         throw UnsupportedError('Unsupported platform view');
+    }
+  }
+
+  _toggleVoices() {
+    for (int index = 0; index < widget.voices.length; index++) {
+      _toggleVoice(index);
     }
   }
 

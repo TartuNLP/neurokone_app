@@ -47,8 +47,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   bool isSystemPlaying = false;
   bool isNativePlaying = false;
 
-  bool get isIOS => Platform.isIOS;
-
   bool isSystemVoice = false;
 
   late Tts tts;
@@ -73,7 +71,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   //Loads tts engines
   _initTts() async {
-    tts = Tts(isIOS);
+    tts = Tts(Platform.isIOS);
 
     // loads system default model
     tts.loadSystemDefaultEngine();
@@ -211,7 +209,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         Expanded(
           child: _dropDownVoices(),
         ),
-        _ttsSettingsIconButton(),
+        if (!Platform.isMacOS) _ttsSettingsIconButton(),
       ],
     );
   }
@@ -315,7 +313,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
             Icons.settings,
           ),
           onPressed: () async {
-            isIOS
+            Platform.isIOS
                 ? await Navigator.pushNamed(context, 'select')
                 : await const AndroidIntent(
                         action: 'com.android.settings.TTS_SETTINGS')
@@ -547,12 +545,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _speakButton() {
     return TextButton(
       style: ButtonStyle(
-        foregroundColor: MaterialStateProperty.all(Colors.white),
-        backgroundColor: MaterialStateProperty.all<Color>(
+        foregroundColor: WidgetStateProperty.all(Colors.white),
+        backgroundColor: WidgetStateProperty.all<Color>(
             (isSystemVoice ? Colors.black : _currentNativeVoice.getColor())
                 .withOpacity(_fieldText.isNotEmpty ? 1 : 0.5)),
-        fixedSize: MaterialStateProperty.all<Size>(const Size.fromWidth(120.0)),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        fixedSize: WidgetStateProperty.all<Size>(const Size.fromWidth(120.0)),
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18.0),
           ),
@@ -579,7 +577,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _stopButton() {
     return TextButton(
       style: ButtonStyle(
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18.0),
           ),

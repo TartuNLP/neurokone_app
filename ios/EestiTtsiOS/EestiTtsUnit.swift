@@ -11,7 +11,7 @@ import AVFoundation
 public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private let langCodes: [String] = ["et-EE"]
 
-    private let groupDefaults = UserDefaults(suiteName: "group.tartunlp.neurokone")
+    private let groupDefaults = UserDefaults(suiteName: "group.ee.ut.cs.nlp.neurokone")
     
     private var request: AVSpeechSynthesisProviderRequest?
     
@@ -220,7 +220,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
 }
 
 class Synthesizer {
-    private let groupDefaults = UserDefaults(suiteName: "group.tartunlp.neurokone")
+    private let groupDefaults = UserDefaults(suiteName: "group.ee.ut.cs.nlp.neurokone")
     private var synthMutex = DispatchSemaphore(value: 1)
     
     private final let preprocessor: Preprocessor = Preprocessor()
@@ -261,7 +261,8 @@ class Synthesizer {
                 var padding = Data()
                 var tempOverlapAddition = 0
                 let length = (end_id-start_id)/bytesInFrame
-                if (length % 29 == 0 || length % 113 == 0) {
+                //NSLog("QQQ part is of length \(length).")
+                if (length % 29 == 0 || length % 53 == 0 || length % 113 == 0) {
                     NSLog("QQQ last part multiple of 29(ids (\(start_id), \(end_id)), adding padding or overlap...")
                     if (start_id == 0) {
                         padding = Data(repeating: 0, count: bytesInFrame)

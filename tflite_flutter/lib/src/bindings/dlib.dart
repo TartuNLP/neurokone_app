@@ -49,6 +49,6 @@ DynamicLibrary tflitelib = () {
     return DynamicLibrary.process();
   } else {
     return DynamicLibrary.open(
-        '${Directory(Platform.resolvedExecutable).parent.path}/blobs/$binaryName');
+        '${Directory(Platform.resolvedExecutable).parent.parent.path}/Frameworks/App.framework/Resources/flutter_assets/assets/TF_Libraries/$binaryName');
   }
 }();
