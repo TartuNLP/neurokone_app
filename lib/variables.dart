@@ -3,10 +3,16 @@ import 'package:flutter/material.dart';
 
 const String packageName = 'com.tartunlp.neurokone';
 const String packageNameApple = 'ee.ut.cs.nlp.neurokone';
+
+const String appTitle = 'TartuNLP Neurokõne';
 const String appVersion = 'Neurokõne v1.1.2';
 
-const String synthModel = 'fastspeech2-est';
-const String vocModel = 'hifigan-est.v2';
+String initialLanguage = 'Eesti';
+
+List<Locale> locales = const [
+  Locale('en', 'US'),
+  Locale('et', 'ET'),
+];
 
 //Defaults for Estonian and English UI.
 const Map<String, Map<String, String>> langs = {
@@ -20,11 +26,13 @@ const Map<String, Map<String, String>> langs = {
     'introductionText':
         'Vali sünteeshääl, kirjuta tekst alla lahtrisse ning saad kuulata sünteesitud kõne.',
     'instructionText':
-        'Valikus on süsteemi hääl ning meie 10 sünteeshäält. Süsteemi hääle puhul esitatakse teksti telefoni eelistatud kõnesünteesi mootori abil, selle muutmiseks tuleb suunduda telefoni kõnesünteesi seadetesse.',
+        'Valikus on süsteemi hääl ning meie 10 sünteeshäält. Süsteemi hääle puhul esitatakse teksti telefoni eelistatud kõnesünteesi mootori abil, selle muutmiseks tuleb suunduda operatsioonisüsteemi kõnesünteesi seadetesse.',
     'instructionTextAndroid':
         'Süsteemi kõnesünteesi seadetesse saab liikuda läbi rakenduse vajutades häälevalikust paremal olevat seadete nuppu või päismenüüst valida "Kõnesünteesi seaded"',
     'instructionTextiOS':
         'Meie hääli saab süsteemi lisada vajutades hääle valikust paremal asuvat seadete nuppu ning uues aknas valida tahetud hääled. Süsteemi kõnesünteesi häält saab muuta liikudes seadetesse:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nning valides soovitud kõneleja.',
+    'instructionTextMacOS':
+        'Süsteemi kõnesünteesi häält saab muuta liikudes seadetesse:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nning valides soovitud kõneleja.',
     'enableEngineAppText':
         'Vaikimisi kõnesünteesimootori muutmine rakenduse kaudu',
     'enableEngineAppLabel':
@@ -78,6 +86,8 @@ const Map<String, Map<String, String>> langs = {
         'The system\'s text-to-speech settings can be opened through this app by tapping on the right gear icon next to the voice selection or by opening the menu on the upper-right corner and tapping "Text-to-speech settings".\nTo access text-to-speech settings externally, go to Settings -> System -> Languages & input -> (Advanced ->) subcategory Speech -> Text-to-speech output.',
     'instructionTextiOS':
         'Our voices can be added to the system by tapping on the gear icon next to the voice selection and toggling the desired voices by tapping on them. The system text-to-speech voice can be changed by going to:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nand selecting the desired voice.',
+    'instructionTextMacOS':
+        'The system text-to-speech voice can be changed by going to:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nand selecting the desired voice.',
     'enableEngineAppText':
         'Changing the system speech synthesis engine from the app',
     'enableEngineAppLabel':
@@ -141,3 +151,6 @@ final List<Voice> voices = [
 
 const String slowTempoIconPath = 'assets/icons_logos/snail-clean.svg';
 const String fastTempoIconPath = 'assets/icons_logos/horse-clean.svg';
+
+const String synthModel = 'fastspeech2-est';
+const String vocModel = 'hifigan-est.v2';

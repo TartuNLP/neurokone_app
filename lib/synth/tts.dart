@@ -60,14 +60,14 @@ class Tts {
   }
 
   Future loadSystemDefaultEngine() async {
-    if (!Platform.isAndroid) {
-      if (await systemTts.isLanguageAvailable('$lang-$locale')) {
-        systemTts.setLanguage('$lang-$locale');
-      }
-    } else if (Platform.isAndroid) {
+    if (Platform.isAndroid) {
       String newEngine = await systemTts.getDefaultEngine;
       logger.d('TtsEngine:$newEngine');
       engine = newEngine;
+    } else if (Platform.isIOS || Platform.isMacOS) {
+      if (await systemTts.isLanguageAvailable('$lang-$locale')) {
+        systemTts.setLanguage('$lang-$locale');
+      }
     }
   }
 

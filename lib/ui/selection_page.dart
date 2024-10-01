@@ -10,17 +10,17 @@ import 'package:flutter/material.dart';
 //iOS only page for enabling voices to the system
 class LanguageSelectionPage extends StatefulWidget {
   final List<Voice> voices = vars.voices;
-  late final Map<String, String> langText;
-  final String lang;
-  final Function switchLangs;
+  late final Map<String, String> text;
+  final String language;
+  final Function switchLanguage;
   final SystemChannel channel;
 
   LanguageSelectionPage(
       {super.key,
-      required this.lang,
-      required this.switchLangs,
+      required this.language,
+      required this.switchLanguage,
       required this.channel}) {
-    langText = vars.langs[lang]!;
+    text = vars.langs[language]!;
   }
 
   @override
@@ -42,13 +42,13 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
     switch (defaultTargetPlatform) {
       case TargetPlatform.iOS:
         return NewPage.createScaffoldView(
-          appBarTitle: Header(widget.switchLangs, widget.lang),
+          appBarTitle: Header(widget.switchLanguage, widget.language),
           body: Column(
             children: [
               ListTile(
                 onTap: () => _toggleVoices(),
                 title: Text(
-                  widget.langText['allVoices']!,
+                  widget.text['allVoices']!,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
@@ -76,7 +76,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
               ),
               TextButton(
                 onPressed: _confirm,
-                child: Text(widget.langText['selected']!),
+                child: Text(widget.text['selected']!),
               )
             ],
           ),

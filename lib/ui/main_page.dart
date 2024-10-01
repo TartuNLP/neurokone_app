@@ -12,20 +12,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:is_first_run/is_first_run.dart';
+import 'package:logger/logger.dart';
 
 class MainPage extends StatefulWidget {
-  final String lang;
-  late final Map<String, String> langText;
-  final Function switchLangs;
+  final String language;
+  late final Map<String, String> text;
+  final Function switchLanguage;
   final SystemChannel channel;
 
   MainPage({
     Key? key,
-    required this.lang,
-    required this.switchLangs,
+    required this.language,
+    required this.switchLanguage,
     required this.channel,
   }) : super(key: key) {
-    langText = vars.langs[lang]!;
+    text = vars.langs[language]!;
   }
 
   @override
@@ -33,6 +34,7 @@ class MainPage extends StatefulWidget {
 }
 
 class MainPageState extends State<MainPage> with WidgetsBindingObserver {
+  Logger logger = Logger();
   //Initial voice data.
   Voice _currentNativeVoice = vars.voices[0];
   double voiceTileHeight = 52;
@@ -82,28 +84,28 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _setHandlers() {
     tts.systemTts.setStartHandler(() {
       setState(() {
-        print("Playing");
+        logger.d("Engine playing");
         isSystemPlaying = true;
       });
     });
 
     tts.systemTts.setCompletionHandler(() {
       setState(() {
-        print("Complete");
+        logger.d("Engine playing complete");
         isSystemPlaying = false;
       });
     });
 
     tts.systemTts.setCancelHandler(() {
       setState(() {
-        print("Cancel");
+        logger.d("Engine playing cancelled");
         isSystemPlaying = false;
       });
     });
 
     tts.systemTts.setErrorHandler((msg) {
       setState(() {
-        print("error: $msg");
+        logger.d("Engine error: $msg");
         isSystemPlaying = false;
       });
     });
@@ -112,6 +114,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   //Shows instructions the first time the app is opened
   _firstTimeInstructions() async {
     if (await IsFirstRun.isFirstRun()) {
+      // ignore: use_build_context_synchronously
       Navigator.pushNamed(context, 'instructions');
     }
   }
@@ -122,22 +125,19 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       case AppLifecycleState.resumed:
         tts.loadSystemDefaultEngine();
         setState(() {});
-        print("app resumed");
+        logger.d("app resumed");
         break;
       case AppLifecycleState.inactive:
-        print("app inactive");
+        logger.d("app inactive");
         break;
       case AppLifecycleState.paused:
-        print("app paused");
+        logger.d("app paused");
         break;
       case AppLifecycleState.detached:
-        print("app detached");
+        logger.d("app detached");
         break;
       case AppLifecycleState.hidden:
-        print("app hidden");
-        break;
-      case AppLifecycleState.hidden:
-        print("app in detached");
+        logger.d("app hidden");
         break;
     }
   }
@@ -165,7 +165,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         }
       },
       child: NewPage.createScaffoldView(
-        appBarTitle: Header(widget.switchLangs, widget.lang),
+        appBarTitle: Header(widget.switchLanguage, widget.language),
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -179,7 +179,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
-                      widget.langText['engine']!,
+                      widget.text['engine']!,
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 20),
                     ),
@@ -269,14 +269,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   //Contents in the voice representing box
   _boxContents(Voice voice, bool arrow) {
-    String voiceName = voice.getName() == 'system'
-        ? widget.langText['system']!
-        : voice.getName();
+    String voiceName =
+        voice.getName() == 'system' ? widget.text['system']! : voice.getName();
     Center speaker = Center(
       child: Text(
         voiceName,
         semanticsLabel:
-            arrow ? "${widget.langText['engine']!} $voiceName" : voiceName,
+            arrow ? "${widget.text['engine']!} $voiceName" : voiceName,
         textAlign: TextAlign.center,
         style: const TextStyle(
           fontSize: 20,
@@ -307,7 +306,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return SizedBox(
       height: voiceTileHeight,
       child: Semantics(
-        label: widget.langText['TTS settings'],
+        label: widget.text['TTS settings'],
         child: IconButton(
           icon: const Icon(
             Icons.settings,
@@ -354,7 +353,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: Text(
-        widget.langText['tempo']!,
+        widget.text['tempo']!,
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
@@ -376,8 +375,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
           alignment: Alignment.center,
         ),
         child: Text(
-          widget.langText['reset']!,
-          semanticsLabel: widget.langText['resetLabel'],
+          widget.text['reset']!,
+          semanticsLabel: widget.text['resetLabel'],
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -423,7 +422,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
           min: 0.5,
           max: 1.9,
           value: _speed,
-          label: '${widget.langText['slider']!} $_speed',
+          label: '${widget.text['slider']!} $_speed',
           onChanged: _currentNativeVoice.getName() == "system"
               ? null
               : (value) => setState(() {
@@ -433,13 +432,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
             value = (value * 100).round() / 100;
             switch (value) {
               case 1.0:
-                return '${widget.langText['slider']!} ${widget.langText['normal']!}';
+                return '${widget.text['slider']!} ${widget.text['normal']!}';
               case 0.5:
-                return '${widget.langText['slider']!} ${widget.langText['minimum']!}';
+                return '${widget.text['slider']!} ${widget.text['minimum']!}';
               case 1.9:
-                return '${widget.langText['slider']!} ${widget.langText['maximum']!}';
+                return '${widget.text['slider']!} ${widget.text['maximum']!}';
               default:
-                return '${widget.langText['slider']!} $value ';
+                return '${widget.text['slider']!} $value ';
             }
           },
         ),
@@ -459,7 +458,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
               maxLines: 25,
               controller: _textEditingController,
               decoration: InputDecoration(
-                hintText: widget.langText['hint'],
+                hintText: widget.text['hint'],
                 fillColor: Colors.white,
                 filled: true,
                 enabledBorder: const OutlineInputBorder(
@@ -498,7 +497,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   _clearButton() {
     return Semantics(
-      label: widget.langText['clearLabel'],
+      label: widget.text['clearLabel'],
       child: IconButton(
         padding: const EdgeInsets.all(0),
         onPressed: () => setState(() {
@@ -515,11 +514,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   _copyButton() {
     return Semantics(
-      label: widget.langText['copyLabel'],
+      label: widget.text['copyLabel'],
       child: IconButton(
         onPressed: () => Clipboard.setData(ClipboardData(text: _fieldText))
-            .then((result) =>
-                Fluttertoast.showToast(msg: widget.langText['copy']!)),
+            .then(
+                (result) => Fluttertoast.showToast(msg: widget.text['copy']!)),
         icon: const Icon(
           Icons.copy,
           color: Colors.black54,
@@ -558,7 +557,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       ),
       onPressed: _fieldText.isNotEmpty ? _speak : null,
       child: Text(
-        widget.langText['speak']!,
+        widget.text['speak']!,
         style: const TextStyle(
           fontSize: 15,
         ),
@@ -585,7 +584,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       ),
       onPressed: _stop,
       child: Text(
-        widget.langText['stop']!,
+        widget.text['stop']!,
         style: const TextStyle(
           fontSize: 15,
         ),

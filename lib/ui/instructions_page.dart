@@ -5,11 +5,11 @@ import 'package:neurokone/variables.dart' as vars;
 import 'package:flutter/material.dart';
 
 class InstructionsPage extends StatefulWidget {
-  final String lang;
-  final Function switchLangs;
+  final String language;
+  final Function switchLanguage;
 
   const InstructionsPage(
-      {super.key, required this.lang, required this.switchLangs});
+      {super.key, required this.language, required this.switchLanguage});
 
   @override
   State<InstructionsPage> createState() => _InstructionsPageState();
@@ -24,7 +24,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
   @override
   Widget build(BuildContext context) {
     return NewPage.createScaffoldView(
-      appBarTitle: Header(widget.switchLangs, widget.lang),
+      appBarTitle: Header(widget.switchLanguage, widget.language),
       body: SingleChildScrollView(
         controller: _scrollController,
         child: Padding(
@@ -38,8 +38,11 @@ class _InstructionsPageState extends State<InstructionsPage> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                child:
-                    Platform.isIOS ? _iosIstructions() : _androidInstructions(),
+                child: Platform.isAndroid
+                    ? _androidInstructions()
+                    : Platform.isIOS
+                        ? _iosIstructions()
+                        : _macosInstructions(),
               ),
               Padding(
                 padding: const EdgeInsets.only(bottom: 15),
@@ -69,24 +72,17 @@ class _InstructionsPageState extends State<InstructionsPage> {
     return Column(
       children: [
         Text(
-          vars.langs[widget.lang]!['introductionText']!,
+          vars.langs[widget.language]!['introductionText']!,
           style: const TextStyle(fontSize: 17),
         ),
         const SizedBox(
           height: 20,
         ),
         Text(
-          vars.langs[widget.lang]!['instructionText']!,
+          vars.langs[widget.language]!['instructionText']!,
           style: const TextStyle(fontSize: 17),
         )
       ],
-    );
-  }
-
-  _iosIstructions() {
-    return Text(
-      vars.langs[widget.lang]!['instructionTextiOS']!,
-      style: const TextStyle(fontSize: 17),
     );
   }
 
@@ -101,15 +97,30 @@ class _InstructionsPageState extends State<InstructionsPage> {
     );
   }
 
+  _iosIstructions() {
+    return Text(
+      vars.langs[widget.language]!['instructionTextiOS']!,
+      style: const TextStyle(fontSize: 17),
+    );
+  }
+
+  _macosInstructions() {
+    return Text(
+      vars.langs[widget.language]!['instructionTextMacOS']!,
+      style: const TextStyle(fontSize: 17),
+    );
+  }
+
   _alertButton(String key) {
-    String gifPath = vars.langs[widget.lang]![key]!;
-    String text = vars.langs[widget.lang]!['${key}Text']!;
+    String gifPath = vars.langs[widget.language]![key]!;
+    String text = vars.langs[widget.language]!['${key}Text']!;
     return TextButton(
         onPressed: () {
           Widget okButton = TextButton(
               child: Text(
                 "OK",
-                semanticsLabel: "${vars.langs[widget.lang]!['${key}Label']!}OK",
+                semanticsLabel:
+                    "${vars.langs[widget.language]!['${key}Label']!}OK",
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -141,16 +152,16 @@ class _InstructionsPageState extends State<InstructionsPage> {
     return TextButton(
       onPressed: () => Navigator.pop(context),
       style: ButtonStyle(
-        padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+        padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
             const EdgeInsets.all(16)),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18.0),
           ),
         ),
       ),
       child: Text(
-        vars.langs[widget.lang]!['understood']!,
+        vars.langs[widget.language]!['understood']!,
         style: const TextStyle(fontSize: 20),
       ),
     );

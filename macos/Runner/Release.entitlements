@@ -8,5 +8,7 @@
 	<array>
 		<string>group.ee.ut.cs.nlp.neurokone</string>
 	</array>
+	<key>com.apple.security.network.server</key>
+	<true/>
 </dict>
 </plist>

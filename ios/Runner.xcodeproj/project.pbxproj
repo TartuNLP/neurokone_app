@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		2573F94C29F0182300B2E47C /* EestiTtsiOS.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 25B7B42E29E58DAA00F5494E /* EestiTtsiOS.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		25B7B43129E58DAA00F5494E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 25B7B43029E58DAA00F5494E /* README.md */; };
 		25B7B45129E5A13E00F5494E /* EestiTtsUnit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B7B44D29E5A13D00F5494E /* EestiTtsUnit.swift */; };
 		25B7B45229E5A13E00F5494E /* AudioUnitFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B7B44E29E5A13D00F5494E /* AudioUnitFactory.swift */; };
 		25D7EE9729FC00AE004115A0 /* FastSpeechModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D7EE9629FC00AE004115A0 /* FastSpeechModel.swift */; };
@@ -60,7 +59,6 @@
 		255AF48D29E717D10036665F /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		255AF48F29E71A510036665F /* EestiTtsiOS.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = EestiTtsiOS.entitlements; sourceTree = "<group>"; };
 		25B7B42E29E58DAA00F5494E /* EestiTtsiOS.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = EestiTtsiOS.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		25B7B43029E58DAA00F5494E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		25B7B44529E58DAA00F5494E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		25B7B44D29E5A13D00F5494E /* EestiTtsUnit.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EestiTtsUnit.swift; sourceTree = "<group>"; };
 		25B7B44E29E5A13D00F5494E /* AudioUnitFactory.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioUnitFactory.swift; sourceTree = "<group>"; };
@@ -121,7 +119,6 @@
 				255AF48F29E71A510036665F /* EestiTtsiOS.entitlements */,
 				25B7B44E29E5A13D00F5494E /* AudioUnitFactory.swift */,
 				25B7B44D29E5A13D00F5494E /* EestiTtsUnit.swift */,
-				25B7B43029E58DAA00F5494E /* README.md */,
 				25B7B44529E58DAA00F5494E /* Info.plist */,
 				25D7EE9629FC00AE004115A0 /* FastSpeechModel.swift */,
 				25D7EE9829FC00C0004115A0 /* VocoderModel.swift */,
@@ -297,7 +294,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				25B7B43129E58DAA00F5494E /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

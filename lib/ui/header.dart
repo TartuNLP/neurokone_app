@@ -7,7 +7,6 @@ import 'dart:io' show Platform;
 class Header extends StatelessWidget {
   final Function callback;
   final String _lang;
-  bool get isIOS => Platform.isIOS;
 
   const Header(this.callback, this._lang, {super.key});
 
@@ -53,10 +52,10 @@ class Header extends StatelessWidget {
       child: TextButton(
         style: ButtonStyle(
             backgroundColor: _lang == language
-                ? MaterialStateProperty.all<Color>(
+                ? WidgetStateProperty.all<Color>(
                     const Color.fromARGB(255, 228, 251, 255))
                 : null,
-            minimumSize: MaterialStateProperty.all<Size>(const Size(50, 40))),
+            minimumSize: WidgetStateProperty.all<Size>(const Size(50, 40))),
         onPressed: _lang == language ? null : () => callback(language),
         child: Text(langCode),
       ),
@@ -71,13 +70,13 @@ class Header extends StatelessWidget {
       child: PopupMenuButton<String>(
         initialValue: vars.langs[_lang]!['more'],
         enabled: ModalRoute.of(context)?.settings.name == 'home',
-        icon: isIOS
+        icon: Platform.isAndroid
             ? const Icon(
-                Icons.more_horiz_rounded,
+                Icons.more_vert_rounded,
                 color: Colors.black54,
               )
             : const Icon(
-                Icons.more_vert_rounded,
+                Icons.more_horiz_rounded,
                 color: Colors.black54,
               ),
         onSelected: (value) => _handleClick(value, context),
@@ -104,8 +103,9 @@ class Header extends StatelessWidget {
   //'More' menu items
   Set<String> _getPages(BuildContext context) {
     Set<String> out = {};
-    List<String> options =
-        isIOS ? ['instructions'] : ['TTS settings', 'instructions'];
+    List<String> options = Platform.isAndroid
+        ? ['TTS settings', 'instructions']
+        : ['instructions'];
     for (String option in options) {
       out.add(vars.langs[_lang]![option]!);
     }

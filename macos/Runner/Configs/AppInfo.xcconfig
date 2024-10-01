@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = neurokone_app
+PRODUCT_NAME = Neurokone
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.tartunlp.neurokone
+PRODUCT_BUNDLE_IDENTIFIER = LTAT-Tartu-NLP---ee.ut.cs.nlp.neurokone
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2024 com.tartunlp. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2023 University of Tartu. All rights reserved.
