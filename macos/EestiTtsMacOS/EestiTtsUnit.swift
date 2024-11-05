@@ -9,10 +9,6 @@ import os
 import AVFoundation
 
 public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
-    private let langCodes: [String] = ["et-EE"]
-
-    private let groupDefaults = UserDefaults(suiteName: "group.ee.ut.cs.nlp.neurokone")
-    
     private var request: AVSpeechSynthesisProviderRequest?
     
     private var outputBus: AUAudioUnitBus
@@ -24,6 +20,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private var parameterObserver: NSKeyValueObservation!
     private var outputMutex = DispatchSemaphore(value: 1)
     
+    private let langCodes: [String] = ["et-EE"]
     private let voices = ["Mari", "Tambet", "Liivika", "Kalev", "Külli", "Meelis", "Albert", "Indrek", "Vesta", "Peeter"]
     
     private final let sentprocessor: SentProcessor = SentProcessor()

@@ -2,6 +2,7 @@ platform :osx, '10.15'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+ENV['SWIFT_VERSION'] = '5'
 
 project 'Runner', {
   'Debug' => :debug,
@@ -44,8 +45,6 @@ target 'EestiTtsMacOS' do
   pod 'TensorFlowLiteC', :path => '../assets/TF_Pods/TensorFlowLiteC'
   pod 'TensorFlowLiteSwift', :path => '../assets/TF_Pods/TensorFlowLiteSwift'
   pod 'TensorFlowLiteSelectTfOps', :path => '../assets/TF_Pods/TensorFlowLiteSelectTfOps'
-  
-  flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
 end
 
 post_install do |installer|

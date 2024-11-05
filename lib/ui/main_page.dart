@@ -209,7 +209,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         Expanded(
           child: _dropDownVoices(),
         ),
-        if (!Platform.isMacOS) _ttsSettingsIconButton(),
+        if (Platform.isAndroid) _ttsSettingsIconButton(),
       ],
     );
   }
@@ -308,17 +308,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       child: Semantics(
         label: widget.text['TTS settings'],
         child: IconButton(
-          icon: const Icon(
-            Icons.settings,
-          ),
-          onPressed: () async {
-            Platform.isIOS
-                ? await Navigator.pushNamed(context, 'select')
-                : await const AndroidIntent(
-                        action: 'com.android.settings.TTS_SETTINGS')
-                    .launch();
-          },
-        ),
+            icon: const Icon(
+              Icons.settings,
+            ),
+            onPressed: () async {
+              await const AndroidIntent(
+                      action: 'com.android.settings.TTS_SETTINGS')
+                  .launch();
+              setState(() {});
+            }),
       ),
     );
   }

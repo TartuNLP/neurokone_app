@@ -9,10 +9,6 @@ import os
 import AVFoundation
 
 public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
-    private let langCodes: [String] = ["et-EE"]
-
-    private let groupDefaults = UserDefaults(suiteName: "group.ee.ut.cs.nlp.neurokone")
-    
     private var request: AVSpeechSynthesisProviderRequest?
     
     private var outputBus: AUAudioUnitBus
@@ -24,6 +20,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private var parameterObserver: NSKeyValueObservation!
     private var outputMutex = DispatchSemaphore(value: 1)
     
+    private let langCode: String = "et-EE"
     private let voices = ["Mari", "Tambet", "Liivika", "Kalev", "Külli", "Meelis", "Albert", "Indrek", "Vesta", "Peeter"]
     
     private final let sentprocessor: SentProcessor = SentProcessor()
@@ -72,13 +69,11 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
 
     public override var speechVoices: [AVSpeechSynthesisProviderVoice] {
         get {
-            //let langs: [String] = (groupDefaults?.value(forKey: "langs") as? [String])!
-            let voices: [String] = (groupDefaults?.value(forKey: "voices") as? [String])!
-            return voices.map { voice in
+            return self.voices.map { voice in
                 return AVSpeechSynthesisProviderVoice(name: voice,
-                                                      identifier: "auto.\(langCodes[0].lowercased()).\(voice)",
-                                                      primaryLanguages: langCodes,
-                                                      supportedLanguages: langCodes)
+                                                      identifier: "auto.\(langCode.lowercased()).\(voice)",
+                                                      primaryLanguages: [langCode],
+                                                      supportedLanguages: [langCode])
             }
         }
         set { }
@@ -220,7 +215,6 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
 }
 
 class Synthesizer {
-    private let groupDefaults = UserDefaults(suiteName: "group.ee.ut.cs.nlp.neurokone")
     private var synthMutex = DispatchSemaphore(value: 1)
     
     private final let preprocessor: Preprocessor = Preprocessor()
@@ -233,9 +227,9 @@ class Synthesizer {
     private let audioChunkSize = 180
     private let overlapSize = 15
     
-    init() throws {
-        self.synthesizer = try FastSpeechModel(modelPath: (groupDefaults?.value(forKey: "synthesizer") as? String)!)
-        self.vocoder = try VocoderModel(modelPath: (groupDefaults?.value(forKey: "vocoder") as? String)!)
+    init() throws { 
+        self.synthesizer = try FastSpeechModel(modelPath: Bundle.main.path(forResource: "fastspeech2-est", ofType: "tflite")!)
+        self.vocoder = try VocoderModel(modelPath: Bundle.main.path(forResource: "hifigan-est.v2", ofType: "tflite")!)
     }
     
     func setVoice(voice: Int) {

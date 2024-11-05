@@ -2,7 +2,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:neurokone/synth/system_channel.dart';
 import 'package:neurokone/ui/about_page.dart';
 import 'package:neurokone/ui/main_page.dart';
-import 'package:neurokone/ui/selection_page.dart';
 import 'package:neurokone/ui/instructions_page.dart';
 import 'package:flutter/material.dart';
 import 'dart:io' show Platform;
@@ -68,12 +67,6 @@ class _TtsAppState extends State<TtsApp> {
         'about': (context) => AboutPage(
               language: currentLanguage,
               switchLanguage: switchLanguages,
-            ),
-        //iOS only
-        'select': (context) => LanguageSelectionPage(
-              language: currentLanguage,
-              switchLanguage: switchLanguages,
-              channel: channel,
             ),
       },
     );

@@ -15,6 +15,8 @@
 		25D7EE9929FC00C0004115A0 /* VocoderModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D7EE9829FC00C0004115A0 /* VocoderModel.swift */; };
 		25D7EE9B29FC0449004115A0 /* Encoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D7EE9A29FC0449004115A0 /* Encoder.swift */; };
 		25D7EE9D29FC05C4004115A0 /* TfLiteModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D7EE9C29FC05C4004115A0 /* TfLiteModel.swift */; };
+		25DB40B42CCA50DC0059AB04 /* fastspeech2-est.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 25DB40B32CCA50DC0059AB04 /* fastspeech2-est.tflite */; };
+		25DB40B62CCA50E70059AB04 /* hifigan-est.v2.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 25DB40B52CCA50E70059AB04 /* hifigan-est.v2.tflite */; };
 		25E0F8A62A02947D00C3FA8D /* Processor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25E0F8A52A02947D00C3FA8D /* Processor.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		4F17F0176194A06FA19B6CA6 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ECBC2CC5B880B0BF1837961 /* Pods_Runner.framework */; };
@@ -66,6 +68,8 @@
 		25D7EE9829FC00C0004115A0 /* VocoderModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocoderModel.swift; sourceTree = "<group>"; };
 		25D7EE9A29FC0449004115A0 /* Encoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Encoder.swift; sourceTree = "<group>"; };
 		25D7EE9C29FC05C4004115A0 /* TfLiteModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TfLiteModel.swift; sourceTree = "<group>"; };
+		25DB40B32CCA50DC0059AB04 /* fastspeech2-est.tflite */ = {isa = PBXFileReference; lastKnownFileType = file; name = "fastspeech2-est.tflite"; path = "../../assets/fastspeech2-est.tflite"; sourceTree = "<group>"; };
+		25DB40B52CCA50E70059AB04 /* hifigan-est.v2.tflite */ = {isa = PBXFileReference; lastKnownFileType = file; name = "hifigan-est.v2.tflite"; path = "../../assets/hifigan-est.v2.tflite"; sourceTree = "<group>"; };
 		25E0F8A52A02947D00C3FA8D /* Processor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Processor.swift; sourceTree = "<group>"; };
 		2ECBC2CC5B880B0BF1837961 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
@@ -119,6 +123,8 @@
 				255AF48F29E71A510036665F /* EestiTtsiOS.entitlements */,
 				25B7B44E29E5A13D00F5494E /* AudioUnitFactory.swift */,
 				25B7B44D29E5A13D00F5494E /* EestiTtsUnit.swift */,
+				25DB40B32CCA50DC0059AB04 /* fastspeech2-est.tflite */,
+				25DB40B52CCA50E70059AB04 /* hifigan-est.v2.tflite */,
 				25B7B44529E58DAA00F5494E /* Info.plist */,
 				25D7EE9629FC00AE004115A0 /* FastSpeechModel.swift */,
 				25D7EE9829FC00C0004115A0 /* VocoderModel.swift */,
@@ -294,6 +300,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				25DB40B62CCA50E70059AB04 /* hifigan-est.v2.tflite in Resources */,
+				25DB40B42CCA50DC0059AB04 /* fastspeech2-est.tflite in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -478,7 +486,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = HK752FM9KG;
+				DEVELOPMENT_TEAM = XX2272283L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = EestiTtsiOS/Info.plist;
@@ -509,7 +517,7 @@
 					"-force_load",
 					"$(SRCROOT)/Pods/TensorFlowLiteSelectTfOps/Frameworks/TensorFlowLiteSelectTfOps.framework/TensorFlowLiteSelectTfOps",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "LTAT-Tartu-NLP---ee.ut.cs.nlp.neurokone.synth";
+				PRODUCT_BUNDLE_IDENTIFIER = ee.ut.cs.nlp.neurokone.extension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -536,7 +544,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = HK752FM9KG;
+				DEVELOPMENT_TEAM = XX2272283L;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = EestiTtsiOS/Info.plist;
@@ -566,7 +574,7 @@
 					"-force_load",
 					"$(SRCROOT)/Pods/TensorFlowLiteSelectTfOps/Frameworks/TensorFlowLiteSelectTfOps.framework/TensorFlowLiteSelectTfOps",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "LTAT-Tartu-NLP---ee.ut.cs.nlp.neurokone.synth";
+				PRODUCT_BUNDLE_IDENTIFIER = ee.ut.cs.nlp.neurokone.extension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -698,7 +706,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 8;
-				DEVELOPMENT_TEAM = HK752FM9KG;
+				DEVELOPMENT_TEAM = XX2272283L;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -739,9 +747,10 @@
 					"-weak_framework",
 					"\"CoreML\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "LTAT-Tartu-NLP---ee.ut.cs.nlp.neurokone";
+				PRODUCT_BUNDLE_IDENTIFIER = ee.ut.cs.nlp.neurokone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				STRIP_STYLE = "non-global";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
@@ -760,7 +769,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 8;
-				DEVELOPMENT_TEAM = HK752FM9KG;
+				DEVELOPMENT_TEAM = XX2272283L;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -801,9 +810,10 @@
 					"-weak_framework",
 					"\"CoreML\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "LTAT-Tartu-NLP---ee.ut.cs.nlp.neurokone";
+				PRODUCT_BUNDLE_IDENTIFIER = ee.ut.cs.nlp.neurokone;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				STRIP_STYLE = "non-global";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_SWIFT3_OBJC_INFERENCE = On;
 				SWIFT_VERSION = 4.0;

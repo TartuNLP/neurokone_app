@@ -36,7 +36,7 @@ dependencies:
   is_first_run: ^1.0.0
   logger: ^2.4.0
   path_provider: ^2.1.4
-  tflite_flutter:
+  tflite_flutter: #0.9.5
     path: ./tflite_flutter
   unorm_dart: ^0.3.0
   window_manager: ^0.4.2

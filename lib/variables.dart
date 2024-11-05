@@ -2,7 +2,7 @@ import 'package:neurokone/ui/voice.dart';
 import 'package:flutter/material.dart';
 
 const String packageName = 'com.tartunlp.neurokone';
-const String packageNameApple = 'ee.ut.cs.nlp.neurokone';
+const String packageNameApple = 'ee.ut.cs.nlp.tts';
 
 const String appTitle = 'TartuNLP Neurokõne';
 const String appVersion = 'Neurokõne v1.1.2';
@@ -68,8 +68,6 @@ const Map<String, Map<String, String>> langs = {
     'dropdown': 'Vali hääl',
     'hint': 'Kirjuta siia...',
     'tempo': 'Tempo:',
-    'allVoices': 'Muuda kõik',
-    'selected': 'Valmis',
   },
   'English': {
     'loading': 'Models loading...',
@@ -123,8 +121,6 @@ const Map<String, Map<String, String>> langs = {
     'dropdown': 'Choose voice',
     'hint': 'Write here...',
     'tempo': 'Tempo:',
-    'allVoices': 'Toggle all',
-    'selected': 'Done',
   }
 };
 
