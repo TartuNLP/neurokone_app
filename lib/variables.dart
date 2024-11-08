@@ -1,11 +1,10 @@
 import 'package:neurokone/ui/voice.dart';
 import 'package:flutter/material.dart';
 
-const String packageName = 'com.tartunlp.neurokone';
-const String packageNameApple = 'ee.ut.cs.nlp.tts';
+const String bundleID = 'ee.ut.cs.nlp.neurokone';
 
 const String appTitle = 'TartuNLP Neurokõne';
-const String appVersion = 'Neurokõne v1.1.2';
+const String appVersion = 'v1.1.3';
 
 String initialLanguage = 'Eesti';
 
@@ -36,12 +35,12 @@ const Map<String, Map<String, String>> langs = {
     'enableEngineAppText':
         'Vaikimisi kõnesünteesimootori muutmine rakenduse kaudu',
     'enableEngineAppLabel':
-        'Avage süsteemi kõnesünteesi seaded vajutades sünteeshääle valikust paremal olevat nuppu või avades päise menüü ja vajutades "Kõnesünteesi seaded". Avage valik "Eelistatud kõnesünteesi mootor" ning valige soovitud mootor. Avanenud hüpikaknas vajutage OK. Seejärel liikuge tagasi. Veelkord tagasi liikudes jõuate uuesti rakendusse.',
+        'Avage süsteemi kõnesünteesi seaded vajutades sünteeshääle valikust paremal olevat nuppu või avades päise menüü ja vajutades "Kõnesünteesi seaded". Veenduge, et valitud keel oleks Eesti. Avage valik "Eelistatud kõnesünteesi mootor" ning valige soovitud mootor. Avanenud hüpikaknas vajutage OK. Seejärel liikuge tagasi. Veelkord tagasi liikudes jõuate uuesti rakendusse.',
     'enableEngineApp': 'assets/tutorials/muuda_mootor_rakendusest.gif',
     'enableEngineSettingsText':
         'Vaikimisi kõnesünteesimootori muutmine seadetest',
     'enableEngineSettingsLabel':
-        'Rakenduseväliselt kõnesünteesimootori muutmiseks liikuge Seadete rakendusse, avage valik Süsteem - Keeled ja sisend - Kõnesünteesi väljund. Avage valik "Eelistatud kõnesünteesi mootor" ning valige soovitud mootor. Avanenud hüpikaknas vajutage OK. Liikuge tagasi.',
+        'Rakenduseväliselt kõnesünteesimootori muutmiseks liikuge Seadete rakendusse, avage valik Süsteem - Keeled ja sisend - Kõnesünteesi väljund. Veenduge, et valitud keel oleks Eesti. Avage valik "Eelistatud kõnesünteesi mootor" ning valige soovitud mootor. Avanenud hüpikaknas vajutage OK. Liikuge tagasi.',
     'enableEngineSettings': 'assets/tutorials/muuda_mootor.gif',
     'configureEngineText': 'Neurokõne süsteemi hääle vahetamine',
     'configureEngineLabel':
@@ -89,12 +88,12 @@ const Map<String, Map<String, String>> langs = {
     'enableEngineAppText':
         'Changing the system speech synthesis engine from the app',
     'enableEngineAppLabel':
-        'Open Text-to-speech settings by tapping on the gear on the right side of the voice selection or by opening the header menu and tapping Text-to-speech settings. Open the Preferred engine option and choose an engine, in our case TartuNLP Neurokone. Confirm by tapping OK in the pop-up window. Finally, go back. Going back once more takes you back to the app.',
+        'Open Text-to-speech settings by tapping on the gear on the right side of the voice selection or by opening the header menu and tapping Text-to-speech settings. Make sure that the selected language is Estonian. Open the Preferred engine option and choose an engine, in our case TartuNLP Neurokone. Confirm by tapping OK in the pop-up window. Finally, go back. Going back once more takes you back to the app.',
     'enableEngineApp': 'assets/tutorials/enable_engine_from_app.gif',
     'enableEngineSettingsText':
         'Changing the system speech synthesis engine from settings',
     'enableEngineSettingsLabel':
-        'To change the system\'s text-to-speech engine without using the app, open Settings. Navigate to System - Languages and input - Text-to-speech output. Open the Preferred engine option and choose an engine, in out case TartuNLP Neurokone. Confirm by tapping OK in the pop-up window. Finally, go back.',
+        'To change the system\'s text-to-speech engine without using the app, open Settings. Navigate to System - Languages and input - Text-to-speech output. Make sure that the selected language is Estonian. Open the Preferred engine option and choose an engine, in out case TartuNLP Neurokone. Confirm by tapping OK in the pop-up window. Finally, go back.',
     'enableEngineSettings': 'assets/tutorials/enable_engine.gif',
     'configureEngineText': 'Changing the default speaker',
     'configureEngineLabel':

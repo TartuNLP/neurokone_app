@@ -1,4 +1,4 @@
-package com.tartunlp.neurokone;
+package ee.ut.cs.nlp.neurokone;
 
 import android.app.Activity;
 import android.content.Intent;

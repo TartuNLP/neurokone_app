@@ -1,4 +1,4 @@
-package com.tartunlp.neurokone;
+package ee.ut.cs.nlp.neurokone;
 
 import android.media.AudioFormat;
 import android.speech.tts.SynthesisCallback;
@@ -64,21 +64,9 @@ public class Konesuntees extends TextToSpeechService {
 
     @Override
     protected int onIsLanguageAvailable(String lang, String country, String variant) {
-        // The robot speak synthesizer supports only english.
-        if ("est".equals(lang)) { // || "eng".equals(lang)
-            // We support two specific robot languages, the british robot language
-            // and the american robot language.
-            if ("EST".equals(country)) {    // || "USA".equals(country) || "GBR".equals(country)
-                // If the engine supported a specific variant, we would have
-                // something like.
-                //
-                // if ("android".equals(variant)) {
-                //     return TextToSpeech.LANG_COUNTRY_VAR_AVAILABLE;
-                // }
-                return TextToSpeech.LANG_COUNTRY_AVAILABLE;
-            }
-            // We support the language, but not the country.
-            return TextToSpeech.LANG_AVAILABLE;
+        // The synthesizer supports only Estonian.
+        if ("est".equals(lang) && "EST".equals(country)) {
+            return TextToSpeech.LANG_COUNTRY_AVAILABLE;
         }
         return TextToSpeech.LANG_NOT_SUPPORTED;
     }
@@ -93,10 +81,6 @@ public class Konesuntees extends TextToSpeechService {
         final int isLanguageAvailable = onIsLanguageAvailable(lang, country, variant);
         if (isLanguageAvailable == TextToSpeech.LANG_NOT_SUPPORTED) {
             return isLanguageAvailable;
-        }
-        String loadCountry = country;
-        if (isLanguageAvailable == TextToSpeech.LANG_AVAILABLE) {
-            loadCountry = "EST"; //"USA"
         }
         // If we've already loaded the requested language, we can return early.
         if (mCurrentLanguage != null) {
@@ -126,7 +110,7 @@ public class Konesuntees extends TextToSpeechService {
                 isInit = false;
             }
         }
-        mCurrentLanguage = new String[] { lang, loadCountry, ""};
+        mCurrentLanguage = new String[] { lang, country, ""};
         return isLanguageAvailable;
     }
     

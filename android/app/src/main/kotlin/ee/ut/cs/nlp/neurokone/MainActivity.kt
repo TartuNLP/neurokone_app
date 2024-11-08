@@ -1,4 +1,4 @@
-package com.tartunlp.neurokone
+package ee.ut.cs.nlp.neurokone
 
 import io.flutter.embedding.android.FlutterActivity
 

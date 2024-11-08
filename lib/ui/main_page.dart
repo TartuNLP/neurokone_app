@@ -21,11 +21,11 @@ class MainPage extends StatefulWidget {
   final SystemChannel channel;
 
   MainPage({
-    Key? key,
+    super.key,
     required this.language,
     required this.switchLanguage,
     required this.channel,
-  }) : super(key: key) {
+  }) {
     text = vars.langs[language]!;
   }
 
@@ -542,12 +542,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _speakButton() {
     return TextButton(
       style: ButtonStyle(
-        foregroundColor: WidgetStateProperty.all(Colors.white),
-        backgroundColor: WidgetStateProperty.all<Color>(
+        foregroundColor: MaterialStateProperty.all(Colors.white),
+        backgroundColor: MaterialStateProperty.all<Color>(
             (isSystemVoice ? Colors.black : _currentNativeVoice.getColor())
                 .withOpacity(_fieldText.isNotEmpty ? 1 : 0.5)),
-        fixedSize: WidgetStateProperty.all<Size>(const Size.fromWidth(120.0)),
-        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+        fixedSize: MaterialStateProperty.all<Size>(const Size.fromWidth(120.0)),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18.0),
           ),
@@ -574,7 +574,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _stopButton() {
     return TextButton(
       style: ButtonStyle(
-        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18.0),
           ),

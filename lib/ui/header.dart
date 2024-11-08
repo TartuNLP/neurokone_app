@@ -52,10 +52,10 @@ class Header extends StatelessWidget {
       child: TextButton(
         style: ButtonStyle(
             backgroundColor: _lang == language
-                ? WidgetStateProperty.all<Color>(
+                ? MaterialStateProperty.all<Color>(
                     const Color.fromARGB(255, 228, 251, 255))
                 : null,
-            minimumSize: WidgetStateProperty.all<Size>(const Size(50, 40))),
+            minimumSize: MaterialStateProperty.all<Size>(const Size(50, 40))),
         onPressed: _lang == language ? null : () => callback(language),
         child: Text(langCode),
       ),

@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 
 class SystemChannel {
   Logger logger = Logger();
-  late final MethodChannel channel = const MethodChannel(vars.packageName);
+  late final MethodChannel channel = const MethodChannel(vars.bundleID);
   List<Voice> enabledVoices = [];
 
   SystemChannel() {

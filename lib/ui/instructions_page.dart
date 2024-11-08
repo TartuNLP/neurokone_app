@@ -152,9 +152,9 @@ class _InstructionsPageState extends State<InstructionsPage> {
     return TextButton(
       onPressed: () => Navigator.pop(context),
       style: ButtonStyle(
-        padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+        padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
             const EdgeInsets.all(16)),
-        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18.0),
           ),
@@ -202,9 +202,12 @@ class _InstructionsPageState extends State<InstructionsPage> {
     return const Row(
       children: [
         Spacer(),
-        Text(
-          vars.appVersion,
-          style: TextStyle(fontSize: 14),
+        Padding(
+          padding: EdgeInsets.only(right: 40),
+          child: Text(
+            vars.appVersion,
+            style: TextStyle(fontSize: 14),
+          ),
         )
       ],
     );

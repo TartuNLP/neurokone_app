@@ -28,7 +28,7 @@ void main() async {
 }
 
 class TtsApp extends StatefulWidget {
-  const TtsApp({Key? key}) : super(key: key);
+  const TtsApp({super.key});
 
   @override
   State<TtsApp> createState() => _TtsAppState();
