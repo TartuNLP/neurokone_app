@@ -40,9 +40,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Platform.isAndroid
                     ? _androidInstructions()
-                    : Platform.isIOS
-                        ? _iosIstructions()
-                        : _macosInstructions(),
+                    : _appleIstructions(),
               ),
               Padding(
                 padding: const EdgeInsets.only(bottom: 15),
@@ -97,16 +95,9 @@ class _InstructionsPageState extends State<InstructionsPage> {
     );
   }
 
-  _iosIstructions() {
+  _appleIstructions() {
     return Text(
-      vars.langs[widget.language]!['instructionTextiOS']!,
-      style: const TextStyle(fontSize: 17),
-    );
-  }
-
-  _macosInstructions() {
-    return Text(
-      vars.langs[widget.language]!['instructionTextMacOS']!,
+      vars.langs[widget.language]!['instructionTextApple']!,
       style: const TextStyle(fontSize: 17),
     );
   }
