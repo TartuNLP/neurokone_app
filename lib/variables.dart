@@ -28,9 +28,7 @@ const Map<String, Map<String, String>> langs = {
         'Valikus on süsteemi hääl ning meie 10 sünteeshäält. Süsteemi hääle puhul esitatakse teksti telefoni eelistatud kõnesünteesi mootori abil, selle muutmiseks tuleb suunduda operatsioonisüsteemi kõnesünteesi seadetesse.',
     'instructionTextAndroid':
         'Süsteemi kõnesünteesi seadetesse saab liikuda läbi rakenduse vajutades häälevalikust paremal olevat seadete nuppu või päismenüüst valida "Kõnesünteesi seaded"',
-    'instructionTextiOS':
-        'Meie hääli saab süsteemi lisada vajutades hääle valikust paremal asuvat seadete nuppu ning uues aknas valida tahetud hääled. Süsteemi kõnesünteesi häält saab muuta liikudes seadetesse:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nning valides soovitud kõneleja.',
-    'instructionTextMacOS':
+    'instructionTextApple':
         'Süsteemi kõnesünteesi häält saab muuta liikudes seadetesse:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nning valides soovitud kõneleja.',
     'enableEngineAppText':
         'Vaikimisi kõnesünteesimootori muutmine rakenduse kaudu',
@@ -81,9 +79,7 @@ const Map<String, Map<String, String>> langs = {
         'There are System voice and 10 of our voices to select from. In case of the System voice, you will need to head to the system\'s text-to-speech settings in order to change the used engine and its options.',
     'instructionTextAndroid':
         'The system\'s text-to-speech settings can be opened through this app by tapping on the right gear icon next to the voice selection or by opening the menu on the upper-right corner and tapping "Text-to-speech settings".\nTo access text-to-speech settings externally, go to Settings -> System -> Languages & input -> (Advanced ->) subcategory Speech -> Text-to-speech output.',
-    'instructionTextiOS':
-        'Our voices can be added to the system by tapping on the gear icon next to the voice selection and toggling the desired voices by tapping on them. The system text-to-speech voice can be changed by going to:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nand selecting the desired voice.',
-    'instructionTextMacOS':
+    'instructionTextApple':
         'The system text-to-speech voice can be changed by going to:\nSettings -> Accessibility -> Spoken content -> Voices -> Language (-> Language variant) (-> Engine)\nand selecting the desired voice.',
     'enableEngineAppText':
         'Changing the system speech synthesis engine from the app',
