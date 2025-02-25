@@ -25,7 +25,7 @@ String get binaryName {
     ext = 'so';
   } else if (Platform.isMacOS) {
     os = 'mac';
-    ext = 'so';
+    ext = 'dylib';
   } else if (Platform.isWindows) {
     os = 'win';
     ext = 'dll';

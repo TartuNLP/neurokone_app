@@ -40,10 +40,17 @@ class SentProcessor {
     }
     
     // input format: <speak><voice name="extension-identifier.voice-identifier">text</voice></speak>
-    func splitSentences(text: String) -> [String] {
-        var sentences: [String] = []
+    func splitSentences(speaker: String, input_text: String) -> [String] {
+        var text = input_text
+        //Replace English sample with Estonian.
+        text = text.replacingOccurrences(of: "Hello! My name is \(speaker).", with: "Tere! Mina olen \(speaker).")
+        text = text.replacingOccurrences(of: "&quot;", with: "\"")
+        text = text.replacingOccurrences(of: "&amp;", with: "&")
+        text = text.replacingOccurrences(of: "&apos;", with: "'")
         let allText: String = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
         let paragraphs = allText.replacingOccurrences(of: "\n+", with: "\n", options: .regularExpression).split(separator: "\n")
+        
+        var sentences: [String] = []
         for currentParagraph in paragraphs {
             var remainingSents = currentParagraph
             if remainingSents.wholeMatch(of: /.+[.!?]\"?$/) == nil {

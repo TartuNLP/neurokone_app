@@ -11,8 +11,8 @@ import TensorFlowLite
 
 class FastSpeechModel: TfLiteModel {
     private var voice: Int = 0;
-    private var speed: Float = 1.0; //0.1 - 6
-    private var pitch: Float = 1.0; //0.25 - 4
+    private var speed: Float = 1.0; //Model allows 0.1 - 6, Apple OS 0.125 - 4
+    private var pitch: Float = 1.0; //Model allows 0.25 - 4, Apple OS 0.5 - 2
     private var energy: Float = 1.0;
     
     func setVoice(voice: Int) {

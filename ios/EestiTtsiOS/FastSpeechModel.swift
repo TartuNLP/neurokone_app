@@ -20,7 +20,7 @@ class FastSpeechModel: TfLiteModel {
     }
 
     func setSpeed(speed: Float) {
-        self.speed = 1.0 / speed;  //speed input is actually the audio length multiplier so the faster the speech, the lower value the input
+        self.speed = 1.0 / sqrt(speed);  //speed input is actually the audio length multiplier so the faster the speech, the lower value the input
     }
 
     func setPitch(pitch: Float) { self.pitch = pitch; }

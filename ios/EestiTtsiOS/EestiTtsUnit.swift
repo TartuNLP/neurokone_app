@@ -30,6 +30,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private var isSynthDone = true
     private var allData: [Data] = []
     private var currentData: Data?
+    private var volume: Float = 1.0
     
     @objc
     override init(componentDescription: AudioComponentDescription,
@@ -134,7 +135,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         // Iterate through the requested number of frames.
         for frame in 0..<frameCount {
             // Copy the source frames into the target buffer.
-            frames[Int(frame)] = sourceFrames[Int(self.framePosition)]
+            frames[Int(frame)] = sourceFrames[Int(self.framePosition)] * volume
             self.framePosition += 1
             // Complete the request if the frame position exceeds the available buffer.
             if self.framePosition >= audioData.count / MemoryLayout<Float32>.size {
@@ -159,25 +160,21 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     public override func synthesizeSpeechRequest(_ speechRequest: AVSpeechSynthesisProviderRequest) {
         NSLog("QQQ request: \(speechRequest)")
 
-        var text: String = speechRequest.ssmlRepresentation
+        let text: String = speechRequest.ssmlRepresentation
         let voice: AVSpeechSynthesisProviderVoice = speechRequest.voice
-        //Replace English sample with Estonian.
-        text = text.replacingOccurrences(of: "Hello! My name is \(voice.name).", with: "Tere! Mina olen \(voice.name).")
-        text = text.replacingOccurrences(of: "&quot;", with: "\"")
-
-        NSLog("QQQ ssml text: \(text)")
-        NSLog("QQQ ssml voice: \(voice)")
 
         self.outputMutex.wait()
         
         self.request = speechRequest
         self.synthesizer.setVoice(voice: voices.firstIndex(of: voice.name)!)
+        self.setProsody(ssml: text)
+        
+        let sentences = sentprocessor.splitSentences(speaker: voice.name, input_text: text)
+        NSLog("QQQ sentences: \(sentences)")
+
         self.sentIdDone = 0
         self.sentIdRendered = 0
         self.isSynthDone = false
-        
-        let sentences = sentprocessor.splitSentences(text: text)
-        NSLog("QQQ sentences: \(sentences)")
         
         var sentId = 1
         for sentence in sentences {
@@ -189,6 +186,39 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         }
         
         self.outputMutex.signal()
+    }
+    
+    private func setProsody(ssml: String) {
+        NSLog("QQQ ssml: \(ssml)")
+        if let prosody_text = ssml.firstMatch(of: /\<prosody (.*?)\>/) {
+            var text = prosody_text.output.1
+            while let match = text.firstMatch(of: /([a-z]+)="(.*?)"/) {
+                let current_key = match.output.1
+                let current_value = match.output.2
+                switch current_key {
+                    case "rate":
+                        self.synthesizer.setSpeed(speed: (current_value as NSString).floatValue/100)
+                    case "pitch":
+                        self.synthesizer.setPitch(pitch: (current_value as NSString).floatValue/100 + 1)
+                    case "volume":
+                        switch current_value {
+                        case "silent":
+                            self.volume = 0
+                        case "+0.0dB":
+                            self.volume = 1.0
+                        default:
+                            self.volume = pow(10, (current_value.replacingOccurrences(of: "dB", with: "") as NSString).floatValue/10)
+                        }
+                    default:
+                        break
+                }
+                text = text[match.range.upperBound...]
+            }
+        } else {
+            self.synthesizer.setSpeed(speed: 1)
+            self.synthesizer.setPitch(pitch: 1)
+            self.volume = 1.0
+        }
     }
     
     private func synthesizeSentence(sentence: String, current: Int, totalSents: Int) async {
@@ -226,6 +256,8 @@ class Synthesizer {
     private let bytesInFrame = 4*80 //80 bins of 4-byte float values
     private let audioChunkSize = 180
     private let overlapSize = 15
+
+    private var volume: Float = 1.0
     
     init() throws { 
         self.synthesizer = try FastSpeechModel(modelPath: Bundle.main.path(forResource: "fastspeech2-est", ofType: "tflite")!)
@@ -234,6 +266,14 @@ class Synthesizer {
     
     func setVoice(voice: Int) {
         self.synthesizer.setVoice(voice: voice)
+    }
+    
+    func setSpeed(speed: Float) {
+        self.synthesizer.setSpeed(speed: speed)
+    }
+
+    func setPitch(pitch: Float) {
+        self.synthesizer.setPitch(pitch: pitch)
     }
     
     func synthesizeSentence(sentence: String) -> Data {
@@ -255,9 +295,9 @@ class Synthesizer {
                 var padding = Data()
                 var tempOverlapAddition = 0
                 let length = (end_id-start_id)/bytesInFrame
-                //NSLog("QQQ part is of length \(length).")
-                if (length % 29 == 0 || length % 53 == 0 || length % 113 == 0) {
-                    NSLog("QQQ last part multiple of 29(ids (\(start_id), \(end_id)), adding padding or overlap...")
+                NSLog("QQQ part is of length \(length).")
+                if (length % 2 == 1) {
+                    NSLog("QQQ adding padding or overlap...")
                     if (start_id == 0) {
                         padding = Data(repeating: 0, count: bytesInFrame)
                     } else {

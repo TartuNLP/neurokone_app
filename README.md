@@ -12,7 +12,7 @@ Text to speech in Estonian using FastSpeech2 with HiFi-GAN.
 
 ## System extension usage: 
 ### Android
-1. Install the app using the apk in the latest [release](https://github.com/TartuNLP/neurokone_app/releases).
+1. Install the app from the Play Store [HERE](https://play.google.com/store/apps/details?id=ee.ut.cs.nlp.neurokone) or using the apk in the latest [release](https://github.com/TartuNLP/neurokone_app/releases).
 2. Do one of the following:
    a) Open the app and tap on the "Süsteemi hääl" / "System voice" button.
    b) On your device, go to Settings -> System -> Languages and input -> Text-to-speech output.
@@ -21,19 +21,13 @@ Text to speech in Estonian using FastSpeech2 with HiFi-GAN.
 6. Adjust the speech rate and pitch.
 Now our synthesis voice is used every time Android calls for text-to-speech in Estonian.
 
-### iOS
-1. Install and run the app (currently only available through Xcode).
-2. Open the app and tap on the "Süsteemi hääl" / "System voice" button.
-3. Toggle on the voices you would like to add to your system and tap "Luba hääled" / "Enable voices".
-4. Close the app and head to Settings -> Accessibility -> Spoken Content -> Voices -> Eesti / Estonian -> TartuNLP Neurokone.
-5. Choose your preferred voice.
-Now our synthesis voice is used every time iOS calls for text-to-speech in Estonian.
-
-### MacOS
-1. Install and run the app (currently only available through Xcode).
-2. Close the app and head to Settings -> Accessibility -> Spoken Content -> Voices -> Eesti / Estonian -> TartuNLP Neurokone.
+### iOS / iPadOS / MacOS
+1. Get the app from the App Store [HERE](https://apps.apple.com/app/neurokõne/id6673896376) and run it.
+2. Close the app and head to Settings -> Accessibility -> Spoken Content -> Voices -> Estonian -> TartuNLP Neurokone.
 3. Choose your preferred voice.
-Now our synthesis voice is used every time MacOS calls for text-to-speech in Estonian.
+Optional:
+4. Go to Settings -> Accessibility -> Spoken Content and turn off the option "Detect languages".
+Now our synthesis voice is used every time the system calls for text-to-speech in Estonian.
 
 ## Models
 The models used in this project were trained using the [TensorFlowTTS](https://github.com/TensorSpeech/TensorflowTTS) architecture and converted to TensorFlow Lite using [this Colab](https://colab.research.google.com/drive/1K6ZRVmBPdAG7bU7ohKEmVtM_6kFjSbP8?usp=sharing).
