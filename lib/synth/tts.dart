@@ -22,7 +22,7 @@ class Tts {
   late NativeTts nativeTts;
   late FlutterTts systemTts;
 
-  bool stopNative = false;
+  bool stop = false;
   String engine = '';
 
   Logger logger = Logger();
@@ -78,6 +78,7 @@ class Tts {
   final Preprocessor _preprocessor = Preprocessor();
 
   speak(String text, double speed, bool isSystem, int? voice) {
+    stop = false;
     isSystem ? _systemSynthesis(text) : _nativeSynthesis(text, speed, voice!);
   }
 
@@ -92,10 +93,17 @@ class Tts {
   _nativeSynthesis(String text, double speed, int voice) async {
     List<String> sentences = _sentProcessor.splitSentences(text);
     for (String sentence in sentences) {
+      if (stop) break;
       String processedSentence = await _preprocessor.preprocess(sentence);
-      if (stopNative) break;
+      if (stop) break;
       await nativeTts.nativeTextToSpeech(processedSentence, voice, speed);
     }
-    stopNative = false;
+    stop = false;
+  }
+
+  void stopSynthesis() {
+    stop = true;
+    systemTts.stop();
+    nativeTts.audioPlayer.stopAudio();
   }
 }

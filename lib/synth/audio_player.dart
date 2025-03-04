@@ -102,7 +102,6 @@ class TtsPlayer {
     previusDurationInMs = (intList.length * 1000 / sampleRate).ceil();
     lastStart = DateTime.now();
     await player.play(DeviceFileSource(filePath));
-    //await player.play(filePath, isLocal: true);
     logger.d("Audio playing.");
   }
 
@@ -112,5 +111,6 @@ class TtsPlayer {
 
   stopAudio() async {
     await player.stop();
+    player.audioCache.clearAll();
   }
 }

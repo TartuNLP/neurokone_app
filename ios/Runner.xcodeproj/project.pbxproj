@@ -20,12 +20,12 @@
 		25E0F8A62A02947D00C3FA8D /* Processor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25E0F8A52A02947D00C3FA8D /* Processor.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		4F17F0176194A06FA19B6CA6 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ECBC2CC5B880B0BF1837961 /* Pods_Runner.framework */; };
-		5DC8DBC902B9BD504E36294C /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		5DC8DBC902B9BD504E36294C /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
-		B9BC3BE22F97E1DD9B850D52 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
+		B9BC3BE22F97E1DD9B850D52 /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
 		C464C62DFD250DE96398EACA /* Pods_EestiTtsiOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CD3CA9300ECC27D14656A2D0 /* Pods_EestiTtsiOS.framework */; };
 /* End PBXBuildFile section */
 
@@ -101,8 +101,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B9BC3BE22F97E1DD9B850D52 /* (null) in Frameworks */,
-				5DC8DBC902B9BD504E36294C /* (null) in Frameworks */,
+				B9BC3BE22F97E1DD9B850D52 /* BuildFile in Frameworks */,
+				5DC8DBC902B9BD504E36294C /* BuildFile in Frameworks */,
 				4F17F0176194A06FA19B6CA6 /* Pods_Runner.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -364,14 +364,12 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh",
-				"${PODS_ROOT}/Toast/Toast/Resources/PrivacyInfo.xcprivacy",
 				"${PODS_CONFIGURATION_BUILD_DIR}/fluttertoast/fluttertoast_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_foundation/path_provider_foundation_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/shared_preferences_foundation/shared_preferences_foundation_privacy.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/PrivacyInfo.xcprivacy",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/fluttertoast_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/path_provider_foundation_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/shared_preferences_foundation_privacy.bundle",

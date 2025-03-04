@@ -254,8 +254,8 @@ class Synthesizer {
     private var vocoder: VocoderModel!
     
     private let bytesInFrame = 4*80 //80 bins of 4-byte float values
-    private let audioChunkSize = 180
-    private let overlapSize = 15
+    private let audioChunkSize = 160
+    private let overlapSize = 16
 
     private var volume: Float = 1.0
     
@@ -291,12 +291,11 @@ class Synthesizer {
                 var start_id = id*bytesInFrame*(self.audioChunkSize - self.overlapSize)
                 let end_id = min(synthOutput.count, bytesInFrame*((id+1)*self.audioChunkSize - id*self.overlapSize))
                 
-                // Vocoder outputs white noise if input is a multiple of 29
                 var padding = Data()
                 var tempOverlapAddition = 0
                 let length = (end_id-start_id)/bytesInFrame
                 NSLog("QQQ part is of length \(length).")
-                if (length % 2 == 1) {
+                if (length % 2 != 0) {
                     NSLog("QQQ adding padding or overlap...")
                     if (start_id == 0) {
                         padding = Data(repeating: 0, count: bytesInFrame)
@@ -305,7 +304,6 @@ class Synthesizer {
                         tempOverlapAddition = 1
                     }
                 }
-                
                 let vocInput = synthOutput.subdata(in: start_id..<end_id) + padding
                 let vocOutput = try self.vocoder.getAudio(input: vocInput)
                 

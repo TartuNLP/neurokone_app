@@ -6,7 +6,6 @@ PODS:
     - Flutter
   - fluttertoast (0.0.2):
     - Flutter
-    - Toast
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -24,7 +23,6 @@ PODS:
   - tflite_flutter (0.1.0):
     - Flutter
     - TensorFlowLiteSwift
-  - Toast (4.1.0)
 
 DEPENDENCIES:
   - audioplayers_darwin (from `.symlinks/plugins/audioplayers_darwin/ios`)
@@ -43,7 +41,6 @@ SPEC REPOS:
     - TensorFlowLiteC
     - TensorFlowLiteSelectTfOps
     - TensorFlowLiteSwift
-    - Toast
 
 EXTERNAL SOURCES:
   audioplayers_darwin:
@@ -65,14 +62,13 @@ SPEC CHECKSUMS:
   audioplayers_darwin: ccf9c770ee768abb07e26d90af093f7bab1c12ab
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_tts: b88dbc8655d3dc961bc4a796e4e16a4cc1795833
-  fluttertoast: 76fea30fcf04176325f6864c87306927bd7d2038
+  fluttertoast: 2c67e14dce98bbdb200df9e1acf610d7a6264ea1
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   TensorFlowLiteC: 9115580176f050caa70fea478dba3d5a75c612a4
   TensorFlowLiteSelectTfOps: 8dad8028b2179eb80139763644ba78dc30909654
   TensorFlowLiteSwift: 50063271b9ba99202c4d96a969a518eee2b5807e
   tflite_flutter: 1a3d74dd49551bdcca6fa15cab08ce61eb9f8db6
-  Toast: ec33c32b8688982cecc6348adeae667c1b9938da
 
 PODFILE CHECKSUM: 51015eb3c8cf162955191c27d05e42e7ac66eaa4
 

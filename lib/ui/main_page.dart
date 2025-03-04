@@ -46,8 +46,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   late TextEditingController _textEditingController;
   String _fieldText = '';
 
-  bool isSystemPlaying = false;
-  bool isNativePlaying = false;
+  bool isPlaying = false;
 
   bool isSystemVoice = false;
 
@@ -85,28 +84,28 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     tts.systemTts.setStartHandler(() {
       setState(() {
         logger.d("Engine playing");
-        isSystemPlaying = true;
+        isPlaying = true;
       });
     });
 
     tts.systemTts.setCompletionHandler(() {
       setState(() {
         logger.d("Engine playing complete");
-        isSystemPlaying = false;
+        isPlaying = false;
       });
     });
 
     tts.systemTts.setCancelHandler(() {
       setState(() {
         logger.d("Engine playing cancelled");
-        isSystemPlaying = false;
+        isPlaying = false;
       });
     });
 
     tts.systemTts.setErrorHandler((msg) {
       setState(() {
         logger.d("Engine error: $msg");
-        isSystemPlaying = false;
+        isPlaying = false;
       });
     });
   }
@@ -542,12 +541,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   _speakButton() {
     return TextButton(
       style: ButtonStyle(
-        foregroundColor: MaterialStateProperty.all(Colors.white),
-        backgroundColor: MaterialStateProperty.all<Color>(
+        foregroundColor: WidgetStateProperty.all(Colors.white),
+        backgroundColor: WidgetStateProperty.all<Color>(
             (isSystemVoice ? Colors.black : _currentNativeVoice.getColor())
-                .withOpacity(_fieldText.isNotEmpty ? 1 : 0.5)),
-        fixedSize: MaterialStateProperty.all<Size>(const Size.fromWidth(120.0)),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                .withValues(alpha: _fieldText.isNotEmpty ? 1 : 0.5)),
+        fixedSize: WidgetStateProperty.all<Size>(const Size.fromWidth(120.0)),
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18.0),
           ),
@@ -565,16 +564,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
 
   //Executes the text-to-speech.
   Future _speak() async {
-    if (!isSystemVoice) isNativePlaying = true;
+    setState(() {
+      isPlaying = true;
+    });
     tts.speak(_fieldText, _speed, isSystemVoice,
         isSystemVoice ? null : vars.voices.indexOf(_currentNativeVoice));
+    setState(() {
+      isPlaying = false;
+    });
   }
 
   //Button to stop ongoing synthesizing
   _stopButton() {
     return TextButton(
       style: ButtonStyle(
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18.0),
           ),
@@ -591,16 +595,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   //Stops the synthesis.
-  Future _stop() async {
-    if (isSystemVoice) {
-      var result = await tts.systemTts.stop();
-      if (result == 1) setState(() => isSystemPlaying = false);
-    } else {
-      tts.nativeTts.audioPlayer.stopAudio();
-      if (isNativePlaying) tts.stopNative = true;
-      setState(() {
-        isNativePlaying = false;
-      });
-    }
+  _stop() {
+    tts.stopSynthesis();
+    setState(() {
+      isPlaying = false;
+    });
   }
 }
