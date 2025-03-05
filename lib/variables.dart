@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 const String bundleID = 'ee.ut.cs.nlp.neurokone';
 
 const String appTitle = 'TartuNLP Neurokõne';
-const String appVersion = 'v1.2.0';
+const String appVersion = 'v1.3';
 
 String initialLanguage = 'Eesti';
 
