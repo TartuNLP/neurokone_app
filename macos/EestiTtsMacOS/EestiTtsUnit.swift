@@ -172,7 +172,13 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         self.synthesizer.setVoice(voice: voices.firstIndex(of: voice.name)!)
         self.setProsody(ssml: text)
         
-        let sentences = sentprocessor.splitSentences(speaker: voice.name, input_text: text)
+        var sentences = [] as [String]
+        if let match = text.firstMatch(of: /\<say-as interpret-as=\"characters\"\>(.*?)\<\/say-as\>/) {
+            sentences = [String(match.output.1.split(separator: "").joined(separator: "-"))]
+        }
+        else {
+            sentences = sentprocessor.splitSentences(speaker: voice.name, input_text: text)
+        }
         NSLog("QQQ sentences: \(sentences)")
 
         self.sentIdDone = 0

@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/rlellep/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/rlellep/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/rlellep/Desktop/projects/tts/neurokone_app/android/app/.cxx/RelWithDebInfo/5e191j38/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/rlellep/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/rlellep/Desktop/projects/tts/neurokone_app/android/app/.cxx/RelWithDebInfo/5e191j38/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

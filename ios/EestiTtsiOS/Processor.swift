@@ -345,6 +345,14 @@ class Preprocessor {
         "Y": "igrek",
     ]
     
+    private func pronounceCharacters(text: String) -> String {
+        var newText = ""
+        for char in text.split(separator: "-") {
+            newText += ALPHABET[Character(String(char.uppercased()))]! + " "
+        }
+        return newText
+    }
+    
     private func convertToUtf8(text: String) -> String {
         return text.cString(using: String.Encoding.utf8)!.description
     }
@@ -623,8 +631,13 @@ class Preprocessor {
     }
     
     private func cleanTextForEstonian(text: String) -> String {
+        
+        if (text.wholeMatch(of: /[a-zõäöüA-ZÖÄÜÜ](-[a-zõäöüA-ZÖÄÜÜ])*/) != nil) {
+            return pronounceCharacters(text: text)
+        }
+        
         var newText = text
-
+        
         //Temporarily remove sentence end symbol
         var sentEnd = "."
         let lastChar = newText.last!
