@@ -1,2 +1,0 @@
-/Users/rlellep/Desktop/projects/tts/neurokone_app/android/app/.cxx/RelWithDebInfo/5e191j38/x86_64/CMakeFiles/edit_cache.dir
-/Users/rlellep/Desktop/projects/tts/neurokone_app/android/app/.cxx/RelWithDebInfo/5e191j38/x86_64/CMakeFiles/rebuild_cache.dir
