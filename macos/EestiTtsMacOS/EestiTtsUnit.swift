@@ -291,12 +291,12 @@ class Synthesizer {
             let synthOutput: Data = try self.synthesizer.getMelSpectrogram(inputIds: ids)
             self.synthesizer.reload()
 
-            padding = Data()
+            var padding = Data()
             if synthOutput.count/bytesInFrame % 2 == 1 {
                 padding = Data(repeating: 0, count: bytesInFrame)
             }
             
-            vocInput = synthOutput + padding
+            let vocInput = synthOutput + padding
             output = try self.vocoder.getAudio(input: vocInput)
             self.vocoder.reload()
             

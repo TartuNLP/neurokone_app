@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 const String bundleID = 'ee.ut.cs.nlp.neurokone';
 
 const String appTitle = 'TartuNLP Neurokõne';
-const String appVersion = 'v1.4';
+const String appVersion = 'v1.5';
 
 String initialLanguage = 'Eesti';
 
@@ -22,6 +22,7 @@ const Map<String, Map<String, String>> langs = {
     'about': 'Meist',
     'back': 'Tagasi',
     'instructions': 'Juhised',
+    'privacy policy': 'Privaatsuspoliitika',
     'introductionText':
         'Vali sünteeshääl, kirjuta tekst alla lahtrisse ning saad kuulata sünteesitud kõne.',
     'instructionText':
@@ -73,6 +74,7 @@ const Map<String, Map<String, String>> langs = {
     'about': 'About us',
     'back': 'Back',
     'instructions': 'Instructions',
+    'privacy policy': 'Privacy Policy',
     'introductionText':
         'Choose a synthesis engine, write something into the textfield below and you can listen to synthesized speech.',
     'instructionText':
