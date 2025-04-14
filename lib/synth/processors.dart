@@ -6,17 +6,22 @@ import 'package:unorm_dart/unorm_dart.dart' as unorm;
 class SentProcessor {
   Logger logger = Logger();
   //For splitting the whole text into sentences.
-  RegExp sentencesSplit =
-      RegExp(r'[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))');
+  RegExp sentencesSplit = RegExp(
+    r'[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))',
+  );
   //RegExp sentencesSplit = RegExp(r'(?=[.!?])((((" )| |( "))(?=[a-zõäöüšžA-ZÕÄÖÜŠŽ0-9]))|("?$))');
   //For splitting long sentences into parts
-  RegExp sentenceSplit =
-      RegExp(r'(?<!^)([,;!?]"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)|–) )');
+  RegExp sentenceSplit = RegExp(
+    r'(?<!^)([,;!?]"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)|–) )',
+  );
   //For stripping unnecessary symbols from the beginning
   RegExp strip = RegExp(r'(^[,;!?–]?\"? ?)|([,;!?–]?\"? ?$)');
 
   List<String> _splitSentence(
-      String text, int currentSentId, RegExpMatch? match) {
+    String text,
+    int currentSentId,
+    RegExpMatch? match,
+  ) {
     List<String> sentenceParts = [];
     String sentence;
     if (match != null) {
@@ -28,9 +33,9 @@ class SentProcessor {
     for (RegExpMatch split in sentenceSplit.allMatches(sentence)) {
       if (split.start > 20 + currentCharId &&
           split.end < sentence.length - 20) {
-        sentenceParts.add(sentence
-            .substring(currentCharId, split.start)
-            .replaceAll(strip, ''));
+        sentenceParts.add(
+          sentence.substring(currentCharId, split.start).replaceAll(strip, ''),
+        );
         currentCharId = split.start;
       }
     }
@@ -65,15 +70,18 @@ class Preprocessor {
   Logger logger = Logger();
 
   RegExp CURLY_RE = RegExp(r'(.*?)\{(.+?)\}(.*)');
-  RegExp DECIMALS_RE =
-      RegExp(r'([0-9]+[,.][0-9]+)|([0-9]{1,3}(,[0-9]{3})+.[0-9]+)');
-  RegExp CURRENCY_RE =
-      RegExp(r'([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])');
+  RegExp DECIMALS_RE = RegExp(
+    r'([0-9]+[,.][0-9]+)|([0-9]{1,3}(,[0-9]{3})+.[0-9]+)',
+  );
+  RegExp CURRENCY_RE = RegExp(
+    r'([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])',
+  );
   RegExp ORDINAL_RE = RegExp(r'[0-9]+\.');
   RegExp NUMBER_RE = RegExp(r'[0-9]+');
   RegExp TRINUMBER_RE = RegExp(r'[0-9][0-9]?[0-9]?( [0-9]{3})+');
   RegExp DECIMALSCURRENCYNUMBER_RE = RegExp(
-      r'(([0-9]+[,.][0-9]+)|([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])|[0-9]+\.?)');
+    r'(([0-9]+[,.][0-9]+)|([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])|[0-9]+\.?)',
+  );
 
   static Map<String, String> CURRENCIES = {
     '£s': ' nael',
@@ -105,7 +113,7 @@ class Preprocessor {
     "ringis",
     "paiku",
     "aegu",
-    "eest"
+    "eest",
   ];
   static List<String> PRONOUNCEABLE_ACRONYMS = [
     "ABBA",
@@ -163,7 +171,7 @@ class Preprocessor {
     "VAZ",
     "VEB",
     "WADA",
-    "WiFi"
+    "WiFi",
   ];
   static Map<String, String> AUDIBLE_SYMBOLS = {
     '@': 'ät',
@@ -185,7 +193,7 @@ class Preprocessor {
     '/': 'jagada',
     '−': 'miinus',
     '-': 'kuni',
-    '–': 'kuni'
+    '–': 'kuni',
   };
   static Map<String, String> ABBREVIATIONS = {
     'apr': 'aprill',
@@ -355,33 +363,33 @@ class Preprocessor {
     'M': 1000,
   };
   static Map<String, String> ALPHABET = {
-    'A': 'aa',
-    'B': 'bee',
-    'C': 'tsee',
-    'D': 'dee',
-    'E': 'ee',
+    'A': 'aaa',
+    'B': 'beee',
+    'C': 'tseee',
+    'D': 'deee',
+    'E': 'eeee',
     'F': 'eff',
-    'G': 'gee',
-    'H': 'haa',
-    'I': 'ii',
+    'G': 'geee',
+    'H': 'hhaa',
+    'I': 'iii',
     'J': 'jott',
-    'K': 'kaa',
+    'K': 'khaa',
     'L': 'ell',
-    'M': 'emm',
-    'N': 'enn',
-    'O': 'oo',
-    'P': 'pee',
-    'Q': 'kuu',
-    'R': 'err',
+    'M': 'emmm',
+    'N': 'ennn',
+    'O': 'ooo',
+    'P': 'ppee',
+    'Q': 'khuu',
+    'R': 'errr',
     'S': 'ess',
-    'Š': 'šaa',
-    'Z': 'zett',
-    'Ž': 'žee',
-    'T': 'tee',
+    'Š': 'šhaa',
+    'Z': 'tzett',
+    'Ž': 'žžeee',
+    'T': 'tteee',
     'U': 'uu',
-    'V': 'vee',
+    'V': 'veee',
     'W': 'kaksisvee',
-    'Õ': 'õõ',
+    'Õ': 'õõõ',
     'Ä': 'ää',
     'Ö': 'öö',
     'Ü': 'üü',
@@ -416,10 +424,14 @@ class Preprocessor {
     while (m != null) {
       if (m.groupCount == 2) {
         text = text.replaceFirst(
-            label, m.group(1).toString() + target + m.group(2).toString());
+          label,
+          m.group(1).toString() + target + m.group(2).toString(),
+        );
       } else if (m.groupCount == 3) {
         text = text.replaceFirst(
-            label, m.group(1).toString() + target + m.group(3).toString());
+          label,
+          m.group(1).toString() + target + m.group(3).toString(),
+        );
       }
       m = label.firstMatch(text);
     }
@@ -599,8 +611,8 @@ class Preprocessor {
       }
       // if current token is a symbol
       if (!RegExp(
-              r'([A-ZÄÖÜÕŽŠa-zäöüõšž]+(\.(?!( [A-ZÄÖÜÕŽŠ])))?)|([£$€]?[0-9.,]+[£$€]?)')
-          .hasMatch(word)) {
+        r'([A-ZÄÖÜÕŽŠa-zäöüõšž]+(\.(?!( [A-ZÄÖÜÕŽŠ])))?)|([£$€]?[0-9.,]+[£$€]?)',
+      ).hasMatch(word)) {
         if (AUDIBLE_SYMBOLS.containsKey(word)) {
           if (AUDIBLE_CONNECTING_SYMBOLS.contains(word) &&
               !(i > 0 &&
@@ -631,8 +643,10 @@ class Preprocessor {
             (i < tokens.length - 1 &&
                 GENITIVE_POSTPOSITIONS.contains(tokens[i + 1])) ||
             (i < tokens.length - 2 &&
-                [CURRENCIES['\$g'], CURRENCIES['€g']]
-                    .contains(" ${tokens[i + 1]}") &&
+                [
+                  CURRENCIES['\$g'],
+                  CURRENCIES['€g'],
+                ].contains(" ${tokens[i + 1]}") &&
                 GENITIVE_POSTPOSITIONS.contains(tokens[i + 2]))) {
           kaane = 'O';
         }
@@ -686,7 +700,9 @@ class Preprocessor {
       m = TRINUMBER_RE.firstMatch(text);
     }
     //text = _subBetween(text, RegExp(r'([0-9]) ([0-9]{3})(?!\d)'), '');
-    text = text.substring(0, 1).toLowerCase() + text.substring(1);
+    if (text.substring(1, 2).toLowerCase() == text.substring(1, 2)) {
+      text = text.substring(0, 1).toLowerCase() + text.substring(1);
+    }
 
     //Replace dash with comma
     text = text.replaceAll(" – ", ", ");
@@ -829,7 +845,7 @@ class NumberNormEt {
     'seitse',
     'kaheksa',
     'üheksa',
-    'kümme'
+    'kümme',
   ];
 
   static String toOrdinal(int n, String kaane) {

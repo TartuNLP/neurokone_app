@@ -311,33 +311,33 @@ class Preprocessor {
         "M": 1000,
     ]
     private final let ALPHABET: [Character: String] = [
-        "A": "aa",
-        "B": "bee",
-        "C": "tsee",
-        "D": "dee",
-        "E": "ee",
+        "A": "aaa",
+        "B": "beee",
+        "C": "tseee",
+        "D": "deee",
+        "E": "eeee",
         "F": "eff",
-        "G": "gee",
-        "H": "haa",
-        "I": "ii",
+        "G": "geee",
+        "H": "hhaa",
+        "I": "iii",
         "J": "jott",
-        "K": "kaa",
+        "K": "khaa",
         "L": "ell",
-        "M": "emm",
-        "N": "enn",
-        "O": "oo",
-        "P": "pee",
-        "Q": "kuu",
-        "R": "err",
+        "M": "emmm",
+        "N": "ennn",
+        "O": "ooo",
+        "P": "ppee",
+        "Q": "khuu",
+        "R": "errr",
         "S": "ess",
-        "Š": "šaa",
-        "Z": "zett",
-        "Ž": "žee",
-        "T": "tee",
+        "Š": "šhaa",
+        "Z": "tzett",
+        "Ž": "žžeee",
+        "T": "tteee",
         "U": "uu",
-        "V": "vee",
+        "V": "veee",
         "W": "kaksisvee",
-        "Õ": "õõ",
+        "Õ": "õõõ",
         "Ä": "ää",
         "Ö": "öö",
         "Ü": "üü",
@@ -667,7 +667,10 @@ class Preprocessor {
             newText = newText.replacingOccurrences(of: " ", with: "", range: match.range)
         }
         //newText  = subBetween(text: newText, label: /([0-9]) ([0-9]{3})(?!\d)/, target: "")
-        newText = newText.prefix(1).lowercased() + newText.dropFirst()
+        let secondCharIndex = newText.index(newText.startIndex, offsetBy: 1)
+        if String(newText[secondCharIndex]) == String(newText[secondCharIndex]).lowercased() {
+            newText = newText.prefix(1).lowercased() + newText.dropFirst()
+        }
         
         //Replace dash with comma
         newText = newText.replacingOccurrences(of: " – ", with: ", ")

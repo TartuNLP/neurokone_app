@@ -339,33 +339,33 @@ class Preprocessor {
     }
     private static final Map<Character, String> ALPHABET = new HashMap<>();
     static {
-        ALPHABET.put('A', "aa");
-        ALPHABET.put('B', "bee");
-        ALPHABET.put('C', "tsee");
-        ALPHABET.put('D', "dee");
-        ALPHABET.put('E', "ee");
+        ALPHABET.put('A', "aaa");
+        ALPHABET.put('B', "beee");
+        ALPHABET.put('C', "tseee");
+        ALPHABET.put('D', "deee");
+        ALPHABET.put('E', "eeee");
         ALPHABET.put('F', "eff");
-        ALPHABET.put('G', "gee");
-        ALPHABET.put('H', "haa");
-        ALPHABET.put('I', "ii");
+        ALPHABET.put('G', "geee");
+        ALPHABET.put('H', "hhaa");
+        ALPHABET.put('I', "iii");
         ALPHABET.put('J', "jott");
-        ALPHABET.put('K', "kaa");
+        ALPHABET.put('K', "khaa");
         ALPHABET.put('L', "ell");
-        ALPHABET.put('M', "emm");
-        ALPHABET.put('N', "enn");
-        ALPHABET.put('O', "oo");
-        ALPHABET.put('P', "pee");
-        ALPHABET.put('Q', "kuu");
-        ALPHABET.put('R', "err");
+        ALPHABET.put('M', "emmm");
+        ALPHABET.put('N', "ennn");
+        ALPHABET.put('O', "ooo");
+        ALPHABET.put('P', "ppee");
+        ALPHABET.put('Q', "khuu");
+        ALPHABET.put('R', "errr");
         ALPHABET.put('S', "ess");
-        ALPHABET.put('Š', "šaa");
-        ALPHABET.put('Z', "zett");
-        ALPHABET.put('Ž', "žee");
-        ALPHABET.put('T', "tee");
+        ALPHABET.put('Š', "šhaa");
+        ALPHABET.put('Z', "tzett");
+        ALPHABET.put('Ž', "žžeee");
+        ALPHABET.put('T', "tteee");
         ALPHABET.put('U', "uu");
-        ALPHABET.put('V', "vee");
+        ALPHABET.put('V', "veee");
         ALPHABET.put('W', "kaksisvee");
-        ALPHABET.put('Õ', "õõ");
+        ALPHABET.put('Õ', "õõõ");
         ALPHABET.put('Ä', "ää");
         ALPHABET.put('Ö', "öö");
         ALPHABET.put('Ü', "üü");
@@ -647,8 +647,10 @@ class Preprocessor {
             m = TRINUMBER_RE.matcher(text);
         }
         //text = subBetween(text, "([0-9]) ([0-9]{3})(?!\\d)", "");
-        text = text.substring(0,1).toLowerCase() + text.substring(1);
-
+        if (text.substring(1, 2).toLowerCase() == text.substring(1, 2)) {
+            text = text.substring(0,1).toLowerCase() + text.substring(1);
+        }
+        
         //Replace dash with comma
         text = text.replace(" – ", ", ");
         //Remove end of quote before comma
