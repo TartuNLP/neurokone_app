@@ -9,7 +9,8 @@
         android:id="@+id/tts_voices"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="12dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginLeft="12dp"
         android:orientation="vertical">
 
         <!--Selection of synthesis voices-->

@@ -8,6 +8,16 @@
 
 import Foundation
 
+extension String {
+    subscript(i: Int) -> Character? {
+        guard i >= 0 && i < self.count else {
+            return nil // Or throw an error
+        }
+        let index = self.index(self.startIndex, offsetBy: i)
+        return self[index]
+    }
+}
+
 class SentProcessor {
     private final let sentencesSplit = /[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))/
     //private final let sentencesSplit = /[.!?]((((\" )| |( \")))|(\"?$))/
@@ -667,8 +677,7 @@ class Preprocessor {
             newText = newText.replacingOccurrences(of: " ", with: "", range: match.range)
         }
         //newText  = subBetween(text: newText, label: /([0-9]) ([0-9]{3})(?!\d)/, target: "")
-        let secondCharIndex = newText.index(newText.startIndex, offsetBy: 1)
-        if String(newText[secondCharIndex]) == String(newText[secondCharIndex]).lowercased() {
+        if newText.count > 1 && String(newText[1]!) == String(newText[1]!).lowercased() {
             newText = newText.prefix(1).lowercased() + newText.dropFirst()
         }
 
@@ -676,7 +685,16 @@ class Preprocessor {
         newText = newText.replacingOccurrences(of: " – ", with: ", ")
         //Remove end of quote before comma
         newText = newText.replacingOccurrences(of: ",\"", with: ",")
-        
+
+        var ru = false
+        for char in RuProcessor.alphabet {
+            if newText.contains(char) {
+                ru = true
+                newText = RuProcessor.transcribe_text(text: newText)
+                break
+            }
+        }
+
         // split text into words and symbols
         var tokens: [String] = []
         while let match = newText.firstMatch(of: /([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\S/) {
@@ -687,7 +705,9 @@ class Preprocessor {
         newText = newText.lowercased()
         newText += sentEnd
         newText = collapseWhitespace(text: newText)
-        newText = expandAbbreviations(text: newText)
+        if !ru {
+            newText = expandAbbreviations(text: newText)
+        }
         newText = expandLastResort(text: newText)
         newText = collapseWhitespace(text: newText)
         
@@ -709,6 +729,204 @@ class Preprocessor {
             }
         }
         return sequence.joined(separator: " ")
+    }
+}
+
+class RuProcessor {
+    static let d: [Character: String] = [
+        "а": "a",
+        "б": "b",
+        "в": "v",
+        "г": "g",
+        "д": "d",
+        "ж": "ž",
+        "з": "z",
+        "к": "k",
+        "л": "l",
+        "м": "m",
+        "н": "n",
+        "о": "o",
+        "п": "p",
+        "р": "r",
+        "т": "t",
+        "у": "u",
+        "ф": "f",
+        "ц": "ts",
+        "ч": "tš",
+        "ш": "š",
+        "щ": "štš",
+        "ъ": "",
+        "ы": "õ",
+        "э": "e",
+        "ю": "ju",
+    ]
+
+    static let alphabet = "абвгджзклмнопртуфцчшщъыэюийеёсхья"
+    static let vowels = "аеёиоуыэюя"
+    static let appendage = "йьъ"
+    static let consonants = "бвгджзйклмнпрстфхцчшщьъ"
+    static let sonorants = "лмнр"
+    
+    /// Splits a word into a list of syllables.
+    static func splitWord(word: String) -> [String] {
+        let syllablesRegex = "[" + consonants + "]*[" + vowels + "]([" + consonants + "]*\\$)?";
+        let syllablesRegexp = try! Regex(syllablesRegex)
+        let syllableRegex = "^[" + consonants + "]*[" + appendage + "]";
+        let syllableRegexp = try! Regex(syllablesRegex)
+        
+        var syllables: [String] = []
+        var startId = word.startIndex
+        while let match = word[startId...].firstMatch(of: syllablesRegexp) {
+            syllables.append(String(word[match.range]))
+            startId = match.range.upperBound
+        }
+        
+        for i in 1...syllables.count {
+            let match = syllables[i].firstMatch(of: syllableRegexp)
+            if match != nil && syllables[i] != "ться" {
+                let matchString = syllables[i][match!.range]
+                syllables[i-1] = syllables[i-1] + syllables[i][match!.range]
+                syllables[i] = String(syllables[i].dropFirst(matchString.count))
+            } else if sonorants.contains(syllables[i][0]!) && !vowels.contains(syllables[i][1]!) {
+                syllables[i - 1] = syllables[i - 1] + String(syllables[i][0]!)
+                syllables[i] = String(syllables[i].dropFirst())
+            }
+        }
+        return syllables
+    }
+
+    static func number_of_syllables(word: String) -> Int {
+        return splitWord(word: word).count
+    }
+
+    // "и" : üldjuhul "i"/sõna algul vokaali ees "j"
+    // "й" : üldjuhul "i"/sõna algul vokaali ees "j"
+    // "ий" : üldjuhul "ii"/kahe- ja enamasilbilise sõna lõpul "i"
+    static func case_i(word: String, i: Int) -> String {
+        if (word.count > 1) {
+            if (i == 0 && vowels.contains(word[i + 1]!)) {
+                return "j"
+            } else if (i == word.count - 1 &&
+                 word.hasSuffix("ий") &&
+                 number_of_syllables(word: word) >= 2) {
+                return ""
+            }
+        }
+        return "i"
+    }
+
+    // "e" : üldjuhul "e"/sõna algul, samuti vokaali, ь- ning ъ-märgi järel "je"
+    static func case_e(word: String, i: Int) -> String {
+        if (i == 0 ||
+            vowels.contains(word[i - 1]!) ||
+            word[i - 1] == "ъ") {
+            return "je"
+        }
+        return "e"
+    }
+
+    // "ё" : üldjuhul "jo"/ж, ч, ш, щ järel "o"; Märkus. Täht е-ga märgitud ё transkribeeritakse nagu ё
+    static func case_jo(word: String, i: Int) -> String {
+        if (i > 0 && ["ж", "ч", "ш", "щ", "ь"].contains(word[i - 1]!)) {
+            return "o"
+        }
+        return "jo"
+    }
+
+    // "с" : üldjuhul "s"/vokaalide vahel ja sõna lõpul vokaali järel "ss"; Märkus. Liitsõnalise nime järelkomponendi algul oleva с-i võib asendada ühekordse s-iga (Новосибирск = Novosibirsk)
+    static func case_s(word: String, i: Int) -> String {
+        if (i > 0) {
+            if (i == word.count - 1 && vowels.contains(word[i - 1]!) || i < word.count - 1 &&
+                vowels.contains(word[i - 1]!) &&
+                vowels.contains(word[i + 1]!)) {
+                return "ss"
+            }
+        }
+        return "s"
+    }
+
+  // "х" : üldjuhul "h"/vokaalide vahel ja sõna lõpul vokaali järel "hh"; Märkus. Liitsõnalise nime järelkomponendi algul oleva х võib asendada ühekordse h-ga (Самоходов = Samohodov)
+    static func case_h(word: String, i: Int) -> String {
+        if (i > 0) {
+            if (i == word.count - 1 && vowels.contains(word[i - 1]!) || i < word.count - 1 &&
+                vowels.contains(word[i - 1]!) &&
+                vowels.contains(word[i + 1]!)) {
+                return "hh"
+            }
+        }
+        return "h"
+    }
+
+  // "ь" : üldjuhul jääb märkimata/vokaali, välja arvatud e, ё, ю, я ees "j"
+    static func case_snak(word: String, i: Int) -> String {
+        if (i < word.count - 1) {
+            if (["e", "ё"].contains(word[i + 1])) {
+                return "j"
+            }
+        }
+        return ""
+    }
+
+  // "я" : üldjuhul "ja"/Väljaspool dokumente ja teatmeteoseid võib eesnimede lõpul и järel я asendada a-ga (Евгения = Jevgenia, Лидия = Lidia)
+    static func case_ja(word: String, i: Int) -> String {
+        return "ja"
+    }
+
+    static func transcribe_word(word: String) -> String {
+        let lower_word = word.lowercased()
+        var new_word = ""
+        for i in 0...lower_word.count {
+            switch (lower_word[i]) {
+            case "и":
+                new_word.append(case_i(word: lower_word, i: i))
+                break
+            case "й":
+                new_word.append(case_i(word: lower_word, i: i))
+                break
+            case "е":
+                new_word.append(case_e(word: lower_word, i: i))
+                break
+            case "ё":
+                new_word.append(case_jo(word: lower_word, i: i))
+                break
+            case "с":
+                new_word.append(case_s(word: lower_word, i: i))
+                break
+            case "х":
+                new_word.append(case_h(word: lower_word, i: i))
+                break
+            case "ь":
+                new_word.append(case_snak(word: lower_word, i: i))
+                break
+            case "я":
+                new_word.append(case_ja(word: lower_word, i: i))
+                break
+            default:
+                if (d.keys.contains(lower_word[i]!)) {
+                    new_word.append(d[lower_word[i]!]!)
+                }
+                break
+            }
+        }
+        if (word != lower_word) {
+            return new_word[0]!.uppercased() + new_word.dropFirst()
+        }
+        return new_word
+    }
+
+    static func transcribe_text(text: String) -> String {
+        var output: [String] = []
+        let regex = /[ЁёА-я]+|[^ЁёА-я]+/
+        var startId = text.startIndex
+        while let match = text[startId...].firstMatch(of: regex) {
+            var word: String = String(text[match.range])
+            if (alphabet.contains(word.first!.lowercased())) {
+                word = transcribe_word(word: word)
+            }
+            output.append(word)
+            startId = match.range.upperBound
+        }
+        return output.joined(separator: "")
     }
 }
 

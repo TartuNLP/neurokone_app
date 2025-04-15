@@ -562,6 +562,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
+  syllables_split_ru:
+    dependency: "direct main"
+    description:
+      name: syllables_split_ru
+      sha256: "4ec4aea77144b96bea0f9350403c72968a4fa45b012cbafc585f43924c06c05f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   synchronized:
     dependency: transitive
     description:

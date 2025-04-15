@@ -4,14 +4,11 @@ import 'package:flutter/material.dart';
 const String bundleID = 'ee.ut.cs.nlp.neurokone';
 
 const String appTitle = 'TartuNLP Neurokõne';
-const String appVersion = 'v1.5';
+const String appVersion = 'v1.6';
 
 String initialLanguage = 'Eesti';
 
-List<Locale> locales = const [
-  Locale('en', 'US'),
-  Locale('et', 'ET'),
-];
+List<Locale> locales = const [Locale('en', 'US'), Locale('et', 'ET')];
 
 //Defaults for Estonian and English UI.
 const Map<String, Map<String, String>> langs = {
@@ -118,7 +115,7 @@ const Map<String, Map<String, String>> langs = {
     'dropdown': 'Choose voice',
     'hint': 'Write here...',
     'tempo': 'Tempo:',
-  }
+  },
 };
 
 const Map<String, Color> colors = {

@@ -1,13 +1,18 @@
 package ee.ut.cs.nlp.neurokone;
 
+import android.os.Build;
 import android.util.Log;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,7 +66,7 @@ class SentProcessor {
             Log.d(TAG, "sent: " + sentence);
 
             // Sentence splitting in case of low memory
-            for (String sentPart : splitSentence(sentence)) sentences.add(sentPart);
+            sentences.addAll(splitSentence(sentence));
             
             //Without splitting sentences
             //sentences.add(sentence);
@@ -451,8 +456,10 @@ class Preprocessor {
     }
 
     private String unifyNumberPunctuation(String text) {
-        if (text.contains(".") && text.contains(",") || text.chars().filter(ch -> ch == ',').count() > 1) {
-            return text.replace(",", "");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if (text.contains(".") && text.contains(",") || text.chars().filter(ch -> ch == ',').count() > 1) {
+                return text.replace(",", "");
+            }
         }
         return text;
     }
@@ -647,7 +654,7 @@ class Preprocessor {
             m = TRINUMBER_RE.matcher(text);
         }
         //text = subBetween(text, "([0-9]) ([0-9]{3})(?!\\d)", "");
-        if (text.substring(1, 2).toLowerCase() == text.substring(1, 2)) {
+        if (text.length() > 1 && text.substring(1, 2).toLowerCase().equals(text.substring(1, 2))) {
             text = text.substring(0,1).toLowerCase() + text.substring(1);
         }
         
@@ -655,6 +662,15 @@ class Preprocessor {
         text = text.replace(" – ", ", ");
         //Remove end of quote before comma
         text = text.replace(",\"", ",");
+
+        boolean ru = false;
+        for (int id = 0; id < RuProcessor.alphabet.length(); id++) {
+            if (text.contains(String.valueOf(RuProcessor.alphabet.charAt(id)))) {
+                ru = true;
+                text = RuProcessor.transcribe_text(text);
+                break;
+            }
+        }
 
         // split text into words ands symbols
         Matcher tokenizer = Pattern.compile("([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\\S").matcher(text);
@@ -666,7 +682,9 @@ class Preprocessor {
         text = text.toLowerCase();
         text += sentEnd;
         text = collapseWhitespace(text);
-        text = expandAbbreviations(text);
+        if (!ru) {
+            text = expandAbbreviations(text);
+        }
 
         Log.d(TAG, "text preprocessed: " + text);
         return text;
@@ -681,7 +699,7 @@ class Preprocessor {
             return ".";
         }
         List<String> sequence = new ArrayList<>();
-        while (text!= null && text.length() > 0) {
+        while (text!= null && !text.isEmpty()) {
             Matcher m = Pattern.compile("(.*?)\\{(.+?)\\}(.*)").matcher(text);
             if (!m.find()) {
                 sequence.add(cleanTextForEstonian(text));
@@ -692,6 +710,208 @@ class Preprocessor {
             text = m.group(3);
         }
         return String.join(" ", sequence);
+    }
+}
+
+class RuProcessor {
+    private static final Map<Character, String> d = new HashMap<>();
+    static {
+        d.put('а', "a");
+        d.put('б', "b");
+        d.put('в', "v");
+        d.put('г', "g");
+        d.put('д', "d");
+        d.put('ж', "ž");
+        d.put('з', "z");
+        d.put('к', "k");
+        d.put('л', "l");
+        d.put('м', "m");
+        d.put('н', "n");
+        d.put('о', "o");
+        d.put('п', "p");
+        d.put('р', "r");
+        d.put('т', "t");
+        d.put('у', "u");
+        d.put('ф', "f");
+        d.put('ц', "ts");
+        d.put('ч', "tš");
+        d.put('ш', "š");
+        d.put('щ', "štš");
+        d.put('ъ', "");
+        d.put('ы', "õ");
+        d.put('э', "e");
+        d.put('ю', "ju");
+    }
+
+    static String alphabet = "абвгджзклмнопртуфцчшщъыэюийеёсхья";
+    static String vowels = "аеёиоуыэюя";
+    static String appendage = "йьъ";
+    static String consonants = "бвгджзйклмнпрстфхцчшщьъ";
+    static String sonorants = "лмнр";
+
+    /// Splits a word into a list of syllables.
+    static List<String> splitWord(String word) {
+        String syllablesRegex = "[" + consonants + "]*[" + vowels + "]([" + consonants + "]*\\$)?";
+        Pattern syllablesRegexp = Pattern.compile(syllablesRegex);
+        String syllableRegex = "^[" + consonants + "]*[" + appendage + "]";
+        Pattern syllableRegexp = Pattern.compile(syllableRegex)
+
+        List<String> syllables = new ArrayList<>();
+        Matcher matcher;
+        while ((matcher = syllablesRegexp.matcher(word)).find()) {
+            syllables.add(matcher.group(0));
+        }
+        for (int i = 1; i < syllables.size(); i++) {
+            matcher = syllableRegexp.matcher(syllables.get(i));
+            if (matcher.find() && !Objects.equals(syllables.get(i), "ться")) {
+                syllables.set(i - 1, syllables.get(i - 1) + matcher.group(0));
+                syllables.set(i, syllables.get(i).substring(Objects.requireNonNull(matcher.group(0)).length()));
+            } else if (sonorants.contains(String.valueOf(syllables.get(i).charAt(0))) && !vowels.contains(String.valueOf(syllables.get(i).charAt(1)))) {
+                syllables.set(i - 1, syllables.get(i - 1) + syllables.get(i).charAt(0));
+                syllables.set(i, syllables.get(i).substring(1));
+            
+        }
+        return syllables;
+    }
+
+    static int number_of_syllables(String word) {
+        return splitWord(word).size();
+    }
+
+    // "и" : üldjuhul "i"/sõna algul vokaali ees "j"
+    // "й" : üldjuhul "i"/sõna algul vokaali ees "j"
+    // "ий" : üldjuhul "ii"/kahe- ja enamasilbilise sõna lõpul "i"
+    static String case_i(String word, int index) {
+        if (word.length() > 1) {
+            if (index == 0 && vowels.contains(String.valueOf(word.charAt(index + 1)))) {
+                return "j";
+            } else if (index == word.length() - 1 &&
+                word.endsWith("ий") &&
+                number_of_syllables(word) >= 2) {
+                return "";
+            }
+        }
+        return "i";
+    }
+
+    // "e" : üldjuhul "e"/sõna algul, samuti vokaali, ь- ning ъ-märgi järel "je"
+    static String case_e(String word, int index) {
+        if (index == 0 ||
+            vowels.contains(String.valueOf(word.charAt(index - 1))) ||
+            word.charAt(index - 1) == 'ъ') {
+            return "je";
+        }
+        return "e";
+    }
+
+    // "ё" : üldjuhul "jo"/ж, ч, ш, щ järel "o"; Märkus. Täht е-ga märgitud ё transkribeeritakse nagu ё
+    static String case_jo(String word, int index) {
+        if (index > 0 && List.of(new Character[]{'ж', 'ч', 'ш', 'щ', 'ь'}).contains(word.charAt(index - 1))) {
+            return "o";
+        }
+        return "jo";
+    }
+
+    // "с" : üldjuhul "s"/vokaalide vahel ja sõna lõpul vokaali järel "ss"; Märkus. Liitsõnalise nime järelkomponendi algul oleva с-i võib asendada ühekordse s-iga (Новосибирск = Novosibirsk)
+    static String case_s(String word, int index) {
+        if (index > 0) {
+            String prev = String.valueOf(word.charAt(index - 1));
+            if (index == word.length() - 1 && vowels.contains(prev) ||
+                index < word.length() - 1 &&
+                vowels.contains(prev) &&
+                vowels.contains(String.valueOf(word.charAt(index + 1)))) {
+                return "ss";
+            }
+        }
+        return "s";
+    }
+
+    // "х" : üldjuhul "h"/vokaalide vahel ja sõna lõpul vokaali järel "hh"; Märkus. Liitsõnalise nime järelkomponendi algul oleva х võib asendada ühekordse h-ga (Самоходов = Samohodov)
+    static String case_h(String word, int index) {
+        if (index > 0) {
+            String prev = String.valueOf(word.charAt(index - 1));
+            if (index == word.length() - 1 && vowels.contains(prev) ||
+                index < word.length() - 1 &&
+                vowels.contains(prev) &&
+                vowels.contains(String.valueOf(word.charAt(index + 1)))) {
+                return "hh";
+            }
+        }
+        return "h";
+    }
+
+    // "ь" : üldjuhul jääb märkimata/vokaali, välja arvatud e, ё, ю, я ees "j"
+    static String case_snak(String word, int index) {
+        if (index < word.length() - 1) {
+            if (List.of(new Character[]{'e', 'ё'}).contains(word.charAt(index + 1))) {
+                return "j";
+            }
+        }
+        return "";
+    }
+
+    // "я" : üldjuhul "ja"/Väljaspool dokumente ja teatmeteoseid võib eesnimede lõpul и järel я asendada a-ga (Евгения = Jevgenia, Лидия = Lidia)
+    static String case_ja(String word, int index) {
+        return "ja";
+    }
+
+    static String transcribe_word(String word) {
+        String lower_word = word.toLowerCase();
+        StringBuilder new_word = new StringBuilder();
+        for (int index = 0; index < lower_word.length(); index++) {
+            switch (lower_word.charAt(index)) {
+                case 'и':
+                    new_word.append(case_i(lower_word, index));
+                    break;
+                case 'й':
+                    new_word.append(case_i(lower_word, index));
+                    break;
+                case 'е':
+                    new_word.append(case_e(lower_word, index));
+                    break;
+                case 'ё':
+                    new_word.append(case_jo(lower_word, index));
+                    break;
+                case 'с':
+                    new_word.append(case_s(lower_word, index));
+                    break;
+                case 'х':
+                    new_word.append(case_h(lower_word, index));
+                    break;
+                case 'ь':
+                    new_word.append(case_snak(lower_word, index));
+                    break;
+                case 'я':
+                    new_word.append(case_ja(lower_word, index));
+                    break;
+                default:
+                    if (d.containsKey(lower_word.charAt(index))) {
+                        new_word.append(d.get(lower_word.charAt(index)));
+                    }
+                    break;
+            }
+        }
+        if (!word.equals(lower_word)) {
+            return String.valueOf(new_word.charAt(0)).toUpperCase() + new_word.substring(1);
+        }
+        return new_word.toString();
+    }
+
+    static String transcribe_text(String text) {
+        List<String> output = new ArrayList<>();
+
+        Pattern regex = Pattern.compile("[ЁёА-я]+|[^ЁёА-я]+");
+        Matcher matcher;
+        int startId = 0;
+        while ((matcher = regex.matcher(text)).find(startId)) {
+            String word = text.substring(startId, matcher.end());
+            if (alphabet.contains(String.valueOf(Character.toLowerCase(word.charAt(0))))) {
+                word = transcribe_word(word);
+            }
+            output.add(word);
+            startId = matcher.end();
+            }
+        return String.join("", output);
     }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'dart:math' as math;
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
+import 'package:syllables_split_ru/syllables_split_ru.dart' as syllables;
 
 class SentProcessor {
   Logger logger = Logger();
@@ -700,7 +701,8 @@ class Preprocessor {
       m = TRINUMBER_RE.firstMatch(text);
     }
     //text = _subBetween(text, RegExp(r'([0-9]) ([0-9]{3})(?!\d)'), '');
-    if (text.substring(1, 2).toLowerCase() == text.substring(1, 2)) {
+    if (text.length > 1 &&
+        text.substring(1, 2).toLowerCase() == text.substring(1, 2)) {
       text = text.substring(0, 1).toLowerCase() + text.substring(1);
     }
 
@@ -708,6 +710,12 @@ class Preprocessor {
     text = text.replaceAll(" – ", ", ");
     //Remove end of quote before comma
     text = text.replaceAll(",\"", ",");
+
+    bool ru = false;
+    if (RuProcessor.alphabet.split('').any(text.contains)) {
+      ru = true;
+      text = RuProcessor.transcribe_text(text);
+    }
 
     // split text into words ands symbols
     RegExp tokenizer = RegExp(r'([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\S');
@@ -720,7 +728,9 @@ class Preprocessor {
     text = text.toLowerCase();
     text += sentEnd;
     text = _collapseWhitespace(text);
-    text = _expandAbbreviations(text);
+    if (!ru) {
+      text = _expandAbbreviations(text);
+    }
     text = text.toLowerCase();
 
     logger.d('Text preprocessed:$text');
@@ -747,6 +757,173 @@ class Preprocessor {
       sentence = m.group(3)!;
     }
     return sequence.join('');
+  }
+}
+
+class RuProcessor {
+  static Map<String, String> d = {
+    'а': 'a',
+    'б': 'b',
+    'в': 'v',
+    'г': 'g',
+    'д': 'd',
+    'ж': 'ž',
+    'з': 'z',
+    'к': 'k',
+    'л': 'l',
+    'м': 'm',
+    'н': 'n',
+    'о': 'o',
+    'п': 'p',
+    'р': 'r',
+    'т': 't',
+    'у': 'u',
+    'ф': 'f',
+    'ц': 'ts',
+    'ч': 'tš',
+    'ш': 'š',
+    'щ': 'štš',
+    'ъ': '',
+    'ы': 'õ',
+    'э': 'e',
+    'ю': 'ju',
+  };
+
+  static String alphabet = "абвгджзклмнопртуфцчшщъыэюийеёсхья";
+  static String vowels = "аеёиоуыэюя";
+
+  static int number_of_syllables(String word) {
+    return syllables.splitWord(word).length;
+  }
+
+  // "и" : üldjuhul "i"/sõna algul vokaali ees "j"
+  // "й" : üldjuhul "i"/sõna algul vokaali ees "j"
+  // "ий" : üldjuhul "ii"/kahe- ja enamasilbilise sõna lõpul "i"
+  static String case_i(String word, int index) {
+    if (word.length > 1) {
+      if (index == 0 && vowels.contains(word[index + 1])) {
+        return 'j';
+      } else if (index == word.length - 1 &&
+          word.endsWith('ий') &&
+          number_of_syllables(word) >= 2) {
+        return '';
+      }
+    }
+    return 'i';
+  }
+
+  // "e" : üldjuhul "e"/sõna algul, samuti vokaali, ь- ning ъ-märgi järel "je"
+  static String case_e(String word, int index) {
+    if (index == 0 ||
+        vowels.contains(word[index - 1]) ||
+        word[index - 1] == 'ъ') {
+      return 'je';
+    }
+    return 'e';
+  }
+
+  // "ё" : üldjuhul "jo"/ж, ч, ш, щ järel "o"; Märkus. Täht е-ga märgitud ё transkribeeritakse nagu ё
+  static String case_jo(String word, int index) {
+    if (index > 0 && ['ж', 'ч', 'ш', 'щ', 'ь'].contains(word[index - 1])) {
+      return 'o';
+    }
+    return 'jo';
+  }
+
+  // "с" : üldjuhul "s"/vokaalide vahel ja sõna lõpul vokaali järel "ss"; Märkus. Liitsõnalise nime järelkomponendi algul oleva с-i võib asendada ühekordse s-iga (Новосибирск = Novosibirsk)
+  static String case_s(String word, int index) {
+    if (index > 0) {
+      if (index == word.length - 1 && vowels.contains(word[index - 1]) ||
+          index < word.length - 1 &&
+              vowels.contains(word[index - 1]) &&
+              vowels.contains(word[index + 1])) {
+        return 'ss';
+      }
+    }
+    return 's';
+  }
+
+  // "х" : üldjuhul "h"/vokaalide vahel ja sõna lõpul vokaali järel "hh"; Märkus. Liitsõnalise nime järelkomponendi algul oleva х võib asendada ühekordse h-ga (Самоходов = Samohodov)
+  static String case_h(String word, int index) {
+    if (index > 0) {
+      if (index == word.length - 1 && vowels.contains(word[index - 1]) ||
+          index < word.length - 1 &&
+              vowels.contains(word[index - 1]) &&
+              vowels.contains(word[index + 1])) {
+        return 'hh';
+      }
+    }
+    return 'h';
+  }
+
+  // "ь" : üldjuhul jääb märkimata/vokaali, välja arvatud e, ё, ю, я ees "j"
+  static String case_snak(String word, int index) {
+    if (index < word.length - 1) {
+      if (['e', 'ё'].contains(word[index + 1])) {
+        return 'j';
+      }
+    }
+    return '';
+  }
+
+  // "я" : üldjuhul "ja"/Väljaspool dokumente ja teatmeteoseid võib eesnimede lõpul и järel я asendada a-ga (Евгения = Jevgenia, Лидия = Lidia)
+  static String case_ja(String word, int index) {
+    return 'ja';
+  }
+
+  static String transcribe_word(String word) {
+    String lower_word = word.toLowerCase();
+    String new_word = '';
+    for (int index = 0; index < lower_word.length; index++) {
+      switch (lower_word[index]) {
+        case 'и' || 'й':
+          new_word += case_i(lower_word, index);
+          break;
+        case 'е':
+          new_word += case_e(lower_word, index);
+          break;
+        case 'ё':
+          new_word += case_jo(lower_word, index);
+          break;
+        case 'с':
+          new_word += case_s(lower_word, index);
+          break;
+        case 'х':
+          new_word += case_h(lower_word, index);
+          break;
+        case 'ь':
+          new_word += case_snak(lower_word, index);
+          break;
+        case 'я':
+          new_word += case_ja(lower_word, index);
+          break;
+        default:
+          if (d.keys.contains(lower_word[index])) {
+            new_word += d[lower_word[index]]!;
+          }
+      }
+    }
+    if (word != lower_word) {
+      return new_word[0].toUpperCase() + new_word.substring(1);
+    }
+    return new_word;
+  }
+
+  static String transcribe_text(String text) {
+    List<String> output = [];
+    RegExp regex = RegExp(
+      r"[\u0401\u0451\u0410-\u044f]+|[^\u0401\u0451\u0410-\u044f]+",
+    );
+    while (regex.hasMatch(text)) {
+      RegExpMatch match = regex.firstMatch(text)!;
+      String word = match.group(0)!;
+      if (alphabet.contains(word[0].toLowerCase())) {
+        word = transcribe_word(word);
+      }
+      output.add(word);
+      text = text.substring(match.end);
+    }
+    return output.join('');
   }
 }
 
