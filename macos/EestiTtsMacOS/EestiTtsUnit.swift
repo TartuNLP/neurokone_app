@@ -111,7 +111,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
             while self.allData.isEmpty {
                 usleep(1000)
             }
-            NSLog("QQQ stopped for render, trying new sentence")
+            NSLog("QQQ Rendering new sentence...")
             self.outputMutex.wait()
             self.currentData = self.allData.popLast()
             self.outputMutex.signal()
@@ -131,10 +131,6 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
             return kAudioUnitErr_InvalidPropertyValue
         }
         
-        if self.framePosition == 0 {
-            NSLog("QQQ starting to render sentence..")
-        }
-        
         // Iterate through the requested number of frames.
         for frame in 0..<frameCount {
             // Copy the source frames into the target buffer.
@@ -142,14 +138,13 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
             self.framePosition += 1
             // Complete the request if the frame position exceeds the available buffer.
             if self.framePosition >= audioData.count / MemoryLayout<Float32>.size {
-                NSLog("QQQ sentence rendered, length: \(self.framePosition)")
+                NSLog("QQQ Sentence rendered (length \(self.framePosition)).")
                 self.currentData = nil
                 self.framePosition = 0
                 self.sentIdRendered += 1
                 if self.isSynthDone && self.allData.isEmpty {
                     actionFlags.pointee = .offlineUnitRenderAction_Complete
                 }
-                NSLog("QQQ checked if was last sent")
                 break
             }
         }
@@ -161,9 +156,9 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     public override var internalRenderBlock: AUInternalRenderBlock { self.performRender }
     
     public override func synthesizeSpeechRequest(_ speechRequest: AVSpeechSynthesisProviderRequest) {
-        NSLog("QQQ request: \(speechRequest)")
+        NSLog("QQQ Request: \(speechRequest)")
 
-        var text: String = speechRequest.ssmlRepresentation
+        let text: String = speechRequest.ssmlRepresentation
         let voice: AVSpeechSynthesisProviderVoice = speechRequest.voice
         
         self.outputMutex.wait()
@@ -179,7 +174,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         else {
             sentences = sentprocessor.splitSentences(speaker: voice.name, input_text: text)
         }
-        NSLog("QQQ sentences: \(sentences)")
+        NSLog("QQQ Sentences: \(sentences)")
 
         self.sentIdDone = 0
         self.sentIdRendered = 0
@@ -198,7 +193,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     }
 
     private func setProsody(ssml: String) {
-        NSLog("QQQ ssml: \(ssml)")
+        NSLog("QQQ SSML: \(ssml).")
         if let prosody_text = ssml.firstMatch(of: /\<prosody (.*?)\>/) {
             var text = prosody_text.output.1
             while let match = text.firstMatch(of: /([a-z]+)="(.*?)"/) {
@@ -238,9 +233,9 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         let sentData = self.synthesizer.synthesizeSentence(sentence: sentence)
         self.allData.insert(sentData, at: 0)
         self.sentIdDone = current
-        NSLog("QQQ sentence done, size \(sentData.count)")
+        NSLog("QQQ Sentence clip created (length \(sentData.count)).")
         if current == totalSents {
-            NSLog("QQQ synth done")
+            NSLog("QQQ Synthesis done.")
             self.isSynthDone = true
         }
     }
@@ -302,7 +297,7 @@ class Synthesizer {
             
             self.synthMutex.signal()
         } catch {
-            NSLog("QQQ inference failed (\(ids): \(error.localizedDescription)")
+            NSLog("QQQ Synthesis failed (\(ids): \(error.localizedDescription)")
         }
         return output
     }

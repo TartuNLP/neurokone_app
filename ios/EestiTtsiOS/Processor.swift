@@ -766,10 +766,8 @@ class RuProcessor {
     
     /// Splits a word into a list of syllables.
     static func splitWord(word: String) -> [String] {
-        let syllablesRegex = "[" + consonants + "]*[" + vowels + "]([" + consonants + "]*\\$)?";
-        let syllablesRegexp = try! Regex(syllablesRegex)
-        let syllableRegex = "^[" + consonants + "]*[" + appendage + "]";
-        let syllableRegexp = try! Regex(syllableRegex)
+        let syllablesRegexp = try! Regex("[\(consonants)]*[\(vowels)]([\(consonants)]*\\$)?")
+        let syllableRegexp = try! Regex("^[\(consonants)]*[\(appendage)]")
         
         var syllables: [String] = []
         var startId = word.startIndex
