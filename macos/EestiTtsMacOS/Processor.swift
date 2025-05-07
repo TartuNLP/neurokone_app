@@ -87,6 +87,7 @@ class Preprocessor {
     private final let NUMBER_RE = /[0-9]+/
     private final let TRINUMBER_RE = /[0-9][0-9]?[0-9]?( [0-9]{3})+/
     private final let DECIMALSCURRENCYNUMBER_RE = /([0-9]+[,.][0-9]+)|([£$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£$€])|([0-9]+\.?)/
+    private final let VERSIONCODE_RE = /[0-9]+(\.[0-9]+)+/
     private final let CURRENCIES = [
         "£s": " nael ",
         "£m": " naela ",
@@ -108,16 +109,20 @@ class Preprocessor {
         "€cg": " sendi ",
     ]
     
+    // symbols pronounced only between two numbers
     // sümbolid, mis häälduvad vaid siis, kui asuvad kahe arvu vahel
     private final let AUDIBLE_CONNECTING_SYMBOLS = ["×", "x", "*", "/", "-"]
     
+    // symbols and abbreviations that inflect based on its prior number (e.g. 1 meeter vs 5 meetrit)
     // sümbolid ja lühendid, mis käänduvad vastavalt eelnevale arvule (nt 1 meeter vs 5 meetrit)
     // private static let UNITS = ["%", "‰", "°", "a", "atm", "km", "km²", "m", "m²", "m³", "mbar", "cm", "ct", "d", "dB", "eks", "h", "ha", "hj", "hl", "mm", "tk", "p", "rbl", "rm", "lk", "pk", "s", "sl", "spl", "sek", "tk", "tl", "kr", "min", "t", "mln", "mld", "mg", "g", "kg", "ml", "l", "cl", "dl", "V", "Hz", "W", "kW", "kWh"]
     
+    // adverbs that change its following number word into possessive case
     // kaassõnad, mille korral eelnev või järgnev arvsõna läheb omastavasse käändesse
     private final let GENITIVE_PREPOSITIONS = ["üle", "alla"]
     private final let GENITIVE_POSTPOSITIONS = ["võrra", "ümber", "pealt", "peale", "ringis", "paiku", "aegu", "eest"]
     
+    // words that change its following number word into nominative case (if the latter's own case is undetermined)
     // sõnad, mille korral järgnev arvsõna läheb nimetavasse käändesse (kui oma kääne määramata)
     //private static let NOMINATIVE_PRECEEDING_WORDS = ["kell", "number", "aasta", "kl", "nr", "a"]
     
@@ -164,27 +169,18 @@ class Preprocessor {
     ]
     
     private final let ABBREVIATIONS = [
-        "apr": "aprill",
-        "aug": "august",
         "aü": "ametiühing",
         "ca": "tsirka",
         "Ca": "CA",
         "CA": "CA",
-        "cl": "sentiliiter",
-        "cm": "sentimeeter",
-        "dB": "detsibell",
-        "dets": "detsember",
-        "dl": "detsiliiter",
         "dr": "doktor",
         "e.m.a": "enne meie ajaarvamist",
         "eKr": "enne Kristuse sündi",
-        "hj": "hobujõud",
         "hr": "härra",
         "hrl": "harilikult",
         "IK": "isikukood",
         "ingl": "inglise keeles",
         "j.a": "juures asuv",
-        "jaan": "jaanuar",
         "jj": "ja järgmine",
         "jm": "ja muud",
         "jms": "ja muud sellised",
@@ -199,16 +195,11 @@ class Preprocessor {
         "jun": "juunior",
         "jv": "järv",
         "k.a": "kaasa arvatud",
-        "kcal": "kilokalor",
         "kd": "köide",
-        "kg": "kilogramm",
         "kk": "keskkool",
         "kl": "kell",
         "klh": "kolhoos",
-        "km": "kilomeeter",
         "KM": "KM",
-        "km/h": "kilomeetrit tunnis",
-        "km²": "ruutkilomeeter",
         "kod": "kodanik",
         "kpl": "kauplus",
         "kr": "kroon",
@@ -222,29 +213,21 @@ class Preprocessor {
         "LP": "LP",
         "lüh": "lühend",
         "m.a.j": "meie ajaarvamise järgi",
-        "m/s": "meetrit sekundis",
-        "mbar": "millibaar",
-        "mg": "milligramm",
         "mh": "muu hulgas",
-        "ml": "milliliiter",
         "mld": "miljard",
         "mln": "miljon",
-        "mm": "millimeeter",
         "MM": "MM",
         "mnt": "maantee",
-        "m²": "ruutmeeter",
-        "m³": "kuupmeeter",
         "Mr": "mister",
         "Ms": "miss",
         "Mrs": "missis",
         "n-ö": "nii-öelda",
+        "nö": "nii-öelda",
         "nim": "nimeline",
         "nn": "niinimetatud",
-        "nov": "november",
         "nr": "number",
         "nt": "näiteks",
         "NT": "NT",
-        "okt": "oktoober",
         "p.o": "peab olema",
         "pKr": "pärast Kristuse sündi",
         "pa": "poolaasta",
@@ -271,15 +254,12 @@ class Preprocessor {
         "sealh": "sealhulgas",
         "seals": "sealsamas",
         "sen": "seenior",
-        "sept": "september",
         "sh": "sealhulgas",
         "skp": "selle kuu päeval",
         "SKP": "SKP",
-        "sl": "supilusikatäis",
         "sm": "seltsimees",
         "SM": "SM",
         "snd": "sündinud",
-        "spl": "supilusikatäis",
         "srn": "surnud",
         "stj": "saatja",
         "surn": "surnud",
@@ -288,14 +268,12 @@ class Preprocessor {
         "tehn": "tehniline",
         "tel": "telefon",
         "tk": "tükk",
-        "tl": "teelusikatäis",
         "tlk": "tõlkija",
         "tn": "tänav",
         "tv": "televisioon",
         "u": "umbes",
         "ukj": "uue, Gregoriuse kalendri järgi",
         "v.a": "välja arvatud",
-        "veebr": "veebruar",
         "vkj": "vana, Juliuse kalendri järgi",
         "vm": "või muud",
         "vms": "või muud sellist",
@@ -304,11 +282,71 @@ class Preprocessor {
         "õa": "õppeaasta",
         "õp": "õpetaja",
         "õpil": "õpilane",
+        // units
+        "KB": "kilobait",
+        "Kb": "kilobit",
+        "KiB": "kibibait",
+        "MB": "megabait",
+        "Mb": "megabit",
+        "MiB": "mebibait",
+        "GB": "gigabait",
+        "Gb": "gigabit",
+        "GiB": "gibibait",
+        "ml": "milliliiter",
+        "cl": "sentiliiter",
+        "dl": "detsiliiter",
+        "mm": "millimeeter",
+        "cm": "sentimeeter",
+        "km": "kilomeeter",
+        "m²": "ruutmeeter",
+        "km²": "ruutkilomeeter",
+        "m³": "kuupmeeter",
+        "m/s": "meetrit sekundis",
+        "km/h": "kilomeetrit tunnis",
+        "mg": "milligramm",
+        "kg": "kilogramm",
+        "dB": "detsibell",
+        "kcal": "kilokalor",
+        "mbar": "millibaar",
         "V": "volt",
         "Hz": "herts",
         "W": "vatt",
         "kW": "kilovatt",
         "kWh": "kilovatttund",
+        "hj": "hobujõud",
+        "tl": "teelusikatäis",
+        "sl": "supilusikatäis",
+        "spl": "supilusikatäis",
+        // month abbreviations in estonian
+        "jaan": "jaanuar",
+        "veebr": "veebruar",
+        "apr": "aprill",
+        "aug": "august",
+        "sept": "september",
+        "okt": "oktoober",
+        "nov": "november",
+        "dets": "detsember",
+        // month abbreviations in english
+        //"Jan": "jaanuar"
+        "Feb": "veebruar",
+        "Mar": "märts",
+        "Apr": "aprill",
+        //"May": "mai",
+        "Jun": "juuni",
+        "Jul": "juuli",
+        "Aug": "august",
+        "Sep": "september",
+        "Oct": "oktoober",
+        "Nov": "november",
+        "Dec": "detsember",
+        // weekday abbreviations in english
+        "Mon": "esmaspäev",
+        "Tue": "teisipäev",
+        "Wed": "kolmapäev",
+        "Thu": "neljapäev",
+        "Fri": "reede",
+        "Sat": "laupäev",
+        "Sun": "pühapäev"
     ]
     private final let CONTAINS_ROMAN_RE = /^[IVXLCDM]+(-\w+)?$/
     private final let ROMAN_NUMBERS = [
@@ -401,21 +439,7 @@ class Preprocessor {
         var remainingText = text
         var newText = ""
         while let match = remainingText.firstMatch(of: label) {
-            remainingText.replaceSubrange(match.range, with: "\(match.output.0)\(target)\(match.2)")
-            //remainingText = remainingText.replacingCharacters(in: match.range, with: "\(match.output.0)\(target)\(match.2)")
-            newText += remainingText[..<match.range.upperBound]
-            remainingText = String(remainingText[match.range.upperBound...])
-        }
-        newText += remainingText
-        return newText
-    }
-    
-    private func subBetween(text: String, label: Regex<(Substring, Substring)>, target: String) -> String {
-        var remainingText = text
-        var newText = ""
-        while let match = remainingText.firstMatch(of: label) {
-            remainingText.replaceSubrange(match.range, with: "\(match.output.0)\(target)\(match.output.1)")
-            //remainingText = remainingText.replacingCharacters(in: match.range, with: "\(match.output.0)\(target)\(match.output.1)")
+            remainingText.replaceSubrange(match.range, with: "\(match.output.1)\(target)\(match.output.2)")
             newText += remainingText[..<match.range.upperBound]
             remainingText = String(remainingText[match.range.upperBound...])
         }
@@ -624,6 +648,7 @@ class Preprocessor {
                 //}
                 word = expandNumbers(text: word, kaane: kaane)
             }
+            // abbreviations
             if ABBREVIATIONS.keys.contains(word) {
                 word = ABBREVIATIONS[word]!
             } else if word.wholeMatch(of: ONLY_UPPER_RE) != nil {
@@ -635,17 +660,33 @@ class Preprocessor {
                     word = newWord.joined(separator: "-")
                 }
             }
+            // version number combinations e.g. 1.7.0
+            if word.wholeMatch(of: VERSIONCODE_RE) != nil {
+                var numbers: [String] = []
+                for number in word.split(separator: /\./) {
+                    numbers.append(expandCardinals(text: String(number), kaane: "N"))
+                }
+                word = numbers.joined(separator: " punkt ")
+            }
+            // single letters
+            if word.count == 1 {
+                let char: Character = word.uppercased()[0]!
+                if let val = ALPHABET[char] {
+                    word = val
+                }
+            }
+            
             newTextParts.append(word + ending)
         }
         return newTextParts.joined(separator: " ")
     }
     
     private func cleanTextForEstonian(text: String) -> String {
-
+        
         if (text.wholeMatch(of: /[a-zõäöüA-ZÖÄÜÜ](-[a-zõäöüA-ZÖÄÜÜ])*/) != nil) {
             return pronounceCharacters(text: text)
         }
-
+        
         var newText = text
         
         //Temporarily remove sentence end symbol
@@ -659,7 +700,7 @@ class Preprocessor {
         // ... between numbers to kuni
         if let match = newText.firstMatch(of: /(\d)\.\.\.(\d)/) {
             newText = String(text[..<match.range.lowerBound])
-            newText += match.output.0 + " kuni " + match.output.2
+            newText += match.output.1 + " kuni " + match.output.2
             newText += text[match.range.upperBound...]
         }
         
@@ -668,33 +709,41 @@ class Preprocessor {
         newText = simplifyUnicode(sentence: newText)
         
         // add a hyphen between any number-letter sequences  # TODO should not be done in URLs
-        newText = subBetween(text: newText, label: /(\d)[A-ZÄÖÜÕŽŠa-zäöüõšž]/, target: "-")
-        newText = subBetween(text: newText, label: /[A-ZÄÖÜÕŽŠa-zäöüõšž](\d)/, target: "-")
+        newText = subBetween(text: newText, label: /(\d\.?)([A-ZÄÖÜÕŽŠa-zäöüõšž])/, target: "-")
+        newText = subBetween(text: newText, label: /([A-ZÄÖÜÕŽŠa-zäöüõšž])(\d)/, target: "-")
         
         // remove grouping between numbers
         // keeping space in 2006-10-27 12:48:50, in general require group of 3
         while let match = newText.firstMatch(of: TRINUMBER_RE) {
             newText = newText.replacingOccurrences(of: " ", with: "", range: match.range)
         }
+        
         //newText  = subBetween(text: newText, label: /([0-9]) ([0-9]{3})(?!\d)/, target: "")
+        
+        // if sentence beginning contains a capitalised abbreviation
+        let sentBeginning = String(newText.split(separator: /[.,]/).first!)
+        if ABBREVIATIONS.keys.contains(sentBeginning) {
+            newText = ABBREVIATIONS[sentBeginning]! + String(newText.dropFirst(sentBeginning.count))
+        }
+        
         if newText.count > 1 && String(newText[1]!) == String(newText[1]!).lowercased() {
             newText = newText.prefix(1).lowercased() + newText.dropFirst()
         }
-
+        
         //Replace dash with comma
         newText = newText.replacingOccurrences(of: " – ", with: ", ")
         //Remove end of quote before comma
         newText = newText.replacingOccurrences(of: ",\"", with: ",")
-
+        
         var ru = false
         for char in RuProcessor.alphabet {
             if newText.contains(char) {
                 ru = true
-                newText = RuProcessor.transcribe_text(text: newText)
+                newText = RuProcessor.transcribe(text: newText)
                 break
             }
         }
-
+        
         // split text into words and symbols
         var tokens: [String] = []
         while let match = newText.firstMatch(of: /([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\S/) {
@@ -720,8 +769,8 @@ class Preprocessor {
         var sequence: [String] = []
         while remainingText.count > 0 {
             if let match = remainingText.firstMatch(of: CURLY_RE) {
-                sequence.append(cleanTextForEstonian(text: String(match.output.0)))
-                sequence.append(String(match.output.1))
+                sequence.append(cleanTextForEstonian(text: String(match.output.1)))
+                sequence.append(String(match.output.2))
                 remainingText = String(match.output.3)
             } else {
                 sequence.append(cleanTextForEstonian(text: remainingText))
@@ -793,20 +842,20 @@ class RuProcessor {
         return syllables
     }
 
-    static func number_of_syllables(word: String) -> Int {
+    static func numberOfSyllables(word: String) -> Int {
         return splitWord(word: word).count
     }
 
     // "и" : üldjuhul "i"/sõna algul vokaali ees "j"
     // "й" : üldjuhul "i"/sõna algul vokaali ees "j"
     // "ий" : üldjuhul "ii"/kahe- ja enamasilbilise sõna lõpul "i"
-    static func case_i(word: String, i: Int) -> String {
+    static func i(word: String, id: Int) -> String {
         if (word.count > 1) {
-            if (i == 0 && vowels.contains(word[i + 1]!)) {
+            if (id == 0 && vowels.contains(word[id + 1]!)) {
                 return "j"
-            } else if (i == word.count - 1 &&
+            } else if (id == word.count - 1 &&
                  word.hasSuffix("ий") &&
-                 number_of_syllables(word: word) >= 2) {
+                       numberOfSyllables(word: word) >= 2) {
                 return ""
             }
         }
@@ -814,29 +863,29 @@ class RuProcessor {
     }
 
     // "e" : üldjuhul "e"/sõna algul, samuti vokaali, ь- ning ъ-märgi järel "je"
-    static func case_e(word: String, i: Int) -> String {
-        if (i == 0 ||
-            vowels.contains(word[i - 1]!) ||
-            word[i - 1] == "ъ") {
+    static func e(word: String, id: Int) -> String {
+        if (id == 0 ||
+            vowels.contains(word[id - 1]!) ||
+            word[id - 1] == "ъ") {
             return "je"
         }
         return "e"
     }
 
     // "ё" : üldjuhul "jo"/ж, ч, ш, щ järel "o"; Märkus. Täht е-ga märgitud ё transkribeeritakse nagu ё
-    static func case_jo(word: String, i: Int) -> String {
-        if (i > 0 && ["ж", "ч", "ш", "щ", "ь"].contains(word[i - 1]!)) {
+    static func jo(word: String, id: Int) -> String {
+        if (id > 0 && ["ж", "ч", "ш", "щ", "ь"].contains(word[id - 1]!)) {
             return "o"
         }
         return "jo"
     }
 
     // "с" : üldjuhul "s"/vokaalide vahel ja sõna lõpul vokaali järel "ss"; Märkus. Liitsõnalise nime järelkomponendi algul oleva с-i võib asendada ühekordse s-iga (Новосибирск = Novosibirsk)
-    static func case_s(word: String, i: Int) -> String {
-        if (i > 0) {
-            if (i == word.count - 1 && vowels.contains(word[i - 1]!) || i < word.count - 1 &&
-                vowels.contains(word[i - 1]!) &&
-                vowels.contains(word[i + 1]!)) {
+    static func s(word: String, id: Int) -> String {
+        if (id > 0) {
+            if (id == word.count - 1 && vowels.contains(word[id - 1]!) || id < word.count - 1 &&
+                vowels.contains(word[id - 1]!) &&
+                vowels.contains(word[id + 1]!)) {
                 return "ss"
             }
         }
@@ -844,11 +893,11 @@ class RuProcessor {
     }
 
   // "х" : üldjuhul "h"/vokaalide vahel ja sõna lõpul vokaali järel "hh"; Märkus. Liitsõnalise nime järelkomponendi algul oleva х võib asendada ühekordse h-ga (Самоходов = Samohodov)
-    static func case_h(word: String, i: Int) -> String {
-        if (i > 0) {
-            if (i == word.count - 1 && vowels.contains(word[i - 1]!) || i < word.count - 1 &&
-                vowels.contains(word[i - 1]!) &&
-                vowels.contains(word[i + 1]!)) {
+    static func h(word: String, id: Int) -> String {
+        if (id > 0) {
+            if (id == word.count - 1 && vowels.contains(word[id - 1]!) || id < word.count - 1 &&
+                vowels.contains(word[id - 1]!) &&
+                vowels.contains(word[id + 1]!)) {
                 return "hh"
             }
         }
@@ -856,9 +905,9 @@ class RuProcessor {
     }
 
   // "ь" : üldjuhul jääb märkimata/vokaali, välja arvatud e, ё, ю, я ees "j"
-    static func case_snak(word: String, i: Int) -> String {
-        if (i < word.count - 1) {
-            if (["e", "ё"].contains(word[i + 1])) {
+    static func snak(word: String, id: Int) -> String {
+        if (id < word.count - 1) {
+            if (["e", "ё"].contains(word[id + 1])) {
                 return "j"
             }
         }
@@ -866,42 +915,42 @@ class RuProcessor {
     }
 
   // "я" : üldjuhul "ja"/Väljaspool dokumente ja teatmeteoseid võib eesnimede lõpul и järel я asendada a-ga (Евгения = Jevgenia, Лидия = Lidia)
-    static func case_ja(word: String, i: Int) -> String {
+    static func ja(word: String, id: Int) -> String {
         return "ja"
     }
 
-    static func transcribe_word(word: String) -> String {
+    static func transcribeWord(word: String) -> String {
         let lower_word = word.lowercased()
         var new_word = ""
-        for i in 0...lower_word.count {
-            switch (lower_word[i]) {
+        for id in 0...lower_word.count {
+            switch (lower_word[id]) {
             case "и":
-                new_word.append(case_i(word: lower_word, i: i))
+                new_word.append(i(word: lower_word, id: id))
                 break
             case "й":
-                new_word.append(case_i(word: lower_word, i: i))
+                new_word.append(i(word: lower_word, id: id))
                 break
             case "е":
-                new_word.append(case_e(word: lower_word, i: i))
+                new_word.append(e(word: lower_word, id: id))
                 break
             case "ё":
-                new_word.append(case_jo(word: lower_word, i: i))
+                new_word.append(jo(word: lower_word, id: id))
                 break
             case "с":
-                new_word.append(case_s(word: lower_word, i: i))
+                new_word.append(s(word: lower_word, id: id))
                 break
             case "х":
-                new_word.append(case_h(word: lower_word, i: i))
+                new_word.append(h(word: lower_word, id: id))
                 break
             case "ь":
-                new_word.append(case_snak(word: lower_word, i: i))
+                new_word.append(snak(word: lower_word, id: id))
                 break
             case "я":
-                new_word.append(case_ja(word: lower_word, i: i))
+                new_word.append(ja(word: lower_word, id: id))
                 break
             default:
-                if (d.keys.contains(lower_word[i]!)) {
-                    new_word.append(d[lower_word[i]!]!)
+                if (d.keys.contains(lower_word[id]!)) {
+                    new_word.append(d[lower_word[id]!]!)
                 }
                 break
             }
@@ -912,14 +961,14 @@ class RuProcessor {
         return new_word
     }
 
-    static func transcribe_text(text: String) -> String {
+    static func transcribe(text: String) -> String {
         var output: [String] = []
         let regex = /[ЁёА-я]+|[^ЁёА-я]+/
         var startId = text.startIndex
         while let match = text[startId...].firstMatch(of: regex) {
             var word: String = String(text[match.range])
             if (alphabet.contains(word.first!.lowercased())) {
-                word = transcribe_word(word: word)
+                word = transcribeWord(word: word)
             }
             output.append(word)
             startId = match.range.upperBound

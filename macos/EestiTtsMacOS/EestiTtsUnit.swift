@@ -3,7 +3,8 @@
 //  EestiTtsMacOS
 //
 //  Created by Rasmus Lellep on 06.03.2024.
-//
+//  Abstract:
+//  The object that's responsible for rendering the speech the system requests.
 
 import os
 import AVFoundation
@@ -20,7 +21,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private var parameterObserver: NSKeyValueObservation!
     private var outputMutex = DispatchSemaphore(value: 1)
     
-    private let langCodes: [String] = ["et-EE"]
+    private let langCode: String = "et-EE"
     private let voices = ["Mari", "Tambet", "Liivika", "Kalev", "Külli", "Meelis", "Albert", "Indrek", "Vesta", "Peeter"]
     
     private final let sentprocessor: SentProcessor = SentProcessor()
@@ -31,9 +32,6 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
     private var allData: [Data] = []
     private var currentData: Data?
     private var volume: Float = 1.0
-    
-    //Length of silence to be added between sentences
-    //private let silenceLength = 160
     
     @objc
     override init(componentDescription: AudioComponentDescription,
@@ -75,9 +73,9 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         get {
             return self.voices.map { voice in
                 return AVSpeechSynthesisProviderVoice(name: voice,
-                                                      identifier: "auto.\(langCodes[0].lowercased()).\(voice)",
-                                                      primaryLanguages: langCodes,
-                                                      supportedLanguages: langCodes)
+                                                      identifier: "auto.\(langCode.lowercased()).\(voice)",
+                                                      primaryLanguages: [langCode],
+                                                      supportedLanguages: [langCode])
             }
         }
         set { }
@@ -191,7 +189,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         
         self.outputMutex.signal()
     }
-
+    
     private func setProsody(ssml: String) {
         NSLog("QQQ SSML: \(ssml).")
         if let prosody_text = ssml.firstMatch(of: /\<prosody (.*?)\>/) {
@@ -256,8 +254,8 @@ class Synthesizer {
     
     private var synthesizer: FastSpeechModel!
     private var vocoder: VocoderModel!
-
-    private let bytesInFrame = 4*80
+    
+    private let bytesInFrame = 4*80 //80 bins of 4-byte float values
     
     init() throws {
         self.synthesizer = try FastSpeechModel(modelPath: Bundle.main.path(forResource: "fastspeech2-est", ofType: "tflite")!)
@@ -267,7 +265,7 @@ class Synthesizer {
     func setVoice(voice: Int) {
         self.synthesizer.setVoice(voice: voice)
     }
-
+    
     func setSpeed(speed: Float) {
         self.synthesizer.setSpeed(speed: speed)
     }

@@ -97,6 +97,7 @@ class Preprocessor {
     private static final Pattern NUMBER_RE = Pattern.compile("[0-9]+");
     private static final Pattern TRINUMBER_RE = Pattern.compile("[0-9][0-9]?[0-9]?( [0-9]{3})+");
     private static final Pattern DECIMALSCURRENCYNUMBER_RE = Pattern.compile("(([0-9]+[,.][0-9]+)|([£$€]((\\d+[.,])?\\d+))|(((\\d+[.,])?\\d+)[£$€])|[0-9]+\\.?)");
+    private static final Pattern VERSIONCODE_RE = Pattern.compile("[0-9]+(\.[0-9]+)+");
     private static final HashMap<String, String> CURRENCIES = new HashMap<>();
     static {
         CURRENCIES.put("£s", " nael ");
@@ -121,9 +122,11 @@ class Preprocessor {
 
     private static final String[] CURRENCY_G = {"euro", "dollari"};
 
+    // symbols pronounced only between two numbers
     // sümbolid, mis häälduvad vaid siis, kui asuvad kahe arvu vahel
     private static final String[] AUDIBLE_CONNECTING_SYMBOLS = {"×", "x", "*", "/", "-"};
 
+    // symbols and abbreviations that inflect based on its prior number (e.g. 1 meeter vs 5 meetrit)
     // sümbolid ja lühendid, mis käänduvad vastavalt eelnevale arvule (nt 1 meeter vs 5 meetrit)
     // private static final String[] UNITS = {"%", "‰", "°", "a", "atm", "km", "km²", "m", "m²", "m³", "mbar", "cm",
     //        "ct", "d", "dB", "eks", "h", "ha", "hj", "hl", "mm", "tk", "p", "rbl", "rm", "lk",
@@ -131,10 +134,12 @@ class Preprocessor {
     //        "g", "kg", "ml", "l", "cl", "dl",
     //        "V", "Hz", "W", "kW", "kWh"};
 
+    // adverbs that change its following number word into possessive case
     // kaassõnad, mille korral eelnev või järgnev arvsõna läheb omastavasse käändesse
     private static final String[] GENITIVE_PREPOSITIONS = {"üle", "alla"};
     private static final String[] GENITIVE_POSTPOSITIONS = {"võrra", "ümber", "pealt", "peale", "ringis", "paiku", "aegu", "eest"};
 
+    // words that change its following number word into nominative case (if the latter's own case is undetermined)
     // sõnad, mille korral järgnev arvsõna läheb nimetavasse käändesse (kui oma kääne määramata)
     //private static final String[] NOMINATIVE_PRECEEDING_WORDS = {"kell", "number", "aasta", "kl", "nr", "a"};
 
@@ -186,27 +191,18 @@ class Preprocessor {
     }*/
     private static final Map<String, String> ABBREVIATIONS = new HashMap<>();
     static {
-        ABBREVIATIONS.put("apr", "aprill");
-        ABBREVIATIONS.put("aug", "august");
         ABBREVIATIONS.put("aü", "ametiühing");
         ABBREVIATIONS.put("ca", "tsirka");
         ABBREVIATIONS.put("Ca", "CA");
         ABBREVIATIONS.put("CA", "CA");
-        ABBREVIATIONS.put("cl", "sentiliiter");
-        ABBREVIATIONS.put("cm", "sentimeeter");
-        ABBREVIATIONS.put("dB", "detsibell");
-        ABBREVIATIONS.put("dets", "detsember");
-        ABBREVIATIONS.put("dl", "detsiliiter");
         ABBREVIATIONS.put("dr", "doktor");
         ABBREVIATIONS.put("e.m.a", "enne meie ajaarvamist");
         ABBREVIATIONS.put("eKr", "enne Kristuse sündi");
-        ABBREVIATIONS.put("hj", "hobujõud");
         ABBREVIATIONS.put("hr", "härra");
         ABBREVIATIONS.put("hrl", "harilikult");
         ABBREVIATIONS.put("IK", "isikukood");
         ABBREVIATIONS.put("ingl", "inglise keeles");
         ABBREVIATIONS.put("j.a", "juures asuv");
-        ABBREVIATIONS.put("jaan", "jaanuar");
         ABBREVIATIONS.put("jj", "ja järgmine");
         ABBREVIATIONS.put("jm", "ja muud");
         ABBREVIATIONS.put("jms", "ja muud sellised");
@@ -221,16 +217,11 @@ class Preprocessor {
         ABBREVIATIONS.put("jun", "juunior");
         ABBREVIATIONS.put("jv", "järv");
         ABBREVIATIONS.put("k.a", "kaasa arvatud");
-        ABBREVIATIONS.put("kcal", "kilokalor");
         ABBREVIATIONS.put("kd", "köide");
-        ABBREVIATIONS.put("kg", "kilogramm");
         ABBREVIATIONS.put("kk", "keskkool");
         ABBREVIATIONS.put("kl", "kell");
         ABBREVIATIONS.put("klh", "kolhoos");
-        ABBREVIATIONS.put("km", "kilomeeter");
         ABBREVIATIONS.put("KM", "KM");
-        ABBREVIATIONS.put("km/h", "kilomeetrit tunnis");
-        ABBREVIATIONS.put("km²", "ruutkilomeeter");
         ABBREVIATIONS.put("kod", "kodanik");
         ABBREVIATIONS.put("kpl", "kauplus");
         ABBREVIATIONS.put("kr", "kroon");
@@ -244,29 +235,21 @@ class Preprocessor {
         ABBREVIATIONS.put("LP", "LP");
         ABBREVIATIONS.put("lüh", "lühend");
         ABBREVIATIONS.put("m.a.j", "meie ajaarvamise järgi");
-        ABBREVIATIONS.put("m/s", "meetrit sekundis");
-        ABBREVIATIONS.put("mbar", "millibaar");
-        ABBREVIATIONS.put("mg", "milligramm");
         ABBREVIATIONS.put("mh", "muu hulgas");
-        ABBREVIATIONS.put("ml", "milliliiter");
         ABBREVIATIONS.put("mld", "miljard");
         ABBREVIATIONS.put("mln", "miljon");
-        ABBREVIATIONS.put("mm", "millimeeter");
         ABBREVIATIONS.put("MM", "MM");
         ABBREVIATIONS.put("mnt", "maantee");
-        ABBREVIATIONS.put("m²", "ruutmeeter");
-        ABBREVIATIONS.put("m³", "kuupmeeter");
         ABBREVIATIONS.put("Mr", "mister");
         ABBREVIATIONS.put("Ms", "miss");
         ABBREVIATIONS.put("Mrs", "missis");
         ABBREVIATIONS.put("n-ö", "nii-öelda");
+        ABBREVIATIONS.put("nö", "nii-öelda");
         ABBREVIATIONS.put("nim", "nimeline");
         ABBREVIATIONS.put("nn", "niinimetatud");
-        ABBREVIATIONS.put("nov", "november");
         ABBREVIATIONS.put("nr", "number");
         ABBREVIATIONS.put("nt", "näiteks");
         ABBREVIATIONS.put("NT", "NT");
-        ABBREVIATIONS.put("okt", "oktoober");
         ABBREVIATIONS.put("p.o", "peab olema");
         ABBREVIATIONS.put("pKr", "pärast Kristuse sündi");
         ABBREVIATIONS.put("pa", "poolaasta");
@@ -293,15 +276,12 @@ class Preprocessor {
         ABBREVIATIONS.put("sealh", "sealhulgas");
         ABBREVIATIONS.put("seals", "sealsamas");
         ABBREVIATIONS.put("sen", "seenior");
-        ABBREVIATIONS.put("sept", "september");
         ABBREVIATIONS.put("sh", "sealhulgas");
         ABBREVIATIONS.put("skp", "selle kuu päeval");
         ABBREVIATIONS.put("SKP", "SKP");
-        ABBREVIATIONS.put("sl", "supilusikatäis");
         ABBREVIATIONS.put("sm", "seltsimees");
         ABBREVIATIONS.put("SM", "SM");
         ABBREVIATIONS.put("snd", "sündinud");
-        ABBREVIATIONS.put("spl", "supilusikatäis");
         ABBREVIATIONS.put("srn", "surnud");
         ABBREVIATIONS.put("stj", "saatja");
         ABBREVIATIONS.put("surn", "surnud");
@@ -310,14 +290,12 @@ class Preprocessor {
         ABBREVIATIONS.put("tehn", "tehniline");
         ABBREVIATIONS.put("tel", "telefon");
         ABBREVIATIONS.put("tk", "tükk");
-        ABBREVIATIONS.put("tl", "teelusikatäis");
         ABBREVIATIONS.put("tlk", "tõlkija");
         ABBREVIATIONS.put("tn", "tänav");
         ABBREVIATIONS.put("tv", "televisioon");
         ABBREVIATIONS.put("u", "umbes");
         ABBREVIATIONS.put("ukj", "uue); Gregoriuse kalendri järgi");
         ABBREVIATIONS.put("v.a", "välja arvatud");
-        ABBREVIATIONS.put("veebr", "veebruar");
         ABBREVIATIONS.put("vkj", "vana); Juliuse kalendri järgi");
         ABBREVIATIONS.put("vm", "või muud");
         ABBREVIATIONS.put("vms", "või muud sellist");
@@ -326,11 +304,71 @@ class Preprocessor {
         ABBREVIATIONS.put("õa", "õppeaasta");
         ABBREVIATIONS.put("õp", "õpetaja");
         ABBREVIATIONS.put("õpil", "õpilane");
+        // units
+        ABBREVIATIONS.put("KB", "kilobait");
+        ABBREVIATIONS.put("Kb", "kilobit");
+        ABBREVIATIONS.put("KiB", "kibibait");
+        ABBREVIATIONS.put("MB", "megabait");
+        ABBREVIATIONS.put("Mb", "megabit");
+        ABBREVIATIONS.put("MiB", "mebibait");
+        ABBREVIATIONS.put("GB", "gigabaiti");
+        ABBREVIATIONS.put("Gb", "gigabitti");
+        ABBREVIATIONS.put("GiB", "gibibaiti");
+        ABBREVIATIONS.put("ml", "milliliiter");
+        ABBREVIATIONS.put("cl", "sentiliiter");
+        ABBREVIATIONS.put("dl", "detsiliiter");
+        ABBREVIATIONS.put("mm", "millimeeter");
+        ABBREVIATIONS.put("cm", "sentimeeter");
+        ABBREVIATIONS.put("km", "kilomeeter");
+        ABBREVIATIONS.put("m²", "ruutmeeter");
+        ABBREVIATIONS.put("km²", "ruutkilomeeter");
+        ABBREVIATIONS.put("m³", "kuupmeeter");
+        ABBREVIATIONS.put("m/s", "meetrit sekundis");
+        ABBREVIATIONS.put("km/h", "kilomeetrit tunnis");
+        ABBREVIATIONS.put("mg", "milligramm");
+        ABBREVIATIONS.put("kg", "kilogramm");
+        ABBREVIATIONS.put("dB", "detsibell");
+        ABBREVIATIONS.put("kcal", "kilokalor");
+        ABBREVIATIONS.put("mbar", "millibaar");
         ABBREVIATIONS.put("V", "volt");
         ABBREVIATIONS.put("Hz", "herts");
         ABBREVIATIONS.put("W", "vatt");
         ABBREVIATIONS.put("kW", "kilovatt");
         ABBREVIATIONS.put("kWh", "kilovatttund");
+        ABBREVIATIONS.put("hj", "hobujõud");
+        ABBREVIATIONS.put("tl", "teelusikatäis");
+        ABBREVIATIONS.put("sl", "supilusikatäis");
+        ABBREVIATIONS.put("spl", "supilusikatäis");
+        // month abbreviations in estonian
+        ABBREVIATIONS.put("jaan", "jaanuar");
+        ABBREVIATIONS.put("veebr", "veebruar");
+        ABBREVIATIONS.put("apr", "aprill");
+        ABBREVIATIONS.put("aug", "august");
+        ABBREVIATIONS.put("sept", "september");
+        ABBREVIATIONS.put("okt", "oktoober");
+        ABBREVIATIONS.put("nov", "november");
+        ABBREVIATIONS.put("dets", "detsember");
+        // month abbreviations in english
+        //ABBREVIATIONS.put("Jan", "jaanuar");
+        ABBREVIATIONS.put("Feb", "veebruar");
+        ABBREVIATIONS.put("Mar", "märts");
+        ABBREVIATIONS.put("Apr", "aprill");
+        //ABBREVIATIONS.put("May", "mai");
+        ABBREVIATIONS.put("Jun", "juuni");
+        ABBREVIATIONS.put("Jul", "juuli");
+        ABBREVIATIONS.put("Aug", "august");
+        ABBREVIATIONS.put("Sep", "september");
+        ABBREVIATIONS.put("Oct", "oktoober");
+        ABBREVIATIONS.put("Nov", "november");
+        ABBREVIATIONS.put("Dec", "detsember");
+        // weekday abbreviations in english
+        ABBREVIATIONS.put("Mon", "esmaspäev");
+        ABBREVIATIONS.put("Tue", "teisipäev");
+        ABBREVIATIONS.put("Wed", "kolmapäev");
+        ABBREVIATIONS.put("Thu", "neljapäev");
+        ABBREVIATIONS.put("Fri", "reede");
+        ABBREVIATIONS.put("Sat", "laupäev");
+        ABBREVIATIONS.put("Sun", "pühapäev");
     }
     private static final Map<Character, Integer> ROMAN_NUMBERS = new HashMap<>();
     static {
@@ -619,6 +657,12 @@ class Preprocessor {
                     word = String.join("-", newword);
                 }
             }
+            // version number combinations e.g. 1.7.0
+            if word.matches(VERSIONCODE_RE.pattern()) {
+                ArrayList<String> numbers = new ArrayList<>();
+                for (String number : word.split(" ")) numbers.add(expandCardinals(number, 'N'));
+                word = String.join(" punkt ", numbers);
+            }
             // single letters
             if (word.length() == 1) {
                 Character character = word.toUpperCase().charAt(0);
@@ -626,7 +670,7 @@ class Preprocessor {
                     word = ALPHABET.get(character);
                 }
             }
-
+            
             newTextParts.add(word + ending);
         }
         return String.join(" ", newTextParts);
@@ -640,6 +684,7 @@ class Preprocessor {
             sentEnd = lastChar;
             text = text.substring(0, text.length() - 1);
         }
+
         // ... between numbers to kuni
         Matcher m = Pattern.compile("(\\d)\\.\\.\\.(\\d)").matcher(text);
         if (m.find())
@@ -650,7 +695,7 @@ class Preprocessor {
         text = simplifyUnicode(text);
 
         // add a hyphen between any number-letter sequences  # TODO should not be done in URLs
-        text = subBetween(text, "(\\d)([A-ZÄÖÜÕŽŠa-zäöüõšž])", "-");
+        text = subBetween(text, "(\\d\.?)([A-ZÄÖÜÕŽŠa-zäöüõšž])", "-");
         text = subBetween(text, "([A-ZÄÖÜÕŽŠa-zäöüõšž])(\\d)", "-");
 
         // remove grouping between numbers
@@ -661,7 +706,14 @@ class Preprocessor {
             text = text.replace(num, num.replace(" ", ""));
             m = TRINUMBER_RE.matcher(text);
         }
+
         //text = subBetween(text, "([0-9]) ([0-9]{3})(?!\\d)", "");
+
+        // if sentence beginning contains a capitalised abbreviation
+        String sentBeginning = text.split("[.,]")[0];
+        if (ABBREVIATIONS.containsKey(sentBeginning))
+            text = ABBREVIATIONS.get(sentBeginning) + text.substring(sentBeginning.length());
+
         if (text.length() > 1 && text.substring(1, 2).toLowerCase().equals(text.substring(1, 2))) {
             text = text.substring(0,1).toLowerCase() + text.substring(1);
         }

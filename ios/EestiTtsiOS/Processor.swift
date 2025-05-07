@@ -87,6 +87,7 @@ class Preprocessor {
     private final let NUMBER_RE = /[0-9]+/
     private final let TRINUMBER_RE = /[0-9][0-9]?[0-9]?( [0-9]{3})+/
     private final let DECIMALSCURRENCYNUMBER_RE = /([0-9]+[,.][0-9]+)|([£$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£$€])|([0-9]+\.?)/
+    private final let VERSIONCODE_RE = /[0-9]+(\.[0-9]+)+/
     private final let CURRENCIES = [
         "£s": " nael ",
         "£m": " naela ",
@@ -108,16 +109,20 @@ class Preprocessor {
         "€cg": " sendi ",
     ]
     
+    // symbols pronounced only between two numbers
     // sümbolid, mis häälduvad vaid siis, kui asuvad kahe arvu vahel
     private final let AUDIBLE_CONNECTING_SYMBOLS = ["×", "x", "*", "/", "-"]
     
+    // symbols and abbreviations that inflect based on its prior number (e.g. 1 meeter vs 5 meetrit)
     // sümbolid ja lühendid, mis käänduvad vastavalt eelnevale arvule (nt 1 meeter vs 5 meetrit)
     // private static let UNITS = ["%", "‰", "°", "a", "atm", "km", "km²", "m", "m²", "m³", "mbar", "cm", "ct", "d", "dB", "eks", "h", "ha", "hj", "hl", "mm", "tk", "p", "rbl", "rm", "lk", "pk", "s", "sl", "spl", "sek", "tk", "tl", "kr", "min", "t", "mln", "mld", "mg", "g", "kg", "ml", "l", "cl", "dl", "V", "Hz", "W", "kW", "kWh"]
     
+    // adverbs that change its following number word into possessive case
     // kaassõnad, mille korral eelnev või järgnev arvsõna läheb omastavasse käändesse
     private final let GENITIVE_PREPOSITIONS = ["üle", "alla"]
     private final let GENITIVE_POSTPOSITIONS = ["võrra", "ümber", "pealt", "peale", "ringis", "paiku", "aegu", "eest"]
     
+    // words that change its following number word into nominative case (if the latter's own case is undetermined)
     // sõnad, mille korral järgnev arvsõna läheb nimetavasse käändesse (kui oma kääne määramata)
     //private static let NOMINATIVE_PRECEEDING_WORDS = ["kell", "number", "aasta", "kl", "nr", "a"]
     
@@ -164,27 +169,18 @@ class Preprocessor {
     ]
     
     private final let ABBREVIATIONS = [
-        "apr": "aprill",
-        "aug": "august",
         "aü": "ametiühing",
         "ca": "tsirka",
         "Ca": "CA",
         "CA": "CA",
-        "cl": "sentiliiter",
-        "cm": "sentimeeter",
-        "dB": "detsibell",
-        "dets": "detsember",
-        "dl": "detsiliiter",
         "dr": "doktor",
         "e.m.a": "enne meie ajaarvamist",
         "eKr": "enne Kristuse sündi",
-        "hj": "hobujõud",
         "hr": "härra",
         "hrl": "harilikult",
         "IK": "isikukood",
         "ingl": "inglise keeles",
         "j.a": "juures asuv",
-        "jaan": "jaanuar",
         "jj": "ja järgmine",
         "jm": "ja muud",
         "jms": "ja muud sellised",
@@ -199,16 +195,11 @@ class Preprocessor {
         "jun": "juunior",
         "jv": "järv",
         "k.a": "kaasa arvatud",
-        "kcal": "kilokalor",
         "kd": "köide",
-        "kg": "kilogramm",
         "kk": "keskkool",
         "kl": "kell",
         "klh": "kolhoos",
-        "km": "kilomeeter",
         "KM": "KM",
-        "km/h": "kilomeetrit tunnis",
-        "km²": "ruutkilomeeter",
         "kod": "kodanik",
         "kpl": "kauplus",
         "kr": "kroon",
@@ -222,29 +213,21 @@ class Preprocessor {
         "LP": "LP",
         "lüh": "lühend",
         "m.a.j": "meie ajaarvamise järgi",
-        "m/s": "meetrit sekundis",
-        "mbar": "millibaar",
-        "mg": "milligramm",
         "mh": "muu hulgas",
-        "ml": "milliliiter",
         "mld": "miljard",
         "mln": "miljon",
-        "mm": "millimeeter",
         "MM": "MM",
         "mnt": "maantee",
-        "m²": "ruutmeeter",
-        "m³": "kuupmeeter",
         "Mr": "mister",
         "Ms": "miss",
         "Mrs": "missis",
         "n-ö": "nii-öelda",
+        "nö": "nii-öelda",
         "nim": "nimeline",
         "nn": "niinimetatud",
-        "nov": "november",
         "nr": "number",
         "nt": "näiteks",
         "NT": "NT",
-        "okt": "oktoober",
         "p.o": "peab olema",
         "pKr": "pärast Kristuse sündi",
         "pa": "poolaasta",
@@ -271,15 +254,12 @@ class Preprocessor {
         "sealh": "sealhulgas",
         "seals": "sealsamas",
         "sen": "seenior",
-        "sept": "september",
         "sh": "sealhulgas",
         "skp": "selle kuu päeval",
         "SKP": "SKP",
-        "sl": "supilusikatäis",
         "sm": "seltsimees",
         "SM": "SM",
         "snd": "sündinud",
-        "spl": "supilusikatäis",
         "srn": "surnud",
         "stj": "saatja",
         "surn": "surnud",
@@ -288,14 +268,12 @@ class Preprocessor {
         "tehn": "tehniline",
         "tel": "telefon",
         "tk": "tükk",
-        "tl": "teelusikatäis",
         "tlk": "tõlkija",
         "tn": "tänav",
         "tv": "televisioon",
         "u": "umbes",
         "ukj": "uue, Gregoriuse kalendri järgi",
         "v.a": "välja arvatud",
-        "veebr": "veebruar",
         "vkj": "vana, Juliuse kalendri järgi",
         "vm": "või muud",
         "vms": "või muud sellist",
@@ -304,11 +282,71 @@ class Preprocessor {
         "õa": "õppeaasta",
         "õp": "õpetaja",
         "õpil": "õpilane",
+        // units
+        "KB": "kilobait",
+        "Kb": "kilobit",
+        "KiB": "kibibait",
+        "MB": "megabait",
+        "Mb": "megabit",
+        "MiB": "mebibait",
+        "GB": "gigabait",
+        "Gb": "gigabit",
+        "GiB": "gibibait",
+        "ml": "milliliiter",
+        "cl": "sentiliiter",
+        "dl": "detsiliiter",
+        "mm": "millimeeter",
+        "cm": "sentimeeter",
+        "km": "kilomeeter",
+        "m²": "ruutmeeter",
+        "km²": "ruutkilomeeter",
+        "m³": "kuupmeeter",
+        "m/s": "meetrit sekundis",
+        "km/h": "kilomeetrit tunnis",
+        "mg": "milligramm",
+        "kg": "kilogramm",
+        "dB": "detsibell",
+        "kcal": "kilokalor",
+        "mbar": "millibaar",
         "V": "volt",
         "Hz": "herts",
         "W": "vatt",
         "kW": "kilovatt",
         "kWh": "kilovatttund",
+        "hj": "hobujõud",
+        "tl": "teelusikatäis",
+        "sl": "supilusikatäis",
+        "spl": "supilusikatäis",
+        // month abbreviations in estonian
+        "jaan": "jaanuar",
+        "veebr": "veebruar",
+        "apr": "aprill",
+        "aug": "august",
+        "sept": "september",
+        "okt": "oktoober",
+        "nov": "november",
+        "dets": "detsember",
+        // month abbreviations in english
+        //"Jan": "jaanuar"
+        "Feb": "veebruar",
+        "Mar": "märts",
+        "Apr": "aprill",
+        //"May": "mai",
+        "Jun": "juuni",
+        "Jul": "juuli",
+        "Aug": "august",
+        "Sep": "september",
+        "Oct": "oktoober",
+        "Nov": "november",
+        "Dec": "detsember",
+        // weekday abbreviations in english
+        "Mon": "esmaspäev",
+        "Tue": "teisipäev",
+        "Wed": "kolmapäev",
+        "Thu": "neljapäev",
+        "Fri": "reede",
+        "Sat": "laupäev",
+        "Sun": "pühapäev"
     ]
     private final let CONTAINS_ROMAN_RE = /^[IVXLCDM]+(-\w+)?$/
     private final let ROMAN_NUMBERS = [
@@ -354,7 +392,7 @@ class Preprocessor {
         "X": "iks",
         "Y": "igrek",
     ]
-    
+
     private func pronounceCharacters(text: String) -> String {
         var newText = ""
         for char in text.split(separator: "-") {
@@ -447,7 +485,7 @@ class Preprocessor {
         }
         return newText
     }
-    
+
     private func expandLastResort(text: String) -> String {
         var newText = text
         for entry in LAST_RESORT {
@@ -455,7 +493,7 @@ class Preprocessor {
         }
         return newText
     }
-    
+
     private func unifyNumberPunctuation(text: String) -> String {
         if text.contains("\\.") && text.contains(",") || text.filter({ $0 == "," }).count > 1 {
             return text.replacingOccurrences(of: ",", with: "")
@@ -622,6 +660,14 @@ class Preprocessor {
                     word = newWord.joined(separator: "-")
                 }
             }
+            // version number combinations e.g. 1.7.0
+            if word.wholeMatch(of: VERSIONCODE_RE) != nil {
+                var numbers: [String] = []
+                for number in word.split(separator: /\./) {
+                    numbers.append(expandCardinals(text: String(number), kaane: "N"))
+                }
+                word = numbers.joined(separator: " punkt ")
+            }
             // single letters
             if word.count == 1 {
                 let char: Character = word.uppercased()[0]!
@@ -629,7 +675,7 @@ class Preprocessor {
                     word = val
                 }
             }
-
+            
             newTextParts.append(word + ending)
         }
         return newTextParts.joined(separator: " ")
@@ -650,7 +696,7 @@ class Preprocessor {
             sentEnd = String(lastChar)
             newText = String(newText.dropLast())
         }
-
+        
         // ... between numbers to kuni
         if let match = newText.firstMatch(of: /(\d)\.\.\.(\d)/) {
             newText = String(text[..<match.range.lowerBound])
@@ -662,18 +708,24 @@ class Preprocessor {
         //newText = convertToUtf8(text: newText)
         newText = simplifyUnicode(sentence: newText)
         
-        NSLog("QQQ before: \(newText)")
         // add a hyphen between any number-letter sequences  # TODO should not be done in URLs
-        newText = subBetween(text: newText, label: /(\d)([A-ZÄÖÜÕŽŠa-zäöüõšž])/, target: "-")
+        newText = subBetween(text: newText, label: /(\d\.?)([A-ZÄÖÜÕŽŠa-zäöüõšž])/, target: "-")
         newText = subBetween(text: newText, label: /([A-ZÄÖÜÕŽŠa-zäöüõšž])(\d)/, target: "-")
-        NSLog("QQQ after: \(newText)")
         
         // remove grouping between numbers
         // keeping space in 2006-10-27 12:48:50, in general require group of 3
         while let match = newText.firstMatch(of: TRINUMBER_RE) {
             newText = newText.replacingOccurrences(of: " ", with: "", range: match.range)
         }
+        
         //newText  = subBetween(text: newText, label: /([0-9]) ([0-9]{3})(?!\d)/, target: "")
+        
+        // if sentence beginning contains a capitalised abbreviation
+        let sentBeginning = String(newText.split(separator: /[.,]/).first!)
+        if ABBREVIATIONS.keys.contains(sentBeginning) {
+            newText = ABBREVIATIONS[sentBeginning]! + String(newText.dropFirst(sentBeginning.count))
+        }
+        
         if newText.count > 1 && String(newText[1]!) == String(newText[1]!).lowercased() {
             newText = newText.prefix(1).lowercased() + newText.dropFirst()
         }
@@ -1105,4 +1157,3 @@ class NumberNorm {
         return higherTier + " " + CARDINAL_NUMBERS[factor]! + (factor != 1 ? "it" : "") + lowerTier
     }
 }
-

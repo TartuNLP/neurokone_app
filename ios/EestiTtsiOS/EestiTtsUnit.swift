@@ -1,9 +1,10 @@
-/*
-See LICENSE folder for this sample’s licensing information.
-
-Abstract:
-The object that's responsible for rendering the speech the system requests.
-*/
+//
+//  EestiTtsUnit.swift
+//  EestiTtsMacOS
+//
+//  Created by Rasmus Lellep on 03.05.2023.
+//  Abstract:
+//  The object that's responsible for rendering the speech the system requests.
 
 import os
 import AVFoundation
@@ -115,7 +116,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
         }
         
         guard let audioData = self.currentData else {
-            // Handle the case when rawAudioData is nil
+            // Handle the case when self.currentData is nil
             return kAudioUnitErr_Uninitialized
         }
 
@@ -127,7 +128,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
             // Handle the case when conversion to UnsafeMutablePointer<Float32> fails
             return kAudioUnitErr_InvalidPropertyValue
         }
-
+        
         // Iterate through the requested number of frames.
         for frame in 0..<frameCount {
             // Copy the source frames into the target buffer.
@@ -157,7 +158,7 @@ public class EestiTtsUnit: AVSpeechSynthesisProviderAudioUnit {
 
         let text: String = speechRequest.ssmlRepresentation
         let voice: AVSpeechSynthesisProviderVoice = speechRequest.voice
-
+        
         self.outputMutex.wait()
         
         self.request = speechRequest
@@ -257,10 +258,8 @@ class Synthesizer {
     private let bytesInFrame = 4*80 //80 bins of 4-byte float values
     private let audioChunkSize = 160
     private let overlapSize = 16
-
-    private var volume: Float = 1.0
     
-    init() throws { 
+    init() throws {
         self.synthesizer = try FastSpeechModel(modelPath: Bundle.main.path(forResource: "fastspeech2-est", ofType: "tflite")!)
         self.vocoder = try VocoderModel(modelPath: Bundle.main.path(forResource: "hifigan-est.v2", ofType: "tflite")!)
     }

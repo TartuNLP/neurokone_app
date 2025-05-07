@@ -83,6 +83,7 @@ class Preprocessor {
   RegExp DECIMALSCURRENCYNUMBER_RE = RegExp(
     r'(([0-9]+[,.][0-9]+)|([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])|[0-9]+\.?)',
   );
+  RegExp VERSIONCODE_RE = RegExp(r'[0-9]+(\.[0-9]+)+');
 
   static Map<String, String> CURRENCIES = {
     '£s': ' nael',
@@ -197,28 +198,18 @@ class Preprocessor {
     '–': 'kuni',
   };
   static Map<String, String> ABBREVIATIONS = {
-    'apr': 'aprill',
-    'aug': 'august',
     'aü': 'ametiühing',
     'ca': 'tsirka',
     'Ca': 'CA',
     'CA': 'CA',
-    'cA': 'CA',
-    'cl': 'sentiliiter',
-    'cm': 'sentimeeter',
-    'dB': 'detsibell',
-    'dets': 'detsember',
-    'dl': 'detsiliiter',
     'dr': 'doktor',
     'e.m.a': 'enne meie ajaarvamist',
     'eKr': 'enne Kristuse sündi',
-    'hj': 'hobujõud',
     'hr': 'härra',
     'hrl': 'harilikult',
     'IK': 'isikukood',
     'ingl': 'inglise keeles',
     'j.a': 'juures asuv',
-    'jaan': 'jaanuar',
     'jj': 'ja järgmine',
     'jm': 'ja muud',
     'jms': 'ja muud sellised',
@@ -233,17 +224,11 @@ class Preprocessor {
     'jun': 'juunior',
     'jv': 'järv',
     'k.a': 'kaasa arvatud',
-    'kcal': 'kilokalor',
     'kd': 'köide',
-    'kg': 'kilogramm',
     'kk': 'keskkool',
     'kl': 'kell',
     'klh': 'kolhoos',
-    'km': 'kilomeeter',
     'KM': 'KM',
-    'kM': 'KM',
-    'km/h': 'kilomeetrit tunnis',
-    'km²': 'ruutkilomeeter',
     'kod': 'kodanik',
     'kpl': 'kauplus',
     'kr': 'kroon',
@@ -257,34 +242,21 @@ class Preprocessor {
     'LP': 'LP',
     'lüh': 'lühend',
     'm.a.j': 'meie ajaarvamise järgi',
-    'm/s': 'meetrit sekundis',
-    'mbar': 'millibaar',
-    'mg': 'milligramm',
     'mh': 'muu hulgas',
-    'ml': 'milliliiter',
     'mld': 'miljard',
     'mln': 'miljon',
-    'mm': 'millimeeter',
     'MM': 'MM',
-    'mM': 'MM',
     'mnt': 'maantee',
-    'm²': 'ruutmeeter',
-    'm³': 'kuupmeeter',
     'Mr': 'mister',
-    'mr': 'mister',
     'Ms': 'miss',
-    'ms': 'miss',
     'Mrs': 'missis',
-    'mrs': 'missis',
     'n-ö': 'nii-öelda',
+    'nö': 'nii-öelda',
     'nim': 'nimeline',
     'nn': 'niinimetatud',
-    'nov': 'november',
     'nr': 'number',
     'nt': 'näiteks',
     'NT': 'NT',
-    'nT': 'NT',
-    'okt': 'oktoober',
     'p.o': 'peab olema',
     'pKr': 'pärast Kristuse sündi',
     'pa': 'poolaasta',
@@ -295,7 +267,6 @@ class Preprocessor {
     'prof': 'professor',
     'ps': 'poolsaar',
     'PS': 'PS',
-    'pS': 'PS',
     'pst': 'puiestee',
     'ptk': 'peatükk',
     'raj': 'rajoon',
@@ -312,17 +283,12 @@ class Preprocessor {
     'sealh': 'sealhulgas',
     'seals': 'sealsamas',
     'sen': 'seenior',
-    'sept': 'september',
     'sh': 'sealhulgas',
     'skp': 'selle kuu päeval',
     'SKP': 'SKP',
-    'sKP': 'SKP',
-    'sl': 'supilusikatäis',
     'sm': 'seltsimees',
     'SM': 'SM',
-    'sM': 'SM',
     'snd': 'sündinud',
-    'spl': 'supilusikatäis',
     'srn': 'surnud',
     'stj': 'saatja',
     'surn': 'surnud',
@@ -331,15 +297,13 @@ class Preprocessor {
     'tehn': 'tehniline',
     'tel': 'telefon',
     'tk': 'tükk',
-    'tl': 'teelusikatäis',
     'tlk': 'tõlkija',
     'tn': 'tänav',
     'tv': 'televisioon',
     'u': 'umbes',
-    'ukj': 'uue); Gregoriuse kalendri järgi',
+    'ukj': 'uue, Gregoriuse kalendri järgi',
     'v.a': 'välja arvatud',
-    'veebr': 'veebruar',
-    'vkj': 'vana); Juliuse kalendri järgi',
+    'vkj': 'vana, Juliuse kalendri järgi',
     'vm': 'või muud',
     'vms': 'või muud sellist',
     'vrd': 'võrdle',
@@ -347,12 +311,71 @@ class Preprocessor {
     'õa': 'õppeaasta',
     'õp': 'õpetaja',
     'õpil': 'õpilane',
+    // units
+    'KB': 'kilobait',
+    'Kb': 'kilobit',
+    'KiB': 'kibibait',
+    'MB': 'megabait',
+    'Mb': 'megabit',
+    'MiB': 'mebibait',
+    'GB': 'gigabait',
+    'Gb': 'gigabit',
+    'GiB': 'gibibait',
+    'ml': 'milliliiter',
+    'cl': 'sentiliiter',
+    'dl': 'detsiliiter',
+    'mm': 'millimeeter',
+    'cm': 'sentimeeter',
+    'km': 'kilomeeter',
+    'm²': 'ruutmeeter',
+    'km²': 'ruutkilomeeter',
+    'm³': 'kuupmeeter',
+    'm/s': 'meetrit sekundis',
+    'km/h': 'kilomeetrit tunnis',
+    'mg': 'milligramm',
+    'kg': 'kilogramm',
+    'dB': 'detsibell',
+    'kcal': 'kilokalor',
+    'mbar': 'millibaar',
     'V': 'volt',
     'Hz': 'herts',
-    'hz': 'herts',
     'W': 'vatt',
     'kW': 'kilovatt',
     'kWh': 'kilovatttund',
+    'hj': 'hobujõud',
+    'tl': 'teelusikatäis',
+    'sl': 'supilusikatäis',
+    'spl': 'supilusikatäis',
+    // month abbreviations in estonian
+    'jaan': 'jaanuar',
+    'veebr': 'veebruar',
+    'apr': 'aprill',
+    'aug': 'august',
+    'sept': 'september',
+    'okt': 'oktoober',
+    'nov': 'november',
+    'dets': 'detsember',
+    // month abbreviations in english
+    //'Jan': 'jaanuar'
+    'Feb': 'veebruar',
+    'Mar': 'märts',
+    'Apr': 'aprill',
+    //'May': 'mai',
+    'Jun': 'juuni',
+    'Jul': 'juuli',
+    'Aug': 'august',
+    'Sep': 'september',
+    'Oct': 'oktoober',
+    'Nov': 'november',
+    'Dec': 'detsember',
+    // weekday abbreviations in english
+    'Mon': 'esmaspäev',
+    'Tue': 'teisipäev',
+    'Wed': 'kolmapäev',
+    'Thu': 'neljapäev',
+    'Fri': 'reede',
+    'Sat': 'laupäev',
+    'Sun': 'pühapäev',
   };
   static Map<String, int> ROMAN_NUMBERS = {
     'I': 1,
@@ -665,6 +688,14 @@ class Preprocessor {
           word = newWord.join('-');
         }
       }
+      // version number combinations e.g. 1.7.0
+      if (VERSIONCODE_RE.hasMatch(word)) {
+        List<String> numbers = [];
+        for (String number in word.split('.')) {
+          numbers.add(_expandCardinals(number, 'N'));
+        }
+        word = numbers.join(' punkt ');
+      }
       // single letters
       if (word.length == 1) {
         String character = word.toUpperCase();
@@ -686,12 +717,14 @@ class Preprocessor {
       sentEnd = lastChar;
       text = text.substring(0, text.length - 1);
     }
+
     // ... between numbers to kuni
     RegExpMatch? m = RegExp(r'(\d)\.\.\.(\d)').firstMatch(text);
     while (m != null) {
       text = '${m.group(1)} kuni ${m.group(2)}';
       m = RegExp(r'(\d)\.\.\.(\d)').firstMatch(text);
     }
+
     // reduce Unicode repertoire _before_ inserting any hyphens
     //text = _convertToUtf8(text);
     text = _simplifyUnicode(text);
@@ -708,7 +741,16 @@ class Preprocessor {
       text = text.replaceAll(num, num.replaceAll(" ", ""));
       m = TRINUMBER_RE.firstMatch(text);
     }
+
     //text = _subBetween(text, RegExp(r'([0-9]) ([0-9]{3})(?!\d)'), '');
+
+    // if sentence beginning contains a capitalised abbreviation
+    String sentBeginning = text.split("[.,]")[0];
+    if (ABBREVIATIONS.keys.contains(sentBeginning)) {
+      text =
+          ABBREVIATIONS[sentBeginning]! + text.substring(sentBeginning.length);
+    }
+
     if (text.length > 1 &&
         text.substring(1, 2).toLowerCase() == text.substring(1, 2)) {
       text = text.substring(0, 1).toLowerCase() + text.substring(1);
