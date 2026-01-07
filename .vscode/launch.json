@@ -5,18 +5,38 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "neurokone",
+            "name": "neurokone_app",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "neurokone (profile mode)",
+            "name": "neurokone_app (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "neurokone (release mode)",
+            "name": "neurokone_app (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "tflite_flutter",
+            "cwd": "tflite_flutter",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "tflite_flutter (profile mode)",
+            "cwd": "tflite_flutter",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "tflite_flutter (release mode)",
+            "cwd": "tflite_flutter",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

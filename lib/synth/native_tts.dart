@@ -14,7 +14,7 @@ class NativeTts {
   //Model that predicts audio waves from mel spectrogram.
   late final Vocoder _vocoder;
   //Plays the predicted audio.
-  final TtsPlayer audioPlayer = TtsPlayer();
+  TtsPlayer audioPlayer = TtsPlayer();
 
   int fileId = 0;
 

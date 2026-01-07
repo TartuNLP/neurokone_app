@@ -14,7 +14,7 @@ class TfModel {
 
   loadModel() async {
     mModule = await Interpreter.fromAsset(modulePath);
-    logger.d(modulePath);
+    logger.d('Loaded $modulePath');
   }
 
   //Performs inference on the model and returns model's output as Tensor.

@@ -4,10 +4,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:neurokone/variables.dart' as vars;
 import 'dart:io' show Platform;
 
+import 'package:url_launcher/url_launcher.dart';
+
 class Header extends StatelessWidget {
   final Function callback;
   final String _lang;
-  bool get isIOS => Platform.isIOS;
 
   const Header(this.callback, this._lang, {super.key});
 
@@ -71,13 +72,13 @@ class Header extends StatelessWidget {
       child: PopupMenuButton<String>(
         initialValue: vars.langs[_lang]!['more'],
         enabled: ModalRoute.of(context)?.settings.name == 'home',
-        icon: isIOS
+        icon: Platform.isAndroid
             ? const Icon(
-                Icons.more_horiz_rounded,
+                Icons.more_vert_rounded,
                 color: Colors.black54,
               )
             : const Icon(
-                Icons.more_vert_rounded,
+                Icons.more_horiz_rounded,
                 color: Colors.black54,
               ),
         onSelected: (value) => _handleClick(value, context),
@@ -104,8 +105,9 @@ class Header extends StatelessWidget {
   //'More' menu items
   Set<String> _getPages(BuildContext context) {
     Set<String> out = {};
-    List<String> options =
-        isIOS ? ['instructions'] : ['TTS settings', 'instructions'];
+    List<String> options = Platform.isAndroid
+        ? ['TTS settings', 'instructions', 'privacy policy']
+        : ['instructions', 'privacy policy'];
     for (String option in options) {
       out.add(vars.langs[_lang]![option]!);
     }
@@ -114,13 +116,19 @@ class Header extends StatelessWidget {
 
   //Route to take when selected an option in 'More' menu
   void _handleClick(String value, BuildContext context) async {
-    if (value == vars.langs[_lang]!['TTS settings']!) {
+    Map<String, String> strings = vars.langs[_lang]!;
+    if (value == strings['TTS settings']!) {
       await const AndroidIntent(action: 'com.android.settings.TTS_SETTINGS')
           .launch();
-    } else if (value == vars.langs[_lang]!['about']!) {
+    } else if (value == strings['about']!) {
       await Navigator.pushNamed(context, 'about');
-    } else if (value == vars.langs[_lang]!['instructions']!) {
+    } else if (value == strings['instructions']!) {
       await Navigator.pushNamed(context, 'instructions');
+    } else if (value == strings['privacy policy']!) {
+      if (!await launchUrl(
+          Uri.parse('https://tartunlp.ai/data-protection-policy'))) {
+        throw Exception('Could not load privacy policy.');
+      }
     }
   }
 }

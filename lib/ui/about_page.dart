@@ -4,10 +4,11 @@ import 'package:neurokone/variables.dart' as vars;
 import 'package:flutter/material.dart';
 
 class AboutPage extends StatefulWidget {
-  final String lang;
-  final Function switchLangs;
+  final String language;
+  final Function switchLanguage;
 
-  const AboutPage({super.key, required this.lang, required this.switchLangs});
+  const AboutPage(
+      {super.key, required this.language, required this.switchLanguage});
 
   @override
   State<AboutPage> createState() => _AboutPageState();
@@ -17,7 +18,7 @@ class _AboutPageState extends State<AboutPage> {
   @override
   Widget build(BuildContext context) {
     return NewPage.createScaffoldView(
-      appBarTitle: Header(widget.switchLangs, widget.lang),
+      appBarTitle: Header(widget.switchLanguage, widget.language),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -36,7 +37,7 @@ class _AboutPageState extends State<AboutPage> {
   _backButton() {
     return TextButton(
       onPressed: () => Navigator.pop(context),
-      child: Text(vars.langs[widget.lang]!['back']!),
+      child: Text(vars.langs[widget.language]!['back']!),
     );
   }
 }

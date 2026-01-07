@@ -2,21 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'dart:math' as math;
 import 'package:unorm_dart/unorm_dart.dart' as unorm;
+import 'package:syllables_split_ru/syllables_split_ru.dart' as syllables;
 
 class SentProcessor {
   Logger logger = Logger();
   //For splitting the whole text into sentences.
-  RegExp sentencesSplit =
-      RegExp(r'[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))');
+  RegExp sentencesSplit = RegExp(
+    r'[.!?]((((\" )| |( \"))(?![a-zäöüõšž]))|(\"?$))',
+  );
   //RegExp sentencesSplit = RegExp(r'(?=[.!?])((((" )| |( "))(?=[a-zõäöüšžA-ZÕÄÖÜŠŽ0-9]))|("?$))');
   //For splitting long sentences into parts
-  RegExp sentenceSplit =
-      RegExp(r'(?<!^)([,;!?]"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)|–) )');
+  RegExp sentenceSplit = RegExp(
+    r'(?<!^)([,;!?]"? )|( ((ja)|(ning)|(ega)|(ehk)|(või)|–) )',
+  );
   //For stripping unnecessary symbols from the beginning
   RegExp strip = RegExp(r'(^[,;!?–]?\"? ?)|([,;!?–]?\"? ?$)');
 
   List<String> _splitSentence(
-      String text, int currentSentId, RegExpMatch? match) {
+    String text,
+    int currentSentId,
+    RegExpMatch? match,
+  ) {
     List<String> sentenceParts = [];
     String sentence;
     if (match != null) {
@@ -28,9 +34,9 @@ class SentProcessor {
     for (RegExpMatch split in sentenceSplit.allMatches(sentence)) {
       if (split.start > 20 + currentCharId &&
           split.end < sentence.length - 20) {
-        sentenceParts.add(sentence
-            .substring(currentCharId, split.start)
-            .replaceAll(strip, ''));
+        sentenceParts.add(
+          sentence.substring(currentCharId, split.start).replaceAll(strip, ''),
+        );
         currentCharId = split.start;
       }
     }
@@ -65,15 +71,19 @@ class Preprocessor {
   Logger logger = Logger();
 
   RegExp CURLY_RE = RegExp(r'(.*?)\{(.+?)\}(.*)');
-  RegExp DECIMALS_RE =
-      RegExp(r'([0-9]+[,.][0-9]+)|([0-9]{1,3}(,[0-9]{3})+.[0-9]+)');
-  RegExp CURRENCY_RE =
-      RegExp(r'([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])');
+  RegExp DECIMALS_RE = RegExp(
+    r'([0-9]+[,.][0-9]+)|([0-9]{1,3}(,[0-9]{3})+.[0-9]+)',
+  );
+  RegExp CURRENCY_RE = RegExp(
+    r'([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])',
+  );
   RegExp ORDINAL_RE = RegExp(r'[0-9]+\.');
   RegExp NUMBER_RE = RegExp(r'[0-9]+');
   RegExp TRINUMBER_RE = RegExp(r'[0-9][0-9]?[0-9]?( [0-9]{3})+');
   RegExp DECIMALSCURRENCYNUMBER_RE = RegExp(
-      r'(([0-9]+[,.][0-9]+)|([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])|[0-9]+\.?)');
+    r'(([0-9]+[,.][0-9]+)|([£\$€]((\d+[.,])?\d+))|(((\d+[.,])?\d+)[£\$€])|[0-9]+\.?)',
+  );
+  RegExp VERSIONCODE_RE = RegExp(r'[0-9]+(\.[0-9]+)+');
 
   static Map<String, String> CURRENCIES = {
     '£s': ' nael',
@@ -105,7 +115,7 @@ class Preprocessor {
     "ringis",
     "paiku",
     "aegu",
-    "eest"
+    "eest",
   ];
   static List<String> PRONOUNCEABLE_ACRONYMS = [
     "ABBA",
@@ -163,7 +173,7 @@ class Preprocessor {
     "VAZ",
     "VEB",
     "WADA",
-    "WiFi"
+    "WiFi",
   ];
   static Map<String, String> AUDIBLE_SYMBOLS = {
     '@': 'ät',
@@ -185,31 +195,21 @@ class Preprocessor {
     '/': 'jagada',
     '−': 'miinus',
     '-': 'kuni',
-    '–': 'kuni'
+    '–': 'kuni',
   };
   static Map<String, String> ABBREVIATIONS = {
-    'apr': 'aprill',
-    'aug': 'august',
     'aü': 'ametiühing',
     'ca': 'tsirka',
     'Ca': 'CA',
     'CA': 'CA',
-    'cA': 'CA',
-    'cl': 'sentiliiter',
-    'cm': 'sentimeeter',
-    'dB': 'detsibell',
-    'dets': 'detsember',
-    'dl': 'detsiliiter',
     'dr': 'doktor',
     'e.m.a': 'enne meie ajaarvamist',
     'eKr': 'enne Kristuse sündi',
-    'hj': 'hobujõud',
     'hr': 'härra',
     'hrl': 'harilikult',
     'IK': 'isikukood',
     'ingl': 'inglise keeles',
     'j.a': 'juures asuv',
-    'jaan': 'jaanuar',
     'jj': 'ja järgmine',
     'jm': 'ja muud',
     'jms': 'ja muud sellised',
@@ -224,17 +224,11 @@ class Preprocessor {
     'jun': 'juunior',
     'jv': 'järv',
     'k.a': 'kaasa arvatud',
-    'kcal': 'kilokalor',
     'kd': 'köide',
-    'kg': 'kilogramm',
     'kk': 'keskkool',
     'kl': 'kell',
     'klh': 'kolhoos',
-    'km': 'kilomeeter',
     'KM': 'KM',
-    'kM': 'KM',
-    'km/h': 'kilomeetrit tunnis',
-    'km²': 'ruutkilomeeter',
     'kod': 'kodanik',
     'kpl': 'kauplus',
     'kr': 'kroon',
@@ -248,34 +242,21 @@ class Preprocessor {
     'LP': 'LP',
     'lüh': 'lühend',
     'm.a.j': 'meie ajaarvamise järgi',
-    'm/s': 'meetrit sekundis',
-    'mbar': 'millibaar',
-    'mg': 'milligramm',
     'mh': 'muu hulgas',
-    'ml': 'milliliiter',
     'mld': 'miljard',
     'mln': 'miljon',
-    'mm': 'millimeeter',
     'MM': 'MM',
-    'mM': 'MM',
     'mnt': 'maantee',
-    'm²': 'ruutmeeter',
-    'm³': 'kuupmeeter',
     'Mr': 'mister',
-    'mr': 'mister',
     'Ms': 'miss',
-    'ms': 'miss',
     'Mrs': 'missis',
-    'mrs': 'missis',
     'n-ö': 'nii-öelda',
+    'nö': 'nii-öelda',
     'nim': 'nimeline',
     'nn': 'niinimetatud',
-    'nov': 'november',
     'nr': 'number',
     'nt': 'näiteks',
     'NT': 'NT',
-    'nT': 'NT',
-    'okt': 'oktoober',
     'p.o': 'peab olema',
     'pKr': 'pärast Kristuse sündi',
     'pa': 'poolaasta',
@@ -286,7 +267,6 @@ class Preprocessor {
     'prof': 'professor',
     'ps': 'poolsaar',
     'PS': 'PS',
-    'pS': 'PS',
     'pst': 'puiestee',
     'ptk': 'peatükk',
     'raj': 'rajoon',
@@ -303,17 +283,12 @@ class Preprocessor {
     'sealh': 'sealhulgas',
     'seals': 'sealsamas',
     'sen': 'seenior',
-    'sept': 'september',
     'sh': 'sealhulgas',
     'skp': 'selle kuu päeval',
     'SKP': 'SKP',
-    'sKP': 'SKP',
-    'sl': 'supilusikatäis',
     'sm': 'seltsimees',
     'SM': 'SM',
-    'sM': 'SM',
     'snd': 'sündinud',
-    'spl': 'supilusikatäis',
     'srn': 'surnud',
     'stj': 'saatja',
     'surn': 'surnud',
@@ -322,15 +297,13 @@ class Preprocessor {
     'tehn': 'tehniline',
     'tel': 'telefon',
     'tk': 'tükk',
-    'tl': 'teelusikatäis',
     'tlk': 'tõlkija',
     'tn': 'tänav',
     'tv': 'televisioon',
     'u': 'umbes',
-    'ukj': 'uue); Gregoriuse kalendri järgi',
+    'ukj': 'uue, Gregoriuse kalendri järgi',
     'v.a': 'välja arvatud',
-    'veebr': 'veebruar',
-    'vkj': 'vana); Juliuse kalendri järgi',
+    'vkj': 'vana, Juliuse kalendri järgi',
     'vm': 'või muud',
     'vms': 'või muud sellist',
     'vrd': 'võrdle',
@@ -338,12 +311,71 @@ class Preprocessor {
     'õa': 'õppeaasta',
     'õp': 'õpetaja',
     'õpil': 'õpilane',
+    // units
+    'KB': 'kilobait',
+    'Kb': 'kilobit',
+    'KiB': 'kibibait',
+    'MB': 'megabait',
+    'Mb': 'megabit',
+    'MiB': 'mebibait',
+    'GB': 'gigabait',
+    'Gb': 'gigabit',
+    'GiB': 'gibibait',
+    'ml': 'milliliiter',
+    'cl': 'sentiliiter',
+    'dl': 'detsiliiter',
+    'mm': 'millimeeter',
+    'cm': 'sentimeeter',
+    'km': 'kilomeeter',
+    'm²': 'ruutmeeter',
+    'km²': 'ruutkilomeeter',
+    'm³': 'kuupmeeter',
+    'm/s': 'meetrit sekundis',
+    'km/h': 'kilomeetrit tunnis',
+    'mg': 'milligramm',
+    'kg': 'kilogramm',
+    'dB': 'detsibell',
+    'kcal': 'kilokalor',
+    'mbar': 'millibaar',
     'V': 'volt',
     'Hz': 'herts',
-    'hz': 'herts',
     'W': 'vatt',
     'kW': 'kilovatt',
     'kWh': 'kilovatttund',
+    'hj': 'hobujõud',
+    'tl': 'teelusikatäis',
+    'sl': 'supilusikatäis',
+    'spl': 'supilusikatäis',
+    // month abbreviations in estonian
+    'jaan': 'jaanuar',
+    'veebr': 'veebruar',
+    'apr': 'aprill',
+    'aug': 'august',
+    'sept': 'september',
+    'okt': 'oktoober',
+    'nov': 'november',
+    'dets': 'detsember',
+    // month abbreviations in english
+    //'Jan': 'jaanuar'
+    'Feb': 'veebruar',
+    'Mar': 'märts',
+    'Apr': 'aprill',
+    //'May': 'mai',
+    'Jun': 'juuni',
+    'Jul': 'juuli',
+    'Aug': 'august',
+    'Sep': 'september',
+    'Oct': 'oktoober',
+    'Nov': 'november',
+    'Dec': 'detsember',
+    // weekday abbreviations in english
+    'Mon': 'esmaspäev',
+    'Tue': 'teisipäev',
+    'Wed': 'kolmapäev',
+    'Thu': 'neljapäev',
+    'Fri': 'reede',
+    'Sat': 'laupäev',
+    'Sun': 'pühapäev',
   };
   static Map<String, int> ROMAN_NUMBERS = {
     'I': 1,
@@ -355,33 +387,33 @@ class Preprocessor {
     'M': 1000,
   };
   static Map<String, String> ALPHABET = {
-    'A': 'aa',
-    'B': 'bee',
-    'C': 'tsee',
-    'D': 'dee',
-    'E': 'ee',
+    'A': 'aaa',
+    'B': 'beee',
+    'C': 'tseee',
+    'D': 'deee',
+    'E': 'eeee',
     'F': 'eff',
-    'G': 'gee',
-    'H': 'haa',
-    'I': 'ii',
+    'G': 'geee',
+    'H': 'hhaa',
+    'I': 'iii',
     'J': 'jott',
-    'K': 'kaa',
+    'K': 'khaa',
     'L': 'ell',
-    'M': 'emm',
-    'N': 'enn',
-    'O': 'oo',
-    'P': 'pee',
-    'Q': 'kuu',
-    'R': 'err',
+    'M': 'emmm',
+    'N': 'ennn',
+    'O': 'ooo',
+    'P': 'ppee',
+    'Q': 'khuu',
+    'R': 'errr',
     'S': 'ess',
-    'Š': 'šaa',
-    'Z': 'zett',
-    'Ž': 'žee',
-    'T': 'tee',
+    'Š': 'šhaa',
+    'Z': 'tzett',
+    'Ž': 'žžeee',
+    'T': 'tteee',
     'U': 'uu',
-    'V': 'vee',
+    'V': 'veee',
     'W': 'kaksisvee',
-    'Õ': 'õõ',
+    'Õ': 'õõõ',
     'Ä': 'ää',
     'Ö': 'öö',
     'Ü': 'üü',
@@ -416,10 +448,14 @@ class Preprocessor {
     while (m != null) {
       if (m.groupCount == 2) {
         text = text.replaceFirst(
-            label, m.group(1).toString() + target + m.group(2).toString());
+          label,
+          m.group(1).toString() + target + m.group(2).toString(),
+        );
       } else if (m.groupCount == 3) {
         text = text.replaceFirst(
-            label, m.group(1).toString() + target + m.group(3).toString());
+          label,
+          m.group(1).toString() + target + m.group(3).toString(),
+        );
       }
       m = label.firstMatch(text);
     }
@@ -599,8 +635,8 @@ class Preprocessor {
       }
       // if current token is a symbol
       if (!RegExp(
-              r'([A-ZÄÖÜÕŽŠa-zäöüõšž]+(\.(?!( [A-ZÄÖÜÕŽŠ])))?)|([£$€]?[0-9.,]+[£$€]?)')
-          .hasMatch(word)) {
+        r'([A-ZÄÖÜÕŽŠa-zäöüõšž]+(\.(?!( [A-ZÄÖÜÕŽŠ])))?)|([£$€]?[0-9.,]+[£$€]?)',
+      ).hasMatch(word)) {
         if (AUDIBLE_SYMBOLS.containsKey(word)) {
           if (AUDIBLE_CONNECTING_SYMBOLS.contains(word) &&
               !(i > 0 &&
@@ -631,14 +667,16 @@ class Preprocessor {
             (i < tokens.length - 1 &&
                 GENITIVE_POSTPOSITIONS.contains(tokens[i + 1])) ||
             (i < tokens.length - 2 &&
-                [CURRENCIES['\$g'], CURRENCIES['€g']]
-                    .contains(" ${tokens[i + 1]}") &&
+                [
+                  CURRENCIES['\$g'],
+                  CURRENCIES['€g'],
+                ].contains(" ${tokens[i + 1]}") &&
                 GENITIVE_POSTPOSITIONS.contains(tokens[i + 2]))) {
           kaane = 'O';
         }
         word = _expandNumbers(word, kaane);
       }
-
+      // abbreviations
       if (ABBREVIATIONS.containsKey(word)) {
         word = ABBREVIATIONS[word]!;
       } else if (RegExp(r'^[A-ZÄÖÜÕŽŠ]+$').hasMatch(word)) {
@@ -650,6 +688,22 @@ class Preprocessor {
           word = newWord.join('-');
         }
       }
+      // version number combinations e.g. 1.7.0
+      if (VERSIONCODE_RE.hasMatch(word)) {
+        List<String> numbers = [];
+        for (String number in word.split('.')) {
+          numbers.add(_expandCardinals(number, 'N'));
+        }
+        word = numbers.join(' punkt ');
+      }
+      // single letters
+      if (word.length == 1) {
+        String character = word.toUpperCase();
+        if (ALPHABET.containsKey(character)) {
+          word = ALPHABET[character]!;
+        }
+      }
+
       newTextParts.add(word + ending);
     }
     return newTextParts.join(' ');
@@ -663,12 +717,14 @@ class Preprocessor {
       sentEnd = lastChar;
       text = text.substring(0, text.length - 1);
     }
+
     // ... between numbers to kuni
     RegExpMatch? m = RegExp(r'(\d)\.\.\.(\d)').firstMatch(text);
     while (m != null) {
       text = '${m.group(1)} kuni ${m.group(2)}';
       m = RegExp(r'(\d)\.\.\.(\d)').firstMatch(text);
     }
+
     // reduce Unicode repertoire _before_ inserting any hyphens
     //text = _convertToUtf8(text);
     text = _simplifyUnicode(text);
@@ -685,13 +741,31 @@ class Preprocessor {
       text = text.replaceAll(num, num.replaceAll(" ", ""));
       m = TRINUMBER_RE.firstMatch(text);
     }
+
     //text = _subBetween(text, RegExp(r'([0-9]) ([0-9]{3})(?!\d)'), '');
-    text = text.substring(0, 1).toLowerCase() + text.substring(1);
+
+    // if sentence beginning contains a capitalised abbreviation
+    String sentBeginning = text.split("[.,]")[0];
+    if (ABBREVIATIONS.keys.contains(sentBeginning)) {
+      text =
+          ABBREVIATIONS[sentBeginning]! + text.substring(sentBeginning.length);
+    }
+
+    if (text.length > 1 &&
+        text.substring(1, 2).toLowerCase() == text.substring(1, 2)) {
+      text = text.substring(0, 1).toLowerCase() + text.substring(1);
+    }
 
     //Replace dash with comma
     text = text.replaceAll(" – ", ", ");
     //Remove end of quote before comma
     text = text.replaceAll(",\"", ",");
+
+    bool ru = false;
+    if (RuProcessor.alphabet.split('').any(text.contains)) {
+      ru = true;
+      text = RuProcessor.transcribe(text);
+    }
 
     // split text into words ands symbols
     RegExp tokenizer = RegExp(r'([A-ZÄÖÜÕŽŠa-zäöüõšž@#0-9.,£$€]+)|\S');
@@ -704,7 +778,9 @@ class Preprocessor {
     text = text.toLowerCase();
     text += sentEnd;
     text = _collapseWhitespace(text);
-    text = _expandAbbreviations(text);
+    if (!ru) {
+      text = _expandAbbreviations(text);
+    }
     text = text.toLowerCase();
 
     logger.d('Text preprocessed:$text');
@@ -731,6 +807,171 @@ class Preprocessor {
       sentence = m.group(3)!;
     }
     return sequence.join('');
+  }
+}
+
+class RuProcessor {
+  static Map<String, String> d = {
+    'а': 'a',
+    'б': 'b',
+    'в': 'v',
+    'г': 'g',
+    'д': 'd',
+    'ж': 'ž',
+    'з': 'z',
+    'к': 'k',
+    'л': 'l',
+    'м': 'm',
+    'н': 'n',
+    'о': 'o',
+    'п': 'p',
+    'р': 'r',
+    'т': 't',
+    'у': 'u',
+    'ф': 'f',
+    'ц': 'ts',
+    'ч': 'tš',
+    'ш': 'š',
+    'щ': 'štš',
+    'ъ': '',
+    'ы': 'õ',
+    'э': 'e',
+    'ю': 'ju',
+  };
+
+  static String alphabet = "абвгджзклмнопртуфцчшщъыэюийеёсхья";
+  static String vowels = "аеёиоуыэюя";
+
+  static int numberOfSyllables(String word) {
+    return syllables.splitWord(word).length;
+  }
+
+  // "и" : üldjuhul "i"/sõna algul vokaali ees "j"
+  // "й" : üldjuhul "i"/sõna algul vokaali ees "j"
+  // "ий" : üldjuhul "ii"/kahe- ja enamasilbilise sõna lõpul "i"
+  static String i(String word, int id) {
+    if (word.length > 1) {
+      if (id == 0 && vowels.contains(word[id + 1])) {
+        return 'j';
+      } else if (id == word.length - 1 &&
+          word.endsWith('ий') &&
+          numberOfSyllables(word) >= 2) {
+        return '';
+      }
+    }
+    return 'i';
+  }
+
+  // "e" : üldjuhul "e"/sõna algul, samuti vokaali, ь- ning ъ-märgi järel "je"
+  static String e(String word, int id) {
+    if (id == 0 || vowels.contains(word[id - 1]) || word[id - 1] == 'ъ') {
+      return 'je';
+    }
+    return 'e';
+  }
+
+  // "ё" : üldjuhul "jo"/ж, ч, ш, щ järel "o"; Märkus. Täht е-ga märgitud ё transkribeeritakse nagu ё
+  static String jo(String word, int id) {
+    if (id > 0 && ['ж', 'ч', 'ш', 'щ', 'ь'].contains(word[id - 1])) {
+      return 'o';
+    }
+    return 'jo';
+  }
+
+  // "с" : üldjuhul "s"/vokaalide vahel ja sõna lõpul vokaali järel "ss"; Märkus. Liitsõnalise nime järelkomponendi algul oleva с-i võib asendada ühekordse s-iga (Новосибирск = Novosibirsk)
+  static String s(String word, int id) {
+    if (id > 0) {
+      if (id == word.length - 1 && vowels.contains(word[id - 1]) ||
+          id < word.length - 1 &&
+              vowels.contains(word[id - 1]) &&
+              vowels.contains(word[id + 1])) {
+        return 'ss';
+      }
+    }
+    return 's';
+  }
+
+  // "х" : üldjuhul "h"/vokaalide vahel ja sõna lõpul vokaali järel "hh"; Märkus. Liitsõnalise nime järelkomponendi algul oleva х võib asendada ühekordse h-ga (Самоходов = Samohodov)
+  static String h(String word, int id) {
+    if (id > 0) {
+      if (id == word.length - 1 && vowels.contains(word[id - 1]) ||
+          id < word.length - 1 &&
+              vowels.contains(word[id - 1]) &&
+              vowels.contains(word[id + 1])) {
+        return 'hh';
+      }
+    }
+    return 'h';
+  }
+
+  // "ь" : üldjuhul jääb märkimata/vokaali, välja arvatud e, ё, ю, я ees "j"
+  static String snak(String word, int id) {
+    if (id < word.length - 1) {
+      if (['e', 'ё'].contains(word[id + 1])) {
+        return 'j';
+      }
+    }
+    return '';
+  }
+
+  // "я" : üldjuhul "ja"/Väljaspool dokumente ja teatmeteoseid võib eesnimede lõpul и järel я asendada a-ga (Евгения = Jevgenia, Лидия = Lidia)
+  static String ja(String word, int id) {
+    return 'ja';
+  }
+
+  static String transcribeWord(String word) {
+    String lower_word = word.toLowerCase();
+    String new_word = '';
+    for (int id = 0; id < lower_word.length; id++) {
+      switch (lower_word[id]) {
+        case 'и' || 'й':
+          new_word += i(lower_word, id);
+          break;
+        case 'е':
+          new_word += e(lower_word, id);
+          break;
+        case 'ё':
+          new_word += jo(lower_word, id);
+          break;
+        case 'с':
+          new_word += s(lower_word, id);
+          break;
+        case 'х':
+          new_word += h(lower_word, id);
+          break;
+        case 'ь':
+          new_word += snak(lower_word, id);
+          break;
+        case 'я':
+          new_word += ja(lower_word, id);
+          break;
+        default:
+          if (d.keys.contains(lower_word[id])) {
+            new_word += d[lower_word[id]]!;
+          }
+      }
+    }
+    if (word != lower_word) {
+      return new_word[0].toUpperCase() + new_word.substring(1);
+    }
+    return new_word;
+  }
+
+  static String transcribe(String text) {
+    List<String> output = [];
+    RegExp regex = RegExp(
+      r"[\u0401\u0451\u0410-\u044f]+|[^\u0401\u0451\u0410-\u044f]+",
+    );
+    while (regex.hasMatch(text)) {
+      RegExpMatch match = regex.firstMatch(text)!;
+      String word = match.group(0)!;
+      if (alphabet.contains(word[0].toLowerCase())) {
+        word = transcribeWord(word);
+      }
+      output.add(word);
+      text = text.substring(match.end);
+    }
+    return output.join('');
   }
 }
 
@@ -829,7 +1070,7 @@ class NumberNormEt {
     'seitse',
     'kaheksa',
     'üheksa',
-    'kümme'
+    'kümme',
   ];
 
   static String toOrdinal(int n, String kaane) {
